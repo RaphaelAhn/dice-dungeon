@@ -1,0 +1,43 @@
+:root {
+  --bg: #0a0b0f;
+  --panel: #14161f;
+  --line: #2a2e3d;
+  --text: #e8eaf2;
+  --muted: #8b90a5;
+  --accent: #ff9c59;
+  --sky: #7dd3fc;
+
+  color-scheme: dark;
+  font-family: 'Galmuri11', 'DungGeunMo', 'Pretendard', system-ui, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* 도트 에셋은 정수 배율 확대 + 안티에일리어싱 금지 */
+img {
+  image-rendering: pixelated;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}

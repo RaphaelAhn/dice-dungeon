@@ -1,0 +1,204 @@
+.cc {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 32px 16px 64px;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 20%, rgba(125, 211, 252, 0.08), transparent 70%),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 0, 0, 0.25) 3px 4px),
+    var(--bg);
+}
+
+.cc__head {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cc__head h2 {
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+.cc__head p {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* --- 캐릭터 선택 --- */
+.cc__stage {
+  display: flex;
+  gap: 20px;
+}
+
+.cc__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 28px 14px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  filter: grayscale(1) brightness(0.6);
+  transition: filter 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.cc__card.is-on {
+  filter: none;
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 0 28px rgba(255, 156, 89, 0.2);
+}
+
+.cc__name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.cc__card.is-on .cc__name {
+  color: var(--accent);
+}
+
+/* --- 이름 입력 --- */
+.cc__name-field {
+  width: min(460px, 92vw);
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+}
+
+.cc__name-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sky);
+}
+
+.cc__input {
+  width: 100%;
+  padding: 6px 0;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--line);
+  outline: none;
+  transition: border-color 0.12s;
+}
+.cc__input::placeholder {
+  font-weight: 400;
+  color: var(--muted);
+  opacity: 0.7;
+}
+.cc__input:focus {
+  border-bottom-color: var(--accent);
+}
+
+.cc__count {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 스탯 --- */
+.cc__stats {
+  width: min(460px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+}
+.cc__stats h3 {
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  color: var(--sky);
+}
+.cc__stats ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+}
+.cc__stats li {
+  display: grid;
+  grid-template-columns: 64px 48px 1fr;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(42, 46, 61, 0.5);
+}
+.cc__stat-label {
+  font-size: 14px;
+  font-weight: 700;
+}
+.cc__stat-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--accent);
+}
+.cc__stat-desc {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cc__note {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.cc__note b {
+  color: var(--sky);
+}
+
+/* --- 버튼 --- */
+.cc__foot {
+  display: flex;
+  gap: 10px;
+}
+.cc__btn {
+  padding: 12px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  border: 2px solid var(--line);
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.cc__btn--ghost {
+  color: var(--muted);
+}
+.cc__btn--ghost:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.cc__btn--go {
+  color: var(--text);
+  border-color: rgba(255, 156, 89, 0.5);
+  background: rgba(255, 156, 89, 0.1);
+}
+.cc__btn--go:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(255, 156, 89, 0.2);
+}
+.cc__btn--go:disabled {
+  color: var(--muted);
+  border-color: var(--line);
+  background: none;
+  cursor: not-allowed;
+}
+
+.cc__hint {
+  position: absolute;
+  bottom: 24px;
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.6;
+}

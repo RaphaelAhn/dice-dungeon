@@ -1,0 +1,80 @@
+/* 임시 실루엣. 픽셀 그리드에 맞춰 정수 px 만 쓴다. */
+.sprite {
+  display: grid;
+  place-items: end center;
+  animation: sprite-idle 1.8s steps(2) infinite;
+}
+
+.sprite__stack {
+  position: relative;
+  width: 96px;
+  height: 176px;
+}
+
+.sprite__stack span {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.sprite__head {
+  top: 24px;
+  width: 40px;
+  height: 40px;
+  background: #e8c9a8;
+  border: 4px solid #14161f;
+}
+
+.sprite__hair {
+  top: 8px;
+  width: 56px;
+  height: 44px;
+  background: #1b1b22;
+  z-index: 2;
+}
+
+.sprite__body {
+  top: 64px;
+  width: 64px;
+  height: 68px;
+  background: #23252f;
+  border: 4px solid #14161f;
+}
+
+.sprite__legs {
+  top: 130px;
+  width: 48px;
+  height: 40px;
+  background: #1b1d26;
+  border: 4px solid #14161f;
+}
+
+.sprite__shadow {
+  top: 168px;
+  width: 72px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+/* 여성: 긴 머리 + 실루엣이 좁다 */
+.sprite--female .sprite__hair {
+  height: 84px;
+  width: 64px;
+}
+.sprite--female .sprite__body {
+  width: 56px;
+}
+
+/* 남성: 짧은 머리 + 어깨가 넓다 */
+.sprite--male .sprite__hair {
+  height: 40px;
+}
+.sprite--male .sprite__body {
+  width: 72px;
+}
+
+@keyframes sprite-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
