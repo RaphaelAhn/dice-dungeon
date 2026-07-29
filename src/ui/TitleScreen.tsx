@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { loadPieces, PUZZLE_TOTAL } from '../core/save'
+import Dice from './Dice'
 import './TitleScreen.css'
 
 export type TitleAction = 'start' | 'puzzle' | 'howto'
@@ -9,26 +10,6 @@ const MENU: { id: TitleAction; label: string }[] = [
   { id: 'puzzle', label: '퍼즐 조각' },
   { id: 'howto', label: '조작 안내' },
 ]
-
-/** 주사위 눈 1~6 의 점 좌표 (3x3 그리드 인덱스) */
-const PIPS: Record<number, number[]> = {
-  1: [4],
-  2: [0, 8],
-  3: [0, 4, 8],
-  4: [0, 2, 6, 8],
-  5: [0, 2, 4, 6, 8],
-  6: [0, 2, 3, 5, 6, 8],
-}
-
-function Dice({ face }: { face: number }) {
-  return (
-    <div className="dice" aria-label={`주사위 ${face}`}>
-      {Array.from({ length: 9 }, (_, i) => (
-        <span key={i} className={PIPS[face].includes(i) ? 'pip on' : 'pip'} />
-      ))}
-    </div>
-  )
-}
 
 export default function TitleScreen({ onSelect }: { onSelect: (a: TitleAction) => void }) {
   const [cursor, setCursor] = useState(0)
@@ -59,7 +40,7 @@ export default function TitleScreen({ onSelect }: { onSelect: (a: TitleAction) =
   return (
     <div className="title">
       <div className="title__top">
-        <Dice face={face} />
+        <Dice face={face} idle />
         <h1 className="title__logo">
           주사위 <span>던전</span>
         </h1>

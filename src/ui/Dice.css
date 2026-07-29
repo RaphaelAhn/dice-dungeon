@@ -1,0 +1,63 @@
+/* 주사위는 CSS만으로 그린다. 이미지 에셋 불필요 — 외부 에셋 출처 표기 대상도 아니다. */
+.dice {
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  gap: 6%;
+  padding: 14%;
+  background: #f2efe6;
+  border: 4px solid #1a1c26;
+  box-shadow: 0 0 24px rgba(255, 156, 89, 0.35);
+}
+
+.pip {
+  border-radius: 50%;
+  background: transparent;
+}
+.pip.on {
+  background: #1a1c26;
+}
+
+.dice--idle {
+  animation: dice-tilt 3.6s ease-in-out infinite;
+}
+
+.dice--rolling {
+  animation: dice-shake 0.24s linear infinite;
+  box-shadow: 0 0 40px rgba(255, 156, 89, 0.6);
+}
+
+@keyframes dice-tilt {
+  0%,
+  100% {
+    transform: rotate(-6deg) translateY(0);
+  }
+  50% {
+    transform: rotate(6deg) translateY(-8px);
+  }
+}
+
+@keyframes dice-shake {
+  0% {
+    transform: rotate(-14deg) translateY(0) scale(1);
+  }
+  25% {
+    transform: rotate(10deg) translateY(-10px) scale(1.06);
+  }
+  50% {
+    transform: rotate(16deg) translateY(0) scale(1);
+  }
+  75% {
+    transform: rotate(-8deg) translateY(-6px) scale(1.04);
+  }
+  100% {
+    transform: rotate(-14deg) translateY(0) scale(1);
+  }
+}
+
+/* 흔들림에 민감한 사용자는 애니메이션을 끈다. */
+@media (prefers-reduced-motion: reduce) {
+  .dice--idle,
+  .dice--rolling {
+    animation: none;
+  }
+}

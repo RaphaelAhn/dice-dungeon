@@ -19,32 +19,7 @@
   gap: 20px;
 }
 
-/* --- 주사위 (CSS만으로 그린다. 에셋 불필요) --- */
-.dice {
-  width: 72px;
-  height: 72px;
-  display: grid;
-  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-  gap: 4px;
-  padding: 10px;
-  background: #f2efe6;
-  border: 4px solid #1a1c26;
-  box-shadow: 0 0 24px rgba(255, 156, 89, 0.35);
-  animation: dice-tilt 3.6s ease-in-out infinite;
-}
-
-.pip {
-  border-radius: 50%;
-  background: transparent;
-}
-.pip.on {
-  background: #1a1c26;
-}
-
-@keyframes dice-tilt {
-  0%, 100% { transform: rotate(-6deg) translateY(0); }
-  50% { transform: rotate(6deg) translateY(-8px); }
-}
+/* 주사위 스타일은 Dice.css 로 옮겼다. 타이틀과 굴림 화면이 같은 것을 쓴다. */
 
 /* --- 로고 --- */
 .title__logo {

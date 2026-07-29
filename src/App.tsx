@@ -1,32 +1,48 @@
 import { useCallback, useState } from 'react'
 import TitleScreen from './ui/TitleScreen'
 import CharacterCreate from './ui/CharacterCreate'
-import CharacterSprite from './ui/CharacterSprite'
-import { GENDER_LABEL, type Gender } from './core/character'
+import DiceRoll from './ui/DiceRoll'
+import { BLESSINGS, type BlessingId } from './core/blessing'
+import type { Gender } from './core/character'
+import { createRun, type Run } from './core/run'
 import { loadPieces, PUZZLE_TOTAL } from './core/save'
 import './App.css'
 
-type Screen = 'title' | 'character' | 'dice' | 'puzzle' | 'howto'
+type Screen = 'title' | 'character' | 'dice' | 'stage' | 'puzzle' | 'howto'
 
 // ponytail: 화면 수가 적어 라우터 없이 상태 하나로 전환한다.
 export default function App() {
   const [screen, setScreen] = useState<Screen>('title')
   const [gender, setGender] = useState<Gender>('female')
   const [name, setName] = useState('')
+  // 런은 주사위를 굴린 순간 만들어진다. 그 전에는 캐릭터 정보만 들고 있다.
+  const [run, setRun] = useState<Run | null>(null)
   const back = useCallback(() => setScreen('title'), [])
 
-  const startRun = useCallback((g: Gender, n: string) => {
+  const toDice = useCallback((g: Gender, n: string) => {
     setGender(g)
     setName(n)
     setScreen('dice')
   }, [])
+
+  const startRun = useCallback(
+    (blessing: BlessingId) => {
+      setRun(createRun(gender, name, blessing))
+      setScreen('stage')
+    },
+    [gender, name],
+  )
 
   if (screen === 'title') {
     return <TitleScreen onSelect={(a) => setScreen(a === 'start' ? 'character' : a)} />
   }
 
   if (screen === 'character') {
-    return <CharacterCreate onConfirm={startRun} onBack={back} />
+    return <CharacterCreate onConfirm={toDice} onBack={back} />
+  }
+
+  if (screen === 'dice') {
+    return <DiceRoll gender={gender} name={name} onStart={startRun} />
   }
 
   return (
@@ -34,7 +50,7 @@ export default function App() {
       <div className="stub__panel">
         {screen === 'puzzle' && <PuzzlePanel />}
         {screen === 'howto' && <HowToPanel />}
-        {screen === 'dice' && <DicePanel gender={gender} name={name} />}
+        {screen === 'stage' && run && <StagePanel run={run} />}
         <button className="stub__back" onClick={back}>
           ← 돌아가기
         </button>
@@ -75,18 +91,20 @@ function HowToPanel() {
   )
 }
 
-function DicePanel({ gender, name }: { gender: Gender; name: string }) {
+function StagePanel({ run }: { run: Run }) {
+  const b = BLESSINGS[run.blessing]
   return (
     <>
-      <h2>주사위 굴리기</h2>
-      <div className="stub__hero">
-        <CharacterSprite gender={gender} scale={2} />
-        <b className="stub__hero-name">{name}</b>
-      </div>
+      <h2>스테이지 1-{run.stage}</h2>
       <p className="stub__desc">
-        {GENDER_LABEL[gender]} 캐릭터 <b>{name}</b>(으)로 시작합니다. 주사위 화면은 다음 단계에서
-        만듭니다.
+        <b>{run.name}</b> · 축복 <b>{b.name}</b>({b.desc}) · 보상 {run.rewardChoices}택
+        {run.extraLife && ' · 사망권 1'}
       </p>
+      <p className="stub__desc">
+        HP {run.hp}/{run.max.hp} · MP {run.mp} · 공 {run.max.atk} · 마 {run.max.mag} · 속{' '}
+        {run.max.spd} · 운 {run.max.luk}
+      </p>
+      <p className="stub__desc">턴제 전투는 다음 단계에서 만듭니다.</p>
     </>
   )
 }
