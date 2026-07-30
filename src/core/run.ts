@@ -1,5 +1,7 @@
 import type { Gender, Stats } from './character'
 import { applyFace, DICE, type Face } from './dice'
+import type { SkillLine } from './skill'
+import { initialBudget } from './timer'
 
 export const FINAL_STAGE = 10
 
@@ -56,6 +58,35 @@ export type Run = {
   rewardStages: readonly number[]
   /** 남은 '최고 티어 확정' 횟수. 주사위 6번 눈이 1을 준다. */
   topTierLeft: number
+  /** 보유 스킬. 1-8 전직 판정의 입력이 된다. */
+  skills: SkillLine[]
+  potions: number
+  /** 남은 제한 시간(ms). 0 이 되면 게임 오버. (timer.ts) */
+  timeLeft: number
+}
+
+/** ⚠ 시작 포션 개수 */
+export const START_POTIONS = 2
+
+/**
+ * ⚠ 스테이지 클리어 시 회복량 (최대 체력 비율). 시뮬레이션 240판으로 뽑은 값.
+ *
+ * 회복을 보상 지점에 묶으면 안 된다. 조합 [1,3,9] 은 4~9 여섯 스테이지를
+ * 연속 무회복으로 통과해야 해서 [2,4,8] 보다 크게 불리해진다.
+ * 클리어마다 조금씩 주면 조합과 무관해진다.
+ */
+export const STAGE_HEAL_RATIO = 0.25
+
+export function healAfterStage(run: Run): Run {
+  return {
+    ...run,
+    hp: Math.min(run.max.hp, run.hp + Math.round(run.max.hp * STAGE_HEAL_RATIO)),
+  }
+}
+
+/** 마나는 전투 시작 시 채운다. 런 전체 자원이면 스킬이 죽는다. */
+export function refillMp(run: Run): Run {
+  return { ...run, mp: maxMp(run.max) }
 }
 
 /** 마나 최대치는 마법력과 같다. (기획서 v0.2 §2 — 마법력 = 스킬 데미지·최대 마나) */
@@ -75,5 +106,8 @@ export function createRun(gender: Gender, name: string, face: Face): Run {
     stage: 1,
     rewardStages: rollSchedule(),
     topTierLeft: DICE[face].topTier ?? 0,
+    skills: [],
+    potions: START_POTIONS,
+    timeLeft: initialBudget(),
   }
 }
