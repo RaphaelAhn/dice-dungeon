@@ -1,3 +1,5 @@
+import type { Encounter } from './enemy'
+
 /**
  * 제한 시간. 데모 규칙 두 가지 중 첫 번째다.
  *
@@ -8,40 +10,32 @@
  * 살아 있어도 시간이 다하면 끝이다.
  */
 
-/**
- * 시계의 범위.
- * 'run'   — 한 판 전체에 하나의 시계. 초반에 시간을 흘리면 후반이 조여든다.
- * 'stage' — 스테이지마다 시계가 초기화된다. 실패가 국소적이다.
- *
- * 'run' 을 택한 이유는 누적된 선택이 결과를 만드는 구조(기획서 04 §0)와 맞기 때문이다.
- * 스테이지별로 두면 앞 스테이지에서 시간을 낭비한 대가가 사라진다.
- */
-export type TimerScope = 'run' | 'stage'
-export const TIMER_SCOPE: TimerScope = 'run'
+/** 한 턴 안에 커맨드를 고를 시간. 넘기면 자동으로 공격한다. */
+export const TURN_LIMIT_MS = 10_000
+
+/** 스테이지 하나를 클리어할 시간 */
+export const STAGE_LIMIT_MS = 100_000
+/** 보스·중간보스는 더 길게 */
+export const BOSS_LIMIT_MS = 150_000
 
 /**
- * ⚠ 런 전체 제한. 전투 중에만 흐르므로 실제 플레이 시간보다 짧게 잡는다.
+ * 두 제한은 서로 맞물린다.
  *
- * 시뮬레이션 실측: 정상 빌드 약 40턴, 스킬 없는 느린 빌드 약 71턴.
- * 한 턴 3~4초로 보면 각각 2~3분 / 4~5분이다. 6분이면 정상 빌드는 여유가 있고
- * 느린 빌드는 조인다 — 화력 부족이 시간으로 갚아지는 구조가 된다.
- * 실제 연출 속도가 붙으면 다시 측정해야 한다.
+ *   100초 ÷ 10초 = 10턴   (일반 스테이지)
+ *   150초 ÷ 10초 = 15턴   (보스)
+ *
+ * 즉 스테이지 제한은 느리게 고르는 플레이어에게는 '턴 예산'으로,
+ * 빠르게 고르는 플레이어에게는 '시간 예산'으로 작동한다.
+ * 빨리 고르면 턴을 더 쓸 수 있고, 오래 고민하면 턴이 줄어든다.
+ * 어느 쪽이든 화력이 부족하면 시간으로 갚게 된다.
  */
-export const RUN_LIMIT_MS = 6 * 60 * 1000
-
-/** ⚠ 스테이지별 제한 (TIMER_SCOPE 가 'stage' 일 때만 쓴다) */
-export const STAGE_LIMIT_MS = 75 * 1000
-
-export function initialBudget(): number {
-  return TIMER_SCOPE === 'run' ? RUN_LIMIT_MS : STAGE_LIMIT_MS
+export function stageLimitMs(kind: Encounter['kind']): number {
+  return kind === 'normal' ? STAGE_LIMIT_MS : BOSS_LIMIT_MS
 }
 
-/**
- * 스테이지에 들어갈 때 남은 시간.
- * 런 범위면 그대로 이어받고, 스테이지 범위면 매번 새로 채운다.
- */
-export function budgetForStage(carried: number): number {
-  return TIMER_SCOPE === 'run' ? carried : STAGE_LIMIT_MS
+/** 스테이지 제한 시간이 허용하는 최대 턴 수 (모든 턴을 끝까지 쓴 경우) */
+export function maxTurns(kind: Encounter['kind']): number {
+  return Math.floor(stageLimitMs(kind) / TURN_LIMIT_MS)
 }
 
 /**
@@ -55,9 +49,15 @@ export function shouldTick(screen: 'battle' | 'other'): boolean {
   return screen === 'battle'
 }
 
+/** 남은 시간을 0:00 형태로. 초는 올림해서 0 이 보이면 정말 끝난 것이 되게 한다. */
 export function formatClock(ms: number): string {
   const total = Math.max(0, Math.ceil(ms / 1000))
   const m = Math.floor(total / 60)
   const s = total % 60
   return `${m}:${String(s).padStart(2, '0')}`
+}
+
+/** 턴 타이머는 초 단위 숫자만 보여준다 */
+export function formatTurnClock(ms: number): string {
+  return String(Math.max(0, Math.ceil(ms / 1000)))
 }

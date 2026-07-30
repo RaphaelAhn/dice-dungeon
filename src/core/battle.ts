@@ -1,6 +1,7 @@
 import { ENCOUNTERS, type Encounter } from './enemy'
 import { maxMp, type Run } from './run'
 import { SKILLS, WEAK_TO, type SkillId, type SkillLine, type StatusKind } from './skill'
+import { stageLimitMs, TURN_LIMIT_MS } from './timer'
 
 /** 방어 시 받는 피해 배율 (기획서 03 §4) */
 const DEFEND_TAKE = 0.5
@@ -53,8 +54,15 @@ export type BattleState = {
   defending: boolean
   potions: number
   log: string[]
-  /** null 이면 진행 중 */
-  over: 'win' | 'lose' | null
+  /** 이 스테이지에 남은 시간(ms). 0 이 되면 timeout. */
+  timeLeftMs: number
+  /** 이번 턴에 커맨드를 고를 남은 시간(ms). 0 이 되면 자동 공격. */
+  turnLeftMs: number
+  /**
+   * null 이면 진행 중.
+   * 'timeout' 은 규칙 1, 'lose' 는 규칙 2 — 둘 다 게임 오버지만 원인이 다르다.
+   */
+  over: 'win' | 'lose' | 'timeout' | null
 }
 
 export type Rng = () => number
@@ -96,8 +104,29 @@ export function startBattle(run: Run, stage: number): BattleState {
     defending: false,
     potions: run.potions,
     log: [],
+    timeLeftMs: stageLimitMs(enc.kind),
+    turnLeftMs: TURN_LIMIT_MS,
     over: null,
   }
+}
+
+/**
+ * 시간을 흘린다. UI 가 매 프레임 호출한다.
+ * 스테이지 시간이 다하면 게임 오버(규칙 1). 턴 시간이 다하면 자동 공격을 알린다.
+ */
+export function tick(prev: BattleState, elapsedMs: number): { state: BattleState; autoAct: boolean } {
+  if (prev.over) return { state: prev, autoAct: false }
+
+  const timeLeftMs = Math.max(0, prev.timeLeftMs - elapsedMs)
+  const turnLeftMs = Math.max(0, prev.turnLeftMs - elapsedMs)
+
+  if (timeLeftMs === 0) {
+    return {
+      state: { ...prev, timeLeftMs, turnLeftMs, over: 'timeout', log: ['시간 초과'] },
+      autoAct: false,
+    }
+  }
+  return { state: { ...prev, timeLeftMs, turnLeftMs }, autoAct: turnLeftMs === 0 }
 }
 
 const alive = (u: Unit) => u.hp > 0
@@ -193,6 +222,8 @@ export function takeTurn(prev: BattleState, cmd: Command, rng: Rng = Math.random
     for (const e of s.enemies) if (alive(e)) tickStatuses(e, s.log)
     checkOver(s)
     s.turn += 1
+    // 커맨드를 고르는 시간은 턴마다 새로 준다. 스테이지 시계는 계속 흐른다.
+    s.turnLeftMs = TURN_LIMIT_MS
   }
 
   return s

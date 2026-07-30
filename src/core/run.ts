@@ -1,7 +1,6 @@
 import type { Gender, Stats } from './character'
 import { applyFace, DICE, type Face } from './dice'
 import type { SkillLine } from './skill'
-import { initialBudget } from './timer'
 
 export const FINAL_STAGE = 10
 
@@ -61,8 +60,6 @@ export type Run = {
   /** 보유 스킬. 1-8 전직 판정의 입력이 된다. */
   skills: SkillLine[]
   potions: number
-  /** 남은 제한 시간(ms). 0 이 되면 게임 오버. (timer.ts) */
-  timeLeft: number
 }
 
 /** ⚠ 시작 포션 개수 */
@@ -108,6 +105,5 @@ export function createRun(gender: Gender, name: string, face: Face): Run {
     topTierLeft: DICE[face].topTier ?? 0,
     skills: [],
     potions: START_POTIONS,
-    timeLeft: initialBudget(),
   }
 }

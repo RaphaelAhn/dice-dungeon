@@ -1,5 +1,7 @@
 import { aliveEnemies, startBattle, takeTurn, type BattleState, type Command } from '../src/core/battle'
 import { FACES, type Face } from '../src/core/dice'
+import { ENCOUNTERS } from '../src/core/enemy'
+import { maxTurns } from '../src/core/timer'
 import { createRun, maxMp, type Run } from '../src/core/run'
 import { SKILLS, skillsOfLine, type SkillId, type SkillLine } from '../src/core/skill'
 
@@ -101,6 +103,10 @@ function chooseCommand(s: BattleState, owned: SkillId[]): Command {
 
 type StageResult = { turns: number; won: boolean }
 
+/** 스테이지 제한 시간이 허용하는 턴 수를 넘겼는가 — 넘기면 규칙 1 로 게임 오버 */
+let timeouts = 0
+const overruns: number[] = Array(11).fill(0)
+
 function playStage(run: Run, stage: number, rng: () => number): StageResult {
   // 마나는 전투 시작 시 채운다. 런 전체 자원이면 20 으로 10스테이지를 버텨야 해 스킬이 죽는다.
   run.mp = maxMp(run.max)
@@ -115,6 +121,14 @@ function playStage(run: Run, stage: number, rng: () => number): StageResult {
   run.hp = s.player.hp
   run.mp = s.mp
   run.potions = s.potions
+
+  // 규칙 1: 스테이지 제한 시간을 턴 예산으로 환산해 초과를 잡는다.
+  const cap = maxTurns(ENCOUNTERS[stage].kind)
+  if (turns > cap) {
+    timeouts++
+    overruns[stage]++
+    return { turns, won: false }
+  }
   return { turns, won: s.over === 'win' }
 }
 
@@ -203,6 +217,15 @@ for (const arch of ARCHETYPES) {
       `평균 ${avgTurns.toFixed(1).padStart(5)}턴 ≈ ${((avgTurns * SEC_PER_TURN) / 60).toFixed(1)}분` +
       (avgDeath ? `  평균 사망 1-${avgDeath.toFixed(1)}` : ''),
   )
+}
+
+console.log(
+  `\n=== 제한 시간 초과 ===\n\n` +
+    `일반 스테이지 최대 ${maxTurns('normal')}턴 · 보스 최대 ${maxTurns('boss')}턴\n` +
+    `시간 초과로 끝난 스테이지: ${timeouts}건`,
+)
+for (let stage = 1; stage <= 10; stage++) {
+  if (overruns[stage] > 0) console.log(`  1-${stage}  ${overruns[stage]}건`)
 }
 
 console.log('\n=== 사망 스테이지 분포 (전체 빌드 합산) ===\n')
