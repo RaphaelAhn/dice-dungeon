@@ -7,17 +7,35 @@ export const FINAL_STAGE = 10
 export const REWARD_CHOICES = 3
 
 /**
- * 보상은 매 스테이지가 아니라 3라운드마다 나온다. (기획서 04 §1)
- * 1-10 은 보스라 클리어하면 보상 대신 게임이 끝나므로 목록에 없다.
+ * 보상이 나오는 스테이지 조합. 판이 시작될 때 이 중 하나를 랜덤으로 뽑는다.
+ * 매 판 같은 자리에서 보상이 나오면 순서를 외워 최적해를 굳힐 수 있다.
+ * 조합을 굴려 "언제 받을지"를 판마다 흔든다. (기획서 04 §1)
+ *
+ * 1-10 은 보스라 클리어하면 보상 대신 게임이 끝나므로 어느 조합에도 없다.
+ * 두 조합 모두 지점 3곳이고, 1-5 중간보스 시점과 1-10 보스 시점의
+ * 누적 카드 수가 같다 — §1.4 참고.
  */
-export const REWARD_STAGES: readonly number[] = [3, 6, 9]
+export const REWARD_SCHEDULES: readonly (readonly number[])[] = [
+  [1, 3, 9],
+  [2, 4, 8],
+]
 
 /** 한 지점에서 3택 1 을 이 횟수만큼 연속으로 고른다. 총 선택은 3 × 3 = 9회. */
 export const PICKS_PER_STOP = 3
 
+export function rollSchedule(): readonly number[] {
+  return REWARD_SCHEDULES[Math.floor(Math.random() * REWARD_SCHEDULES.length)]
+}
+
 /** 이 스테이지를 클리어하면 보상 지점인가 */
-export function isRewardStage(stage: number): boolean {
-  return REWARD_STAGES.includes(stage)
+export function isRewardStage(run: Run, stage: number): boolean {
+  return run.rewardStages.includes(stage)
+}
+
+/** 다음 보상까지 남은 스테이지 수. 없으면 null (마지막 지점을 지났다) */
+export function stagesToNextReward(run: Run): number | null {
+  const next = run.rewardStages.find((s) => s >= run.stage)
+  return next === undefined ? null : next - run.stage
 }
 
 /**
@@ -34,6 +52,8 @@ export type Run = {
   mp: number
   /** 1 ~ FINAL_STAGE. 표시할 때는 `1-${stage}` 형태 */
   stage: number
+  /** 이 판에서 뽑힌 보상 지점. 판이 끝날 때까지 바뀌지 않는다. */
+  rewardStages: readonly number[]
   /** 남은 '최고 티어 확정' 횟수. 주사위 6번 눈이 1을 준다. */
   topTierLeft: number
 }
@@ -53,6 +73,7 @@ export function createRun(gender: Gender, name: string, face: Face): Run {
     hp: max.hp,
     mp: maxMp(max),
     stage: 1,
+    rewardStages: rollSchedule(),
     topTierLeft: DICE[face].topTier ?? 0,
   }
 }

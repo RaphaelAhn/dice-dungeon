@@ -4,7 +4,7 @@ import CharacterCreate from './ui/CharacterCreate'
 import DiceRoll from './ui/DiceRoll'
 import type { Gender } from './core/character'
 import { DICE, type Face } from './core/dice'
-import { createRun, REWARD_CHOICES, type Run } from './core/run'
+import { createRun, PICKS_PER_STOP, REWARD_CHOICES, stagesToNextReward, type Run } from './core/run'
 import { loadPieces, PUZZLE_TOTAL } from './core/save'
 import './App.css'
 
@@ -88,8 +88,8 @@ function HowToPanel() {
           전투는 턴제입니다. <b>공격 / 방어 / 스킬 / 아이템</b> 중 하나를 고릅니다.
         </li>
         <li>
-          <b>1-3 · 1-6 · 1-9</b>를 클리어하면 보상을 받습니다. 매번 <b>3개 중 1개</b>를 고르며, 한
-          지점에서 <b>3번</b> 고릅니다.
+          보상이 나오는 스테이지는 <b>판마다 달라집니다.</b> 지점은 3곳이며, 각 지점에서{' '}
+          <b>3개 중 1개</b>를 <b>3번</b> 고릅니다.
         </li>
         <li>스킬 3개가 모이면 조합에 따라 자동으로 전직합니다.</li>
         <li>사망하면 처음부터. 퍼즐 조각만 남습니다.</li>
@@ -100,12 +100,23 @@ function HowToPanel() {
 
 function StagePanel({ run }: { run: Run }) {
   const d = DICE[run.face]
+  const left = stagesToNextReward(run)
   return (
     <>
       <h2>스테이지 1-{run.stage}</h2>
       <p className="stub__desc">
         <b>{run.name}</b> · 주사위 {run.face} <b>{d.name}</b>({d.desc}) · 보상 {REWARD_CHOICES}택
         {run.topTierLeft > 0 && ` · 최고 티어 확정 ${run.topTierLeft}회`}
+      </p>
+      {/* 보상 지점은 판마다 달라진다. 숨기면 계획을 세울 수 없으니 그대로 보여준다. */}
+      <p className="stub__desc">
+        보상 지점 <b>{run.rewardStages.map((s) => `1-${s}`).join(' · ')}</b> · 지점당{' '}
+        {PICKS_PER_STOP}장
+        {left === null
+          ? ' · 남은 보상 없음'
+          : left === 0
+            ? ' · 이번 스테이지 클리어 시 보상'
+            : ` · 다음 보상까지 ${left}스테이지`}
       </p>
       <p className="stub__desc">
         HP {run.hp}/{run.max.hp} · MP {run.mp} · 공 {run.max.atk} · 마 {run.max.mag} · 속{' '}
