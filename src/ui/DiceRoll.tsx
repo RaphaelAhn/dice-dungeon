@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { applyBlessing, BLESSINGS, rollBlessing, type BlessingId } from '../core/blessing'
 import { BASE_STATS, STAT_META, type Gender, type Stats } from '../core/character'
+import { applyFace, DICE, rollDice, type Face } from '../core/dice'
 import CharacterSprite from './CharacterSprite'
 import Dice from './Dice'
 import './DiceRoll.css'
@@ -19,11 +19,11 @@ export default function DiceRoll({
 }: {
   gender: Gender
   name: string
-  onStart: (blessing: BlessingId) => void
+  onStart: (face: Face) => void
 }) {
   const [phase, setPhase] = useState<Phase>('ready')
-  const [face, setFace] = useState(1)
-  const [result, setResult] = useState<BlessingId | null>(null)
+  const [shown, setShown] = useState(1)
+  const [result, setResult] = useState<Face | null>(null)
   // 리롤 불가가 이 게임의 규칙이다. 연타나 키 중복 입력으로도 두 번 굴러선 안 된다.
   const rolled = useRef(false)
   const timers = useRef<number[]>([])
@@ -36,11 +36,11 @@ export default function DiceRoll({
     rolled.current = true
     setPhase('rolling')
 
-    const settled = rollBlessing()
-    const spin = setInterval(() => setFace(1 + Math.floor(Math.random() * 6)), TICK_MS)
+    const settled = rollDice()
+    const spin = setInterval(() => setShown(1 + Math.floor(Math.random() * 6)), TICK_MS)
     const stop = setTimeout(() => {
       clearInterval(spin)
-      setFace(settled)
+      setShown(settled)
       setResult(settled)
       setPhase('done')
     }, ROLL_MS)
@@ -58,13 +58,13 @@ export default function DiceRoll({
     return () => window.removeEventListener('keydown', onKey)
   }, [phase, result, onStart])
 
-  const blessing = result ? BLESSINGS[result] : null
-  const stats = result ? applyBlessing(result) : BASE_STATS
+  const rolledFace = result ? DICE[result] : null
+  const stats = result ? applyFace(result) : BASE_STATS
 
   return (
     <div className="dr">
       <header className="dr__head">
-        <h2>시작 축복</h2>
+        <h2>주사위 굴리기</h2>
         <p>
           주사위는 <b>단 한 번</b> 굴립니다. 다시 굴릴 수 없습니다.
         </p>
@@ -76,18 +76,18 @@ export default function DiceRoll({
           <b className="dr__char-name">{name}</b>
         </div>
 
-        <Dice face={face} size={120} idle={phase === 'ready'} rolling={phase === 'rolling'} />
+        <Dice face={shown} size={120} idle={phase === 'ready'} rolling={phase === 'rolling'} />
       </div>
 
       <section className="dr__result" aria-live="polite">
-        {phase === 'ready' && <p className="dr__wait">굴려서 이번 판의 시작 축복을 정하세요.</p>}
+        {phase === 'ready' && <p className="dr__wait">굴려서 이번 판의 시작 능력치를 정하세요.</p>}
         {phase === 'rolling' && <p className="dr__wait">굴리는 중…</p>}
-        {phase === 'done' && blessing && (
+        {phase === 'done' && rolledFace && (
           <>
             <div className="dr__card">
-              <span className="dr__style">{blessing.style}</span>
-              <h3 className="dr__name">{blessing.name}</h3>
-              <p className="dr__desc">{blessing.desc}</p>
+              <span className="dr__style">{rolledFace.favors}</span>
+              <h3 className="dr__name">{rolledFace.name}</h3>
+              <p className="dr__desc">{rolledFace.desc}</p>
             </div>
             <StatDiff before={BASE_STATS} after={stats} />
           </>
@@ -110,7 +110,7 @@ export default function DiceRoll({
   )
 }
 
-/** 축복이 실제로 무엇을 바꿨는지 눈으로 보여준다. 규칙만 바꾸는 축복은 증감이 0이다. */
+/** 주사위가 실제로 무엇을 바꿨는지 눈으로 보여준다. 6번 눈은 증감이 전부 0이다. */
 function StatDiff({ before, after }: { before: Stats; after: Stats }) {
   return (
     <ul className="dr__stats">

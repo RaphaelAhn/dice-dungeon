@@ -2,9 +2,9 @@ import { useCallback, useState } from 'react'
 import TitleScreen from './ui/TitleScreen'
 import CharacterCreate from './ui/CharacterCreate'
 import DiceRoll from './ui/DiceRoll'
-import { BLESSINGS, type BlessingId } from './core/blessing'
 import type { Gender } from './core/character'
-import { createRun, type Run } from './core/run'
+import { DICE, type Face } from './core/dice'
+import { createRun, REWARD_CHOICES, type Run } from './core/run'
 import { loadPieces, PUZZLE_TOTAL } from './core/save'
 import './App.css'
 
@@ -26,8 +26,8 @@ export default function App() {
   }, [])
 
   const startRun = useCallback(
-    (blessing: BlessingId) => {
-      setRun(createRun(gender, name, blessing))
+    (face: Face) => {
+      setRun(createRun(gender, name, face))
       setScreen('stage')
     },
     [gender, name],
@@ -81,9 +81,15 @@ function HowToPanel() {
     <>
       <h2>조작 안내</h2>
       <ul className="stub__list">
-        <li>게임 시작 시 주사위를 <b>단 한 번</b> 굴려 시작 축복을 받습니다. 다시 굴릴 수 없습니다.</li>
-        <li>전투는 턴제입니다. <b>공격 / 방어 / 스킬 / 아이템</b> 중 하나를 고릅니다.</li>
-        <li>스테이지를 클리어하면 보상 <b>3개 중 1개</b>를 선택합니다.</li>
+        <li>
+          게임 시작 시 주사위를 <b>단 한 번</b> 굴려 시작 능력치를 받습니다. 다시 굴릴 수 없습니다.
+        </li>
+        <li>
+          전투는 턴제입니다. <b>공격 / 방어 / 스킬 / 아이템</b> 중 하나를 고릅니다.
+        </li>
+        <li>
+          스테이지를 클리어하면 보상 <b>3개 중 1개</b>를 선택합니다.
+        </li>
         <li>스킬 3개가 모이면 조합에 따라 자동으로 전직합니다.</li>
         <li>사망하면 처음부터. 퍼즐 조각만 남습니다.</li>
       </ul>
@@ -92,13 +98,13 @@ function HowToPanel() {
 }
 
 function StagePanel({ run }: { run: Run }) {
-  const b = BLESSINGS[run.blessing]
+  const d = DICE[run.face]
   return (
     <>
       <h2>스테이지 1-{run.stage}</h2>
       <p className="stub__desc">
-        <b>{run.name}</b> · 축복 <b>{b.name}</b>({b.desc}) · 보상 {run.rewardChoices}택
-        {run.extraLife && ' · 사망권 1'}
+        <b>{run.name}</b> · 주사위 {run.face} <b>{d.name}</b>({d.desc}) · 보상 {REWARD_CHOICES}택
+        {run.topTierLeft > 0 && ` · 최고 티어 확정 ${run.topTierLeft}회`}
       </p>
       <p className="stub__desc">
         HP {run.hp}/{run.max.hp} · MP {run.mp} · 공 {run.max.atk} · 마 {run.max.mag} · 속{' '}
