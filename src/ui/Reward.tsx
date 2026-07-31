@@ -49,10 +49,12 @@ export default function Reward({ run, onDone }: { run: Run; onDone: (next: Run) 
       <header className="rw__head">
         <h2>보상 선택</h2>
         <p>
-          <b>
-            {pick + 1} / {PICKS_PER_STOP}
-          </b>{' '}
-          · 세 장 중 하나만 가져갑니다
+          {PICKS_PER_STOP > 1 && (
+            <b>
+              {pick + 1} / {PICKS_PER_STOP} ·{' '}
+            </b>
+          )}
+          세 장 중 하나만 가져갑니다
         </p>
       </header>
 

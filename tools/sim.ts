@@ -3,7 +3,7 @@ import { FACES, type Face } from '../src/core/dice'
 import { ENCOUNTERS } from '../src/core/enemy'
 import { JOB_STAGE } from '../src/core/job'
 import { applyCard, consumeTopTier, makeOffer, type Card } from '../src/core/reward'
-import { createRun, healAfterStage, promote, refillMp, type Run } from '../src/core/run'
+import { createRun, healAfterStage, PICKS_PER_STOP, promote, refillMp, type Run } from '../src/core/run'
 import { SKILLS, skillsOfLine, type SkillId } from '../src/core/skill'
 import { maxTurns } from '../src/core/timer'
 
@@ -149,7 +149,7 @@ function playRun(face: Face, policy: Policy, seed: number): Outcome {
     run = healAfterStage(run)
 
     if (run.rewardStages.includes(stage)) {
-      for (let pick = 0; pick < 3; pick++) {
+      for (let pick = 0; pick < PICKS_PER_STOP; pick++) {
         const offer = makeOffer(run, rng)
         if (offer.usedTopTier) run = consumeTopTier(run)
         run = applyCard(run, offer.cards[policy.choose(offer.cards, run)])

@@ -72,7 +72,7 @@ export default function DiceRoll({
 
       <div className="dr__stage">
         <div className="dr__char">
-          <CharacterSprite gender={gender} scale={2} />
+          <CharacterSprite gender={gender} scale={1} />
           <b className="dr__char-name">{name}</b>
         </div>
 

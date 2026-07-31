@@ -43,38 +43,38 @@ export const ENCOUNTERS: Record<number, Encounter> = {
   },
   5: {
     kind: 'midboss',
-    enemies: [{ name: '지하 감시자', hp: 215, atk: 12, spd: 12, line: 'dark' }],
+    enemies: [{ name: '지하 감시자', hp: 170, atk: 10, spd: 12, line: 'dark' }],
   },
   6: {
     kind: 'normal',
     enemies: [
-      { name: '타락 사제', hp: 72, atk: 7, spd: 12, line: 'holy' },
-      { name: '망령', hp: 68, atk: 7, spd: 14, line: 'dark' },
+      { name: '타락 사제', hp: 62, atk: 6, spd: 12, line: 'holy' },
+      { name: '망령', hp: 58, atk: 6, spd: 14, line: 'dark' },
     ],
   },
   7: {
     kind: 'normal',
     enemies: [
-      { name: '화염 골렘', hp: 86, atk: 8, spd: 10, line: 'fire' },
-      { name: '불씨 정령', hp: 85, atk: 8, spd: 12, line: 'fire' },
+      { name: '화염 골렘', hp: 74, atk: 7, spd: 10, line: 'fire' },
+      { name: '불씨 정령', hp: 72, atk: 7, spd: 12, line: 'fire' },
     ],
   },
   8: {
     kind: 'normal',
     enemies: [
-      { name: '빙하 기사', hp: 105, atk: 9, spd: 13, line: 'ice' },
-      { name: '서리 정령', hp: 95, atk: 9, spd: 13, line: 'ice' },
+      { name: '빙하 기사', hp: 90, atk: 8, spd: 13, line: 'ice' },
+      { name: '서리 정령', hp: 82, atk: 8, spd: 13, line: 'ice' },
     ],
   },
   9: {
     kind: 'normal',
     enemies: [
-      { name: '심연 술사', hp: 120, atk: 10, spd: 15, line: 'dark' },
-      { name: '망령', hp: 105, atk: 10, spd: 16, line: 'dark' },
+      { name: '심연 술사', hp: 104, atk: 9, spd: 15, line: 'dark' },
+      { name: '망령', hp: 90, atk: 9, spd: 16, line: 'dark' },
     ],
   },
   10: {
     kind: 'boss',
-    enemies: [{ name: '주사위의 주인', hp: 420, atk: 16, spd: 16 }],
+    enemies: [{ name: '주사위의 주인', hp: 350, atk: 14, spd: 16 }],
   },
 }

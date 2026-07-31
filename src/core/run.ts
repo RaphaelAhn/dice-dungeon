@@ -22,8 +22,14 @@ export const REWARD_SCHEDULES: readonly (readonly number[])[] = [
   [2, 4, 8],
 ]
 
-/** 한 지점에서 3택 1 을 이 횟수만큼 연속으로 고른다. 총 선택은 3 × 3 = 9회. */
-export const PICKS_PER_STOP = 3
+/**
+ * 한 지점에서 고르는 카드 수. 1장을 고르면 바로 다음 스테이지로 넘어간다.
+ * 지점이 3곳이므로 한 판의 보상은 총 3장이다.
+ *
+ * 전에는 3장씩 골라 총 9장이었다. 전직에 스킬 3개가 필요했기 때문인데,
+ * 전직이 1-8 무조건으로 바뀌면서 그 제약이 사라져 1장으로 되돌렸다.
+ */
+export const PICKS_PER_STOP = 1
 
 export function rollSchedule(): readonly number[] {
   return REWARD_SCHEDULES[Math.floor(Math.random() * REWARD_SCHEDULES.length)]
@@ -94,13 +100,15 @@ export function promote(run: Run): Run {
 export const START_POTIONS = 2
 
 /**
- * ⚠ 스테이지 클리어 시 회복량 (최대 체력 비율). 시뮬레이션 240판으로 뽑은 값.
+ * ⚠ 스테이지 클리어 시 회복량 (최대 체력 비율). 시뮬레이션 360판으로 뽑은 값.
  *
  * 회복을 보상 지점에 묶으면 안 된다. 조합 [1,3,9] 은 4~9 여섯 스테이지를
  * 연속 무회복으로 통과해야 해서 [2,4,8] 보다 크게 불리해진다.
  * 클리어마다 조금씩 주면 조합과 무관해진다.
+ *
+ * 보상이 지점당 1장(총 3장)으로 줄면서 성장 폭이 작아져 0.25 -> 0.35 로 올렸다.
  */
-export const STAGE_HEAL_RATIO = 0.25
+export const STAGE_HEAL_RATIO = 0.35
 
 export function healAfterStage(run: Run): Run {
   return {

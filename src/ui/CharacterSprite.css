@@ -1,14 +1,26 @@
 /* 임시 실루엣. 픽셀 그리드에 맞춰 정수 px 만 쓴다. */
 .sprite {
-  display: grid;
-  place-items: end center;
+  position: relative;
   animation: sprite-idle 1.8s steps(2) infinite;
 }
 
+/*
+ * 그림은 96x176 고정으로 그리고 확대·축소는 transform 이 한다.
+ * 각 부위의 px 을 scale 마다 다시 계산하면 픽셀 정렬이 깨진다.
+ *
+ * grid 정렬(place-items:end)로는 안 된다. transform 은 레이아웃 크기를
+ * 바꾸지 않으므로 96x176 짜리 아이템이 축소된 상자보다 커지고,
+ * 넘치는 아이템의 end 정렬은 브라우저가 start 로 되돌려 그림이 아래로 새어 나간다.
+ * 바닥을 직접 고정하고 같은 지점을 기준으로 축소한다.
+ */
 .sprite__stack {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
   width: 96px;
   height: 176px;
+  transform: translateX(-50%) scale(var(--s, 1));
+  transform-origin: bottom center;
 }
 
 .sprite__stack span {

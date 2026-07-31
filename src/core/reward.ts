@@ -47,12 +47,17 @@ export function rollTier(luk: number, rng: () => number): Tier {
 
 /* ── 슬롯 B: 능력치 카드 ⚠ (기획서 04 §3.2) ── */
 
+/**
+ * ⚠ 한 판에 고르는 카드는 3장뿐이다 (지점 3곳 × 1장).
+ * 지점당 3장씩 9장이던 시절의 수치를 그대로 두면 성장이 3분의 1로 줄어
+ * 클리어율이 3% 까지 떨어졌다. 한 장의 무게를 그만큼 올렸다.
+ */
 const STAT_CARD: Record<keyof Stats, Record<Tier, number>> = {
-  hp: { bronze: 15, silver: 25, gold: 40, platinum: 60 },
-  atk: { bronze: 5, silver: 8, gold: 13, platinum: 20 },
-  mag: { bronze: 5, silver: 8, gold: 13, platinum: 20 },
-  spd: { bronze: 3, silver: 5, gold: 8, platinum: 12 },
-  luk: { bronze: 3, silver: 5, gold: 8, platinum: 12 },
+  hp: { bronze: 45, silver: 75, gold: 120, platinum: 180 },
+  atk: { bronze: 15, silver: 24, gold: 39, platinum: 60 },
+  mag: { bronze: 15, silver: 24, gold: 39, platinum: 60 },
+  spd: { bronze: 9, silver: 15, gold: 24, platinum: 36 },
+  luk: { bronze: 9, silver: 15, gold: 24, platinum: 36 },
 }
 
 const STAT_LABEL: Record<keyof Stats, string> = {

@@ -122,7 +122,7 @@ export default function Battle({
       </section>
 
       <section className="bt__player">
-        <CharacterSprite gender={run.gender} scale={1} />
+        <CharacterSprite gender={run.gender} scale={0.45} />
         <div className="bt__pinfo">
           <div className="bt__prow">
             <b>{run.name}</b>

@@ -64,7 +64,7 @@ export default function CharacterCreate({
             onMouseEnter={() => setIndex(i)}
             onClick={() => setIndex(i)}
           >
-            <CharacterSprite gender={g} scale={2} />
+            <CharacterSprite gender={g} scale={1} />
             <span className="cc__name">{GENDER_LABEL[g]}</span>
           </button>
         ))}
