@@ -133,7 +133,8 @@ function ageCard(run: Run, tier: Tier, rng: () => number): Card {
     }
   }
   // 고르게 조금씩 — 한 가지를 크게 올리는 A 와 성격이 갈린다
-  const share = (k: keyof Stats) => Math.round(STAT_CARD[k][tier] * 0.4)
+  // ⚠ 0.4 였을 때 '숙성 우선'이 100% 로 다른 정책을 압도했다.
+  const share = (k: keyof Stats) => Math.round(STAT_CARD[k][tier] * 0.22)
   return {
     slot: 'age',
     tier,

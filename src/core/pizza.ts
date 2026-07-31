@@ -1,5 +1,5 @@
 import type { Stats } from './character'
-import { tasteAffinity, TASTE_LABEL, TASTES, type Taste, type Topping } from './topping'
+import { TASTE_CLASH, tasteAffinity, TASTE_LABEL, TASTES, type Taste, type Topping } from './topping'
 
 /* 피자의 정체성이 정해지는 시점·판정·보너스를 한곳에 모은다. */
 
@@ -91,6 +91,34 @@ export type Pizza = {
   sub: Taste | null
   grade: Grade
   name: string
+  /** 서로 부딪치는 맛 쌍의 수. 많을수록 보너스가 깎인다. */
+  clashes: number
+}
+
+/**
+ * ⚠ 충돌 하나당 보너스가 이만큼 깎인다.
+ *
+ * 이 규칙이 없으면 "아무거나 다 올리기"가 최적이 된다. 토핑이 주는 능력치가
+ * 크고 무게 대가는 작아서, 여섯 개를 마구 올리는 쪽이 세 개를 골라 모으는
+ * 쪽을 이긴다 — 시뮬레이션에서 98% 대 75% 로 나왔다.
+ * 맛이 부딪치면 손해가 나야 '지나치기'가 살아나고 집중이 값을 갖는다.
+ */
+const CLASH_PENALTY = 0.3
+
+/** 매콤+새콤, 진한+향긋처럼 부딪치는 쌍이 몇 개인지 */
+export function countClashes(toppings: Topping[]): number {
+  const has = (t: Taste) => toppings.some((x) => x.taste === t)
+  const seen = new Set<string>()
+  let n = 0
+  for (const t of TASTES) {
+    const other = TASTE_CLASH[t]
+    if (!other || !has(t) || !has(other)) continue
+    const key = [t, other].sort().join('|')
+    if (seen.has(key)) continue
+    seen.add(key)
+    n++
+  }
+  return n
 }
 
 /**
@@ -124,14 +152,19 @@ export function decidePizza(toppings: Topping[], stats: Stats): Pizza {
         ? 'partial'
         : 'thin'
 
-  // 토핑이 없거나 하나뿐인데 그럴듯한 이름이 붙으면 어색하다.
-  const prefix = toppings.length <= 1 ? '맨 ' : ''
+  const clashes = countClashes(toppings)
 
-  return { main, sub, grade, name: prefix + PIZZA_NAMES[main][sub ?? main] }
+  // 토핑이 없거나 하나뿐인데 그럴듯한 이름이 붙으면 어색하다.
+  // 맛이 두 쌍 이상 부딪치면 이름부터 그렇게 보인다.
+  const prefix = toppings.length <= 1 ? '맨 ' : clashes >= 2 ? '뒤죽박죽 ' : ''
+
+  return { main, sub, grade, name: prefix + PIZZA_NAMES[main][sub ?? main], clashes }
 }
 
 export function pizzaBonus(pizza: Pizza): PizzaBonus {
-  const ratio = GRADE_META[pizza.grade].ratio
+  // 완성도 배율에 충돌 페널티를 곱한다. 바닥을 두어 0 이 되지는 않게 한다.
+  const ratio =
+    GRADE_META[pizza.grade].ratio * Math.max(0.2, 1 - CLASH_PENALTY * pizza.clashes)
   const b = MAIN_BONUS[pizza.main]
   const scale = (n: number | undefined) => Math.round((n ?? 0) * ratio)
   return {

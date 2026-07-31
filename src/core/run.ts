@@ -1,6 +1,6 @@
 import type { Gender, Stats } from './character'
 import { applyFace, DICE, type Face } from './dice'
-import { decidePizza, pizzaBonus, type Pizza } from './pizza'
+import { countClashes, decidePizza, pizzaBonus, type Pizza } from './pizza'
 import { MAX_TOPPINGS, totalWeight, type Topping } from './topping'
 
 export const FINAL_STAGE = 10
@@ -112,22 +112,33 @@ export function addTopping(run: Run, topping: Topping, gain: Partial<Stats>): Ru
  * 1-8 진입 시 도우가 굳는다. 올린 토핑과 무관하게 무조건 일어난다.
  * 보너스만큼 현재 체력도 같이 올린다 — 안 그러면 강해진 느낌이 안 난다.
  */
+/**
+ * ⚠ 충돌 하나당 굽고 난 능력치가 이만큼 깎인다.
+ *
+ * 보너스 배율만 깎아서는 부족했다. 토핑이 주는 생짜 능력치가 완성도 보너스보다
+ * 훨씬 커서, 충돌을 감수하고 여섯 개를 다 올리는 쪽이 여전히 이겼다
+ * (시뮬레이션 99% 대 77%). 능력치 자체를 깎아야 판단이 생긴다.
+ */
+const CLASH_STAT_PENALTY = 0.14
+
 export function bake(run: Run): Run {
   if (run.pizza) return run
   const pizza = decidePizza(run.toppings, run.max)
   const b = pizzaBonus(pizza)
+  const keep = Math.max(0.4, 1 - CLASH_STAT_PENALTY * countClashes(run.toppings))
+  const cut = (n: number) => Math.max(1, Math.round(n * keep))
   const max: Stats = {
-    hp: run.max.hp + (b.stats.hp ?? 0),
-    atk: run.max.atk + (b.stats.atk ?? 0),
-    mag: run.max.mag + (b.stats.mag ?? 0),
-    spd: run.max.spd + (b.stats.spd ?? 0),
-    luk: run.max.luk + (b.stats.luk ?? 0),
+    hp: Math.max(30, cut(run.max.hp + (b.stats.hp ?? 0))),
+    atk: cut(run.max.atk + (b.stats.atk ?? 0)),
+    mag: cut(run.max.mag + (b.stats.mag ?? 0)),
+    spd: cut(run.max.spd + (b.stats.spd ?? 0)),
+    luk: cut(run.max.luk + (b.stats.luk ?? 0)),
   }
   return {
     ...run,
     pizza,
     max,
-    hp: run.hp + (b.stats.hp ?? 0),
+    hp: Math.min(max.hp, run.hp + (b.stats.hp ?? 0)),
     mp: Math.min(maxMp(max), run.mp + (b.stats.mag ?? 0)),
   }
 }
