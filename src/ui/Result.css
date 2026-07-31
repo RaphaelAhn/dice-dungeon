@@ -1,0 +1,95 @@
+.rs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: var(--bg);
+}
+.rs--lose {
+  background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(242, 105, 95, 0.12), transparent 70%), var(--bg);
+}
+.rs--timeout {
+  background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(139, 144, 165, 0.14), transparent 70%), var(--bg);
+}
+.rs--clear {
+  background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(255, 156, 89, 0.16), transparent 70%), var(--bg);
+}
+
+.rs__title {
+  font-size: clamp(34px, 8vw, 56px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-shadow: 0 4px 0 #000;
+}
+.rs--lose .rs__title {
+  color: #f2695f;
+}
+.rs--timeout .rs__title {
+  color: var(--muted);
+}
+.rs--clear .rs__title {
+  color: var(--accent);
+}
+
+.rs__line {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.rs__stats {
+  display: flex;
+  gap: 1px;
+  margin-top: 12px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.rs__stats > div {
+  min-width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 16px;
+  background: var(--panel);
+}
+.rs__stats dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+.rs__stats dd {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rs__piece {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--sky);
+}
+.rs__piece b {
+  font-size: 18px;
+}
+
+.rs__btn {
+  margin-top: 14px;
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  color: var(--accent);
+}
+.rs__btn:hover,
+.rs__btn:focus-visible {
+  background: rgba(255, 156, 89, 0.14);
+  outline: none;
+}
+
+.rs__hint {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.6;
+}

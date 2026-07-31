@@ -2,13 +2,32 @@ import { useCallback, useState } from 'react'
 import TitleScreen from './ui/TitleScreen'
 import CharacterCreate from './ui/CharacterCreate'
 import DiceRoll from './ui/DiceRoll'
+import Battle from './ui/Battle'
+import Reward from './ui/Reward'
+import Result, { type ResultKind } from './ui/Result'
 import type { Gender } from './core/character'
 import { DICE, type Face } from './core/dice'
-import { createRun, PICKS_PER_STOP, REWARD_CHOICES, stagesToNextReward, type Run } from './core/run'
-import { loadPieces, PUZZLE_TOTAL } from './core/save'
+import { JOB_STAGE } from './core/job'
+import {
+  createRun,
+  FINAL_STAGE,
+  healAfterStage,
+  PICKS_PER_STOP,
+  promote,
+  refillMp,
+  REWARD_CHOICES,
+  type Run,
+} from './core/run'
+import { loadPieces, PUZZLE_TOTAL, savePieces } from './core/save'
 import './App.css'
 
-type Screen = 'title' | 'character' | 'dice' | 'stage' | 'puzzle' | 'howto'
+type Screen = 'title' | 'character' | 'dice' | 'battle' | 'reward' | 'result' | 'puzzle' | 'howto'
+
+/** 클리어 시 지급하는 퍼즐 조각 ⚠ (기획서 03 §8) */
+function piecesFor(run: Run): number {
+  if (run.job?.grade === 'full') return 2
+  return 1
+}
 
 // ponytail: 화면 수가 적어 라우터 없이 상태 하나로 전환한다.
 export default function App() {
@@ -17,6 +36,10 @@ export default function App() {
   const [name, setName] = useState('')
   // 런은 주사위를 굴린 순간 만들어진다. 그 전에는 캐릭터 정보만 들고 있다.
   const [run, setRun] = useState<Run | null>(null)
+  const [result, setResult] = useState<ResultKind>('lose')
+  const [gained, setGained] = useState(0)
+  const [pieces, setPieces] = useState(() => loadPieces())
+
   const back = useCallback(() => setScreen('title'), [])
 
   const toDice = useCallback((g: Gender, n: string) => {
@@ -27,10 +50,57 @@ export default function App() {
 
   const startRun = useCallback(
     (face: Face) => {
-      setRun(createRun(gender, name, face))
-      setScreen('stage')
+      // 1-1 이 보상 지점인 조합도 있으므로 전직 판정은 스테이지 진입 시 건다.
+      setRun(refillMp(createRun(gender, name, face)))
+      setScreen('battle')
     },
     [gender, name],
+  )
+
+  /** 다음 스테이지로. 1-8 진입 시 전직이 걸린다. */
+  const advance = useCallback((cur: Run) => {
+    let next: Run = { ...cur, stage: cur.stage + 1 }
+    if (next.stage >= JOB_STAGE) next = promote(next)
+    setRun(refillMp(next))
+    setScreen('battle')
+  }, [])
+
+  /** 스테이지 승리 — 회복 → 보상 지점이면 보상, 아니면 바로 다음 스테이지 */
+  const onWin = useCallback(
+    (afterBattle: Run) => {
+      const healed = healAfterStage(afterBattle)
+
+      if (healed.stage >= FINAL_STAGE) {
+        const got = piecesFor(healed)
+        const total = Math.min(PUZZLE_TOTAL, loadPieces() + got)
+        savePieces(total)
+        setPieces(total)
+        setGained(got)
+        setRun(healed)
+        setResult('clear')
+        setScreen('result')
+        return
+      }
+
+      if (healed.rewardStages.includes(healed.stage)) {
+        setRun(healed)
+        setScreen('reward')
+      } else {
+        advance(healed)
+      }
+    },
+    [advance],
+  )
+
+  const onRewardDone = useCallback((next: Run) => advance(next), [advance])
+
+  const onEnd = useCallback(
+    (reason: 'lose' | 'timeout') => {
+      setGained(0)
+      setResult(reason)
+      setScreen('result')
+    },
+    [],
   )
 
   if (screen === 'title') {
@@ -45,12 +115,24 @@ export default function App() {
     return <DiceRoll gender={gender} name={name} onStart={startRun} />
   }
 
+  if (screen === 'battle' && run) {
+    // key 를 스테이지에 묶어 스테이지가 바뀌면 전투 상태를 새로 만든다.
+    return <Battle key={run.stage} run={run} onWin={onWin} onEnd={onEnd} />
+  }
+
+  if (screen === 'reward' && run) {
+    return <Reward key={run.stage} run={run} onDone={onRewardDone} />
+  }
+
+  if (screen === 'result' && run) {
+    return <Result kind={result} run={run} gained={gained} pieces={pieces} onBack={back} />
+  }
+
   return (
     <div className="stub">
       <div className="stub__panel">
-        {screen === 'puzzle' && <PuzzlePanel />}
+        {screen === 'puzzle' && <PuzzlePanel pieces={pieces} />}
         {screen === 'howto' && <HowToPanel />}
-        {screen === 'stage' && run && <StagePanel run={run} />}
         <button className="stub__back" onClick={back}>
           ← 돌아가기
         </button>
@@ -59,8 +141,7 @@ export default function App() {
   )
 }
 
-function PuzzlePanel() {
-  const pieces = loadPieces()
+function PuzzlePanel({ pieces }: { pieces: number }) {
   return (
     <>
       <h2>퍼즐 조각</h2>
@@ -70,7 +151,8 @@ function PuzzlePanel() {
         ))}
       </div>
       <p className="stub__desc">
-        스테이지 1-10 클리어 시 조각 획득. {PUZZLE_TOTAL}개를 모두 모으면 업적 달성.
+        스테이지 1-10 클리어 시 조각 획득. 전직 등급이 <b>완성</b>이면 2개.{' '}
+        {PUZZLE_TOTAL}개를 모두 모으면 업적 달성.
       </p>
     </>
   )
@@ -94,43 +176,17 @@ function HowToPanel() {
         </li>
         <li>
           보상이 나오는 스테이지는 <b>판마다 달라집니다.</b> 지점은 3곳이며, 각 지점에서{' '}
-          <b>3개 중 1개</b>를 <b>3번</b> 고릅니다.
+          <b>{REWARD_CHOICES}개 중 1개</b>를 <b>{PICKS_PER_STOP}번</b> 고릅니다.
         </li>
         <li>
-          <b>1-8</b>에 진입하면 무조건 전직합니다. 그때까지 모은 스킬 계열이 어떤 직업이 될지, 또
-          보너스가 얼마나 강할지를 정합니다.
+          <b>1-{JOB_STAGE}</b>에 진입하면 무조건 전직합니다. 그때까지 모은 스킬 계열이 어떤 직업이
+          될지, 또 보너스가 얼마나 강할지를 정합니다.
         </li>
         <li>사망하면 처음부터. 퍼즐 조각만 남습니다.</li>
       </ul>
-    </>
-  )
-}
-
-function StagePanel({ run }: { run: Run }) {
-  const d = DICE[run.face]
-  const left = stagesToNextReward(run)
-  return (
-    <>
-      <h2>스테이지 1-{run.stage}</h2>
       <p className="stub__desc">
-        <b>{run.name}</b> · 주사위 {run.face} <b>{d.name}</b>({d.desc}) · 보상 {REWARD_CHOICES}택
-        {run.topTierLeft > 0 && ` · 최고 티어 확정 ${run.topTierLeft}회`}
+        주사위 눈: {Object.values(DICE).map((d) => d.desc).join(' · ')}
       </p>
-      {/* 보상 지점은 판마다 달라진다. 숨기면 계획을 세울 수 없으니 그대로 보여준다. */}
-      <p className="stub__desc">
-        보상 지점 <b>{run.rewardStages.map((s) => `1-${s}`).join(' · ')}</b> · 지점당{' '}
-        {PICKS_PER_STOP}장
-        {left === null
-          ? ' · 남은 보상 없음'
-          : left === 0
-            ? ' · 이번 스테이지 클리어 시 보상'
-            : ` · 다음 보상까지 ${left}스테이지`}
-      </p>
-      <p className="stub__desc">
-        HP {run.hp}/{run.max.hp} · MP {run.mp} · 공 {run.max.atk} · 마 {run.max.mag} · 속{' '}
-        {run.max.spd} · 운 {run.max.luk}
-      </p>
-      <p className="stub__desc">턴제 전투는 다음 단계에서 만듭니다.</p>
     </>
   )
 }

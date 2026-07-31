@@ -1,0 +1,322 @@
+.bt {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto auto auto;
+  gap: 10px;
+  padding: 16px 20px 20px;
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(125, 211, 252, 0.06), transparent 70%),
+    var(--bg);
+}
+.bt--midboss {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(255, 156, 89, 0.1), transparent 70%),
+    var(--bg);
+}
+.bt--boss {
+  background:
+    radial-gradient(ellipse 90% 45% at 50% 0%, rgba(242, 105, 95, 0.14), transparent 70%),
+    var(--bg);
+}
+
+/* --- 상단 --- */
+.bt__top {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+}
+.bt__stage {
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bt__badge {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 1px 6px;
+}
+.bt__clock {
+  margin-left: auto;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.bt__clock.is-low {
+  color: #f2695f;
+  animation: bt-pulse 0.7s ease-in-out infinite;
+}
+.bt__turn {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+  text-align: right;
+}
+
+@keyframes bt-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.bt__stagebar {
+  height: 3px;
+  background: var(--line);
+}
+.bt__stagebar i {
+  display: block;
+  height: 100%;
+  background: var(--sky);
+  transition: width 0.1s linear;
+}
+
+/* --- 적 --- */
+.bt__enemies {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+  padding-top: 8px;
+}
+.bt__enemy {
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.bt__enemy.is-dead {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+.bt__enemy-body {
+  width: 62px;
+  height: 62px;
+  background: linear-gradient(160deg, #3a4054, #232838);
+  border: 3px solid #10131c;
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.05);
+}
+.bt__enemy-name {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bt__line {
+  font-size: 10px;
+  font-style: normal;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 0 4px;
+}
+
+/* --- 로그 --- */
+.bt__log {
+  align-self: center;
+  min-height: 76px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 14px;
+  background: rgba(20, 22, 31, 0.7);
+  border-left: 2px solid var(--line);
+  font-size: 13px;
+}
+.bt__log p {
+  color: var(--text);
+}
+.bt__log p:not(:last-child) {
+  opacity: 0.45;
+}
+.bt__log-empty {
+  color: var(--muted);
+}
+
+/* --- 플레이어 --- */
+.bt__player {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+.bt__pinfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.bt__prow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.bt__job {
+  font-size: 11px;
+  color: var(--accent);
+  border: 1px solid rgba(255, 156, 89, 0.4);
+  padding: 1px 7px;
+}
+
+/* --- 상태 --- */
+.bt__statuses {
+  display: flex;
+  gap: 4px;
+}
+.bt__st {
+  font-size: 10px;
+  font-style: normal;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.bt__st--burn {
+  color: #ff9c59;
+}
+.bt__st--stun {
+  color: #7dd3fc;
+}
+.bt__st--slow {
+  color: #a5b4fc;
+}
+.bt__st--atkDown {
+  color: #c084fc;
+}
+.bt__st--guard {
+  color: #5fd3a0;
+}
+
+/* --- 게이지 --- */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.bar__label {
+  width: 20px;
+  color: var(--muted);
+}
+.bar__track {
+  flex: 1;
+  height: 9px;
+  background: #0c0e15;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.bar__track i {
+  display: block;
+  height: 100%;
+  transition: width 0.18s ease-out;
+}
+.bar--hp .bar__track i {
+  background: linear-gradient(90deg, #d94f45, #f2695f);
+}
+.bar--mp .bar__track i {
+  background: linear-gradient(90deg, #3b82c4, #7dd3fc);
+}
+.bar--enemy .bar__track i {
+  background: linear-gradient(90deg, #8a5a3a, #ff9c59);
+}
+.bar__num {
+  font-variant-numeric: tabular-nums;
+  min-width: 62px;
+  text-align: right;
+}
+.bar__num em {
+  font-style: normal;
+  color: var(--muted);
+}
+
+/* --- 턴 타이머 --- */
+.bt__turnbar {
+  position: relative;
+  height: 18px;
+  background: #0c0e15;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+}
+.bt__turnbar i {
+  display: block;
+  height: 100%;
+  background: rgba(125, 211, 252, 0.35);
+  transition: width 0.1s linear;
+}
+.bt__turnbar i.is-low {
+  background: rgba(242, 105, 95, 0.45);
+}
+.bt__turnbar span {
+  position: absolute;
+  right: 8px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* --- 커맨드 --- */
+.bt__cmds {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.bt__cmds button {
+  padding: 13px 10px;
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  transition: border-color 0.1s, color 0.1s, background 0.1s;
+}
+.bt__cmds button:hover:not(:disabled),
+.bt__cmds button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+.bt__cmds button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.bt__cmds b {
+  font-size: 11px;
+  color: var(--muted);
+  margin-right: 5px;
+}
+.bt__mp {
+  font-size: 11px;
+  color: var(--sky);
+  margin-left: 4px;
+}
+.bt__back {
+  grid-column: 4;
+  font-size: 13px !important;
+  color: var(--muted);
+}
+
+@media (max-width: 560px) {
+  .bt__enemies {
+    gap: 12px;
+  }
+  .bt__enemy {
+    width: 130px;
+  }
+  .bt__cmds {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bt__back {
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bt__clock.is-low {
+    animation: none;
+  }
+}

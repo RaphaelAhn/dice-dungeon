@@ -1,0 +1,120 @@
+.rw {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 35%, rgba(255, 156, 89, 0.08), transparent 70%),
+    var(--bg);
+}
+
+.rw__head {
+  text-align: center;
+}
+.rw__head h2 {
+  font-size: 24px;
+}
+.rw__head p {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.rw__head b {
+  color: var(--accent);
+}
+
+.rw__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 240px));
+  gap: 14px;
+}
+
+.rw__card {
+  position: relative;
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 16px;
+  text-align: left;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  transition: border-color 0.12s, transform 0.12s, background 0.12s;
+}
+.rw__card:hover,
+.rw__card:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  outline: none;
+}
+
+/* 슬롯마다 색을 달리해 "무엇을 포기하는가"가 한눈에 보이게 한다 */
+.rw__card--skill {
+  border-top: 4px solid var(--sky);
+}
+.rw__card--stat,
+.rw__card--heal {
+  border-top: 4px solid #5fd3a0;
+}
+.rw__card--gamble {
+  border-top: 4px solid #f2695f;
+}
+
+.rw__tier {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+.rw__slot {
+  font-size: 11px;
+  color: var(--muted);
+}
+.rw__name {
+  font-size: 17px;
+  line-height: 1.35;
+  margin-top: 4px;
+}
+.rw__desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.rw__key {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.rw__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.rw__skills {
+  color: var(--sky);
+}
+
+@media (max-width: 720px) {
+  .rw__cards {
+    grid-template-columns: 1fr;
+    max-width: 340px;
+  }
+  .rw__card {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw__card:hover,
+  .rw__card:focus-visible {
+    transform: none;
+  }
+}
