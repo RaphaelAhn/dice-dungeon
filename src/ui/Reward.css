@@ -52,11 +52,11 @@
 }
 
 /* 슬롯마다 색을 달리해 "무엇을 포기하는가"가 한눈에 보이게 한다 */
-.rw__card--skill {
+.rw__card--craft {
   border-top: 4px solid var(--sky);
 }
-.rw__card--stat,
-.rw__card--heal {
+.rw__card--age,
+.rw__card--age2 {
   border-top: 4px solid #5fd3a0;
 }
 .rw__card--gamble {

@@ -1,7 +1,7 @@
 import type { Gender, Stats } from './character'
 import { applyFace, DICE, type Face } from './dice'
-import { decideJob, jobBonus, type Job } from './job'
-import type { SkillLine } from './skill'
+import { decidePizza, pizzaBonus, type Pizza } from './pizza'
+import { MAX_TOPPINGS, totalWeight, type Topping } from './topping'
 
 export const FINAL_STAGE = 10
 
@@ -9,104 +9,54 @@ export const FINAL_STAGE = 10
 export const REWARD_CHOICES = 3
 
 /**
- * 보상이 나오는 스테이지 조합. 판이 시작될 때 이 중 하나를 랜덤으로 뽑는다.
- * 매 판 같은 자리에서 보상이 나오면 순서를 외워 최적해를 굳힐 수 있다.
- * 조합을 굴려 "언제 받을지"를 판마다 흔든다. (기획서 04 §1)
- *
- * 1-10 은 보스라 클리어하면 보상 대신 게임이 끝나므로 어느 조합에도 없다.
- * 두 조합 모두 지점 3곳이고, 1-5 중간보스 시점과 1-10 보스 시점의
- * 누적 카드 수가 같다 — §1.4 참고.
+ * 보상이 나오는 라운드 조합. 판이 시작될 때 하나를 랜덤으로 뽑는다.
+ * 매 판 같은 자리에서 나오면 순서를 외워 최적해를 굳힐 수 있다.
  */
 export const REWARD_SCHEDULES: readonly (readonly number[])[] = [
   [1, 3, 9],
   [2, 4, 8],
 ]
 
-/**
- * 한 지점에서 고르는 카드 수. 1장을 고르면 바로 다음 스테이지로 넘어간다.
- * 지점이 3곳이므로 한 판의 보상은 총 3장이다.
- *
- * 전에는 3장씩 골라 총 9장이었다. 전직에 스킬 3개가 필요했기 때문인데,
- * 전직이 1-8 무조건으로 바뀌면서 그 제약이 사라져 1장으로 되돌렸다.
- */
+/** 한 지점에서 고르는 카드 수. 1장을 고르면 바로 다음 라운드로 넘어간다. */
 export const PICKS_PER_STOP = 1
 
 export function rollSchedule(): readonly number[] {
   return REWARD_SCHEDULES[Math.floor(Math.random() * REWARD_SCHEDULES.length)]
 }
 
-/** 이 스테이지를 클리어하면 보상 지점인가 */
-export function isRewardStage(run: Run, stage: number): boolean {
-  return run.rewardStages.includes(stage)
-}
-
-/** 다음 보상까지 남은 스테이지 수. 없으면 null (마지막 지점을 지났다) */
 export function stagesToNextReward(run: Run): number | null {
   const next = run.rewardStages.find((s) => s >= run.stage)
   return next === undefined ? null : next - run.stage
 }
 
 /**
- * 한 판(런)의 전부. 사망하면 통째로 버려진다.
- * 저장되는 건 퍼즐 조각 수 하나뿐이므로 여기 있는 값은 전부 휘발성이다. (save.ts 참고)
+ * 한 판(런)의 전부. 실패하면 통째로 버려진다.
+ * 남는 건 도감에 기록된 피자뿐이다. (save.ts)
  */
 export type Run = {
   gender: Gender
   name: string
   face: Face
-  /** 주사위까지 적용된 최대치. 보상으로 늘어날 수 있다. */
+  /** 주사위와 토핑까지 반영된 최대치 */
   max: Stats
   hp: number
   mp: number
-  /** 1 ~ FINAL_STAGE. 표시할 때는 `1-${stage}` 형태 */
   stage: number
-  /** 이 판에서 뽑힌 보상 지점. 판이 끝날 때까지 바뀌지 않는다. */
   rewardStages: readonly number[]
-  /** 남은 '최고 티어 확정' 횟수. 주사위 6번 눈이 1을 준다. */
   topTierLeft: number
-  /** 보유 스킬. 1-8 전직 판정의 입력이 된다. */
-  skills: SkillLine[]
+  /** 도우에 올린 토핑. 이 목록이 곧 빌드이자 도감 항목이 된다. */
+  toppings: Topping[]
   potions: number
-  /** 1-8 진입 전에는 null. 전직 후에는 바뀌지 않는다. */
-  job: Job | null
+  /** 1-8 진입 전에는 null. 구워진 뒤에는 바뀌지 않는다. */
+  pizza: Pizza | null
 }
 
-/**
- * 1-8 진입 시 전직시킨다. 보유 스킬·보상과 무관하게 무조건 일어난다.
- * 스탯 보너스는 여기서 최대치에 더하고, 현재 체력도 늘어난 만큼 같이 올린다 —
- * 전직했는데 체력이 그대로면 강해진 느낌이 안 난다.
- */
-export function promote(run: Run): Run {
-  if (run.job) return run
-  const job = decideJob(run.skills, run.max)
-  const b = jobBonus(job)
-  const max: Stats = {
-    hp: run.max.hp + (b.stats.hp ?? 0),
-    atk: run.max.atk + (b.stats.atk ?? 0),
-    mag: run.max.mag + (b.stats.mag ?? 0),
-    spd: run.max.spd + (b.stats.spd ?? 0),
-    luk: run.max.luk + (b.stats.luk ?? 0),
-  }
-  return {
-    ...run,
-    job,
-    max,
-    hp: run.hp + (b.stats.hp ?? 0),
-    mp: Math.min(maxMp(max), run.mp + (b.stats.mag ?? 0)),
-  }
-}
-
-/** ⚠ 시작 포션 개수 */
+/** ⚠ 시작 포션(반죽 물) 개수 */
 export const START_POTIONS = 2
 
 /**
- * ⚠ 스테이지 클리어 시 회복량 (최대 체력 비율). 시뮬레이션 360판으로 뽑은 값.
- *
- * 회복을 보상 지점에 묶으면 안 된다. 조합 [1,3,9] 은 4~9 여섯 스테이지를
- * 연속 무회복으로 통과해야 해서 [2,4,8] 보다 크게 불리해진다.
- * 클리어마다 조금씩 주면 조합과 무관해진다.
- *
- * 보상이 지점당 1장(총 3장)으로 줄면서 성장 폭이 작아져 0.25 -> 0.35 로 올렸다.
+ * ⚠ 라운드 클리어 시 회복량. 시뮬레이션 360판으로 뽑은 값.
+ * 회복을 보상 지점에 묶으면 조합 [1,3,9] 이 크게 불리해진다.
  */
 export const STAGE_HEAL_RATIO = 0.35
 
@@ -117,14 +67,69 @@ export function healAfterStage(run: Run): Run {
   }
 }
 
-/** 마나는 전투 시작 시 채운다. 런 전체 자원이면 스킬이 죽는다. */
+/** 반죽 탄력(마나)은 전투 시작 시 채운다. 런 전체 자원이면 기술이 죽는다. */
 export function refillMp(run: Run): Run {
   return { ...run, mp: maxMp(run.max) }
 }
 
-/** 마나 최대치는 마법력과 같다. (기획서 v0.2 §2 — 마법력 = 스킬 데미지·최대 마나) */
+/** 탄력 최대치는 마법력과 같다 */
 export function maxMp(stats: Stats): number {
   return stats.mag
+}
+
+/** 토핑을 더 올릴 수 있는가 */
+export function canAddTopping(run: Run): boolean {
+  return run.toppings.length < MAX_TOPPINGS
+}
+
+/**
+ * 토핑을 도우에 올린다.
+ * 능력치는 오르지만 무게만큼 속도가 깎인다 — 그래서 '지나치기'가 살아 있다.
+ */
+export function addTopping(run: Run, topping: Topping, gain: Partial<Stats>): Run {
+  const toppings = [...run.toppings, topping]
+  const max: Stats = {
+    hp: run.max.hp + (gain.hp ?? 0),
+    atk: run.max.atk + (gain.atk ?? 0),
+    mag: run.max.mag + (gain.mag ?? 0),
+    spd: run.max.spd + (gain.spd ?? 0),
+    luk: run.max.luk + (gain.luk ?? 0),
+  }
+  // 무게는 총합으로 다시 계산한다. 매번 빼면 반올림 오차가 쌓인다.
+  const base = run.max.spd + (gain.spd ?? 0) + totalWeight(run.toppings)
+  max.spd = Math.max(1, base - totalWeight(toppings))
+
+  return {
+    ...run,
+    toppings,
+    max,
+    hp: run.hp + (gain.hp ?? 0),
+    mp: Math.min(maxMp(max), run.mp + (gain.mag ?? 0)),
+  }
+}
+
+/**
+ * 1-8 진입 시 도우가 굳는다. 올린 토핑과 무관하게 무조건 일어난다.
+ * 보너스만큼 현재 체력도 같이 올린다 — 안 그러면 강해진 느낌이 안 난다.
+ */
+export function bake(run: Run): Run {
+  if (run.pizza) return run
+  const pizza = decidePizza(run.toppings, run.max)
+  const b = pizzaBonus(pizza)
+  const max: Stats = {
+    hp: run.max.hp + (b.stats.hp ?? 0),
+    atk: run.max.atk + (b.stats.atk ?? 0),
+    mag: run.max.mag + (b.stats.mag ?? 0),
+    spd: run.max.spd + (b.stats.spd ?? 0),
+    luk: run.max.luk + (b.stats.luk ?? 0),
+  }
+  return {
+    ...run,
+    pizza,
+    max,
+    hp: run.hp + (b.stats.hp ?? 0),
+    mp: Math.min(maxMp(max), run.mp + (b.stats.mag ?? 0)),
+  }
 }
 
 export function createRun(gender: Gender, name: string, face: Face): Run {
@@ -139,8 +144,8 @@ export function createRun(gender: Gender, name: string, face: Face): Run {
     stage: 1,
     rewardStages: rollSchedule(),
     topTierLeft: DICE[face].topTier ?? 0,
-    skills: [],
+    toppings: [],
     potions: START_POTIONS,
-    job: null,
+    pizza: null,
   }
 }

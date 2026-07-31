@@ -1,151 +1,160 @@
-import type { Stats } from './character'
+import { TASTE_CLASH, type Taste } from './topping'
 
-/** 스킬 계열 5종. 전직 판정과 속성 상성이 모두 이 축을 쓴다. */
-export type SkillLine = 'sword' | 'fire' | 'ice' | 'holy' | 'dark'
-
-export const LINES: SkillLine[] = ['sword', 'fire', 'ice', 'holy', 'dark']
-
-export const LINE_LABEL: Record<SkillLine, string> = {
-  sword: '검술',
-  fire: '화염',
-  ice: '얼음',
-  holy: '신성',
-  dark: '암흑',
-}
-
-/** 역속성 상성. 해당 계열 공격이 이 계열에게 1.5배로 들어간다. (기획서 04 §6.2) */
-export const WEAK_TO: Partial<Record<SkillLine, SkillLine>> = {
-  fire: 'ice',
-  ice: 'fire',
-  holy: 'dark',
-  dark: 'holy',
-}
-
+/**
+ * 스킬은 토핑에서 나온다. 도우에 올린 토핑의 맛이 곧 쓸 수 있는 기술이다.
+ * 그래서 계열 축이 따로 있지 않고 Taste 하나만 쓴다.
+ */
 export type SkillId =
-  | 'strike'
-  | 'combo'
   | 'guardStance'
-  | 'fireball'
-  | 'blaze'
-  | 'freeze'
-  | 'frostMist'
-  | 'holyRay'
-  | 'heal'
-  | 'drain'
-  | 'curse'
+  | 'warmth'
+  | 'fieryBlow'
+  | 'spiceCombo'
+  | 'zestBolt'
+  | 'sourMist'
+  | 'herbSlice'
+  | 'aroma'
+  | 'deepFlavor'
+  | 'richBurst'
+  | 'creamyDrain'
 
-/** 스킬이 남기는 상태. 지속 턴이 0이 되면 사라진다. */
+/** 스킬이 남기는 상태 */
 export type StatusKind = 'burn' | 'stun' | 'slow' | 'atkDown' | 'guard'
 
 export type Skill = {
   id: SkillId
-  line: SkillLine
+  taste: Taste
   name: string
-  /** 마나 소모. 최대 마나는 마법력과 같아서 초반엔 2~3회가 한계다. */
+  /** 마나(반죽 탄력) 소모 */
   mp: number
-  /** 공격 배율. 없으면 피해를 주지 않는 스킬 */
   power?: number
-  /** 물리는 공격력, 마법은 마법력을 쓴다 */
   kind: 'physical' | 'magic' | 'support'
-  /** 배율을 이 횟수만큼 나눠 때린다 (연격) */
   hits?: number
   target: 'one' | 'all' | 'self'
-  /** 명중 시 대상에게 남기는 상태 */
   inflict?: { kind: StatusKind; turns: number; value?: number }
-  /** 준 피해의 이 비율만큼 체력을 회복 */
   drain?: number
-  /** 최대 체력의 이 비율을 회복 */
   healRatio?: number
 }
 
 export const SKILLS: Record<SkillId, Skill> = {
-  strike: { id: 'strike', line: 'sword', name: '강타', mp: 6, kind: 'physical', power: 1.8, target: 'one' },
-  combo: { id: 'combo', line: 'sword', name: '연격', mp: 6, kind: 'physical', power: 1.4, hits: 2, target: 'one' },
+  // 담백 — 버티고 회복한다
   guardStance: {
     id: 'guardStance',
-    line: 'sword',
-    name: '반격 태세',
+    taste: 'mild',
+    name: '든든한 반죽',
     mp: 6,
     kind: 'support',
     target: 'self',
     inflict: { kind: 'guard', turns: 1 },
   },
-  fireball: {
-    id: 'fireball',
-    line: 'fire',
-    name: '화염구',
+  warmth: {
+    id: 'warmth',
+    taste: 'mild',
+    name: '포근한 온기',
+    mp: 9,
+    kind: 'support',
+    target: 'self',
+    healRatio: 0.35,
+  },
+
+  // 매콤 — 물리 화력
+  fieryBlow: {
+    id: 'fieryBlow',
+    taste: 'spicy',
+    name: '화끈한 일격',
+    mp: 6,
+    kind: 'physical',
+    power: 1.8,
+    target: 'one',
+  },
+  spiceCombo: {
+    id: 'spiceCombo',
+    taste: 'spicy',
+    name: '매운맛 연타',
+    mp: 6,
+    kind: 'physical',
+    power: 1.4,
+    hits: 2,
+    target: 'one',
+  },
+
+  // 새콤 — 견제와 광역 둔화
+  zestBolt: {
+    id: 'zestBolt',
+    taste: 'tangy',
+    name: '상큼한 한 방',
     mp: 6,
     kind: 'magic',
-    power: 1.5,
+    power: 1.4,
     target: 'one',
-    inflict: { kind: 'burn', turns: 3, value: 6 },
   },
-  blaze: { id: 'blaze', line: 'fire', name: '폭염', mp: 9, kind: 'magic', power: 1, target: 'all' },
-  freeze: {
-    id: 'freeze',
-    line: 'ice',
-    name: '빙결',
+  sourMist: {
+    id: 'sourMist',
+    taste: 'tangy',
+    name: '새콤한 안개',
+    mp: 6,
+    kind: 'support',
+    target: 'all',
+    inflict: { kind: 'slow', turns: 3 },
+  },
+
+  // 향긋 — 행동 봉쇄와 약화
+  herbSlice: {
+    id: 'herbSlice',
+    taste: 'herbal',
+    name: '향긋한 베기',
     mp: 9,
     kind: 'magic',
     power: 1.3,
     target: 'one',
     inflict: { kind: 'stun', turns: 1 },
   },
-  frostMist: {
-    id: 'frostMist',
-    line: 'ice',
-    name: '서리 안개',
+  aroma: {
+    id: 'aroma',
+    taste: 'herbal',
+    name: '허브 향',
     mp: 6,
     kind: 'support',
     target: 'all',
-    inflict: { kind: 'slow', turns: 3 },
+    inflict: { kind: 'atkDown', turns: 3, value: 0.3 },
   },
-  holyRay: { id: 'holyRay', line: 'holy', name: '성광', mp: 6, kind: 'magic', power: 1.4, target: 'one' },
-  heal: { id: 'heal', line: 'holy', name: '치유', mp: 9, kind: 'support', target: 'self', healRatio: 0.35 },
-  drain: {
-    id: 'drain',
-    line: 'dark',
-    name: '흡혈',
+
+  // 진한 — 마법 화력과 흡수
+  deepFlavor: {
+    id: 'deepFlavor',
+    taste: 'rich',
+    name: '진한 풍미',
+    mp: 6,
+    kind: 'magic',
+    power: 1.5,
+    target: 'one',
+    inflict: { kind: 'burn', turns: 3, value: 6 },
+  },
+  richBurst: {
+    id: 'richBurst',
+    taste: 'rich',
+    name: '농후한 폭발',
+    mp: 9,
+    kind: 'magic',
+    power: 1,
+    target: 'all',
+  },
+  creamyDrain: {
+    id: 'creamyDrain',
+    taste: 'rich',
+    name: '크리미 흡수',
     mp: 6,
     kind: 'magic',
     power: 1.2,
     target: 'one',
     drain: 0.5,
   },
-  curse: {
-    id: 'curse',
-    line: 'dark',
-    name: '저주',
-    mp: 6,
-    kind: 'support',
-    target: 'all',
-    inflict: { kind: 'atkDown', turns: 3, value: 0.3 },
-  },
 }
 
 export const SKILL_IDS = Object.keys(SKILLS) as SkillId[]
 
-export function skillsOfLine(line: SkillLine): Skill[] {
-  return SKILL_IDS.map((id) => SKILLS[id]).filter((s) => s.line === line)
+export function skillsOfTaste(taste: Taste): Skill[] {
+  return SKILL_IDS.map((id) => SKILLS[id]).filter((s) => s.taste === taste)
 }
 
-/**
- * 능력치 → 계열 친화도.
- * 주사위로 받은 능력치가 어느 방향에 유리한지를 정하는 고리다. (기획서 04 §3.1)
- * 보상에 등장하는 스킬 계열의 가중치와, 전직 시 동수 판정의 우선순위에 쓴다.
- *
- * 체력은 어느 계열도 밀어주지 않는다 — 체력형(주사위 1번 눈)은 자유 빌드다.
- */
-export function affinity(stats: Stats, line: SkillLine): number {
-  switch (line) {
-    case 'sword':
-      return stats.atk
-    case 'fire':
-    case 'ice':
-      return stats.mag
-    case 'holy':
-      return stats.luk
-    case 'dark':
-      return stats.spd
-  }
-}
+/** 맞부딪치는 맛은 1.5배로 들어간다 (매콤↔새콤, 진한↔향긋) */
+export const CLASH = TASTE_CLASH

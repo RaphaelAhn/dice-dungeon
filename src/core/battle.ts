@@ -1,8 +1,9 @@
-import { ENCOUNTERS, type Encounter } from './enemy'
-import { jobBonus } from './job'
+import type { Encounter } from './enemy'
+import { pizzaBonus } from './pizza'
 import { maxMp, type Run } from './run'
-import { SKILLS, WEAK_TO, type SkillId, type SkillLine, type StatusKind } from './skill'
+import { SKILLS, type SkillId, type StatusKind } from './skill'
 import { stageLimitMs, TURN_LIMIT_MS } from './timer'
+import { TASTE_CLASH, type Taste } from './topping'
 
 /** 방어 시 받는 피해 배율 (기획서 03 §4) */
 const DEFEND_TAKE = 0.5
@@ -32,7 +33,7 @@ export type Unit = {
   mag: number
   spd: number
   luk: number
-  line?: SkillLine
+  taste?: Taste
   statuses: Status[]
   /** 전직 주계열 보너스 — 주는 피해 배율 가산 */
   damageMul: number
@@ -40,8 +41,8 @@ export type Unit = {
   critAdd: number
   /** 전직 주계열 보너스 — 회복량 배율 가산 */
   healMul: number
-  /** 전직 부계열 특성. 없으면 null */
-  trait: SkillLine | null
+  /** 부 풍미 특성. 없으면 null */
+  trait: Taste | null
 }
 
 export type Command =
@@ -77,7 +78,7 @@ export type BattleState = {
 export type Rng = () => number
 
 function unitFromRun(run: Run): Unit {
-  const b = run.job ? jobBonus(run.job) : null
+  const b = run.pizza ? pizzaBonus(run.pizza) : null
   return {
     id: 'p',
     name: run.name,
@@ -96,10 +97,9 @@ function unitFromRun(run: Run): Unit {
   }
 }
 
-export function startBattle(run: Run, stage: number): BattleState {
-  const enc = ENCOUNTERS[stage]
+export function startBattle(run: Run, enc: Encounter): BattleState {
   return {
-    stage,
+    stage: run.stage,
     kind: enc.kind,
     player: unitFromRun(run),
     enemies: enc.enemies.map((e, i) => ({
@@ -111,7 +111,7 @@ export function startBattle(run: Run, stage: number): BattleState {
       mag: e.atk,
       spd: e.spd,
       luk: 10,
-      line: e.line,
+      taste: e.taste,
       statuses: [],
       damageMul: 0,
       critAdd: 0,
@@ -183,9 +183,10 @@ function critical(attacker: Unit, rng: Rng): boolean {
   return rng() < attacker.luk * CRIT_PER_LUK + attacker.critAdd
 }
 
-function elementMul(skillLine: SkillLine | undefined, target: Unit): number {
-  if (!skillLine || !target.line) return 1
-  return WEAK_TO[skillLine] === target.line ? WEAK_MUL : 1
+/** 맞부딪치는 맛끼리는 더 아프다 (매콤↔새콤, 진한↔향긋) */
+function elementMul(taste: Taste | undefined, target: Unit): number {
+  if (!taste || !target.taste) return 1
+  return TASTE_CLASH[taste] === target.taste ? WEAK_MUL : 1
 }
 
 function applyStatus(u: Unit, kind: StatusKind, turns: number, value = 0): void {
@@ -241,11 +242,11 @@ export function takeTurn(prev: BattleState, cmd: Command, rng: Rng = Math.random
     for (const e of s.enemies) if (alive(e)) tickStatuses(e, s.log)
 
     // 신성 부계열 특성 — 턴 종료 회복
-    if (s.player.trait === 'holy' && s.player.hp > 0) {
+    if (s.player.trait === 'mild' && s.player.hp > 0) {
       const heal = Math.round(s.player.maxHp * 0.05)
       const before = s.player.hp
       s.player.hp = Math.min(s.player.maxHp, s.player.hp + heal)
-      if (s.player.hp > before) s.log.push(`신성 특성 — 체력 ${s.player.hp - before} 회복`)
+      if (s.player.hp > before) s.log.push(`담백 특성 — 체력 ${s.player.hp - before} 회복`)
     }
 
     checkOver(s)
@@ -336,7 +337,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
     if (sk.power) {
       for (let i = 0; i < hits; i++) {
         if (!alive(t)) break
-        const dealt = strike(s, p, t, base, sk.power / hits, sk.line, rng, sk.name)
+        const dealt = strike(s, p, t, base, sk.power / hits, sk.taste, rng, sk.name)
         if (sk.drain && dealt > 0) {
           const back = Math.round(dealt * sk.drain)
           p.hp = Math.min(p.maxHp, p.hp + back)
@@ -366,38 +367,38 @@ function applyTraitOnHit(
   if (!p.trait || dealt <= 0) return
 
   switch (p.trait) {
-    case 'sword':
+    case 'spicy':
       if (via === 'attack') {
         const cap = p.mag
         const gain = Math.min(cap - s.mp, 5)
         if (gain > 0) {
           s.mp += gain
-          s.log.push(`검술 특성 — 마나 ${gain} 회복`)
+          s.log.push(`매콤 특성 — 반죽 탄력 ${gain} 회복`)
         }
       }
       break
-    case 'fire':
+    case 'herbal':
       if (via === 'skill' && alive(target)) {
         applyStatus(target, 'burn', 3, 6)
-        s.log.push(`화염 특성 — ${target.name} 화상`)
+        s.log.push(`향긋 특성 — ${target.name} 지속 피해`)
       }
       break
-    case 'ice':
+    case 'tangy':
       if (via === 'skill' && alive(target)) {
         applyStatus(target, 'slow', 1)
-        s.log.push(`얼음 특성 — ${target.name} 둔화`)
+        s.log.push(`새콤 특성 — ${target.name} 둔화`)
       }
       break
-    case 'dark': {
+    case 'rich': {
       const back = Math.round(dealt * 0.15)
       if (back > 0) {
         p.hp = Math.min(p.maxHp, p.hp + back)
-        s.log.push(`암흑 특성 — 체력 ${back} 흡수`)
+        s.log.push(`진한 특성 — 체력 ${back} 흡수`)
       }
       break
     }
-    case 'holy':
-      // 신성은 명중이 아니라 턴 종료에 발동한다. takeTurn 에서 처리한다.
+    case 'mild':
+      // 담백은 명중이 아니라 턴 종료에 발동한다. takeTurn 에서 처리한다.
       break
   }
 }
@@ -408,7 +409,7 @@ function strike(
   to: Unit,
   base: number,
   mult: number,
-  line: SkillLine | undefined,
+  line: Taste | undefined,
   rng: Rng,
   label = '공격',
 ): number {
@@ -438,7 +439,7 @@ function resolveEnemies(s: BattleState, rng: Rng): void {
       s.log.push(`${e.name}은(는) 얼어붙어 움직일 수 없다`)
       continue
     }
-    strike(s, e, s.player, effAtk(e), 1, e.line, rng, `${e.name}의 공격`)
+    strike(s, e, s.player, effAtk(e), 1, e.taste, rng, `${e.name}의 공격`)
     if (s.player.hp <= 0) break
   }
 }

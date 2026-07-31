@@ -1,0 +1,126 @@
+.rc {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 35%, rgba(95, 211, 160, 0.09), transparent 70%),
+    var(--bg);
+}
+
+.rc__head {
+  text-align: center;
+}
+.rc__head h2 {
+  font-size: 24px;
+}
+.rc__head p {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.rc__head b {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.rc__cards {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.rc__card {
+  position: relative;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 18px 16px;
+  text-align: left;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-top: 4px solid #5fd3a0;
+  transition: border-color 0.12s, transform 0.12s;
+}
+.rc__card:hover:not(:disabled),
+.rc__card:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  outline: none;
+}
+.rc__card:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.rc__kind {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+.rc__name {
+  font-size: 19px;
+}
+.rc__taste {
+  font-size: 12px;
+  color: var(--sky);
+}
+.rc__gain {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #5fd3a0;
+}
+.rc__weight {
+  font-size: 12px;
+  color: #f2695f;
+}
+.rc__key {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.rc__full {
+  font-size: 13px;
+  color: #f2695f;
+}
+
+.rc__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.rc__skip {
+  padding: 11px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  color: var(--muted);
+}
+.rc__skip:hover,
+.rc__skip:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+.rc__hint {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc__card:hover:not(:disabled) {
+    transform: none;
+  }
+}

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { startBattle, takeTurn, tick, type BattleState, type Command, type Unit } from '../core/battle'
-import { ENCOUNTERS } from '../core/enemy'
+import type { Encounter } from '../core/enemy'
 import { maxMp, type Run } from '../core/run'
-import { LINE_LABEL, skillsOfLine } from '../core/skill'
+import { skillsOfTaste } from '../core/skill'
+import { TASTE_LABEL } from '../core/topping'
 import { formatClock, stageLimitMs, TURN_LIMIT_MS } from '../core/timer'
 import CharacterSprite from './CharacterSprite'
 import './Battle.css'
@@ -17,16 +18,18 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function Battle({
   run,
+  enc,
   onWin,
   onEnd,
 }: {
   run: Run
+  enc: Encounter
   /** 승리 — 전투 결과가 반영된 런을 돌려준다 */
   onWin: (next: Run) => void
   /** 규칙 1(시간 초과) 또는 규칙 2(사망) */
   onEnd: (reason: 'lose' | 'timeout') => void
 }) {
-  const [state, setState] = useState<BattleState>(() => startBattle(run, run.stage))
+  const [state, setState] = useState<BattleState>(() => startBattle(run, enc))
   const [menu, setMenu] = useState<'root' | 'skill'>('root')
   // 실제 경과 시간으로 재야 탭을 옮겨도 시계가 멈추지 않는다.
   const last = useRef(Date.now())
@@ -66,7 +69,8 @@ export default function Battle({
     }
   }, [state.over, state.player.hp, state.mp, state.potions, run, onWin, onEnd])
 
-  const ownedSkills = [...new Set(run.skills)].flatMap((l) => skillsOfLine(l))
+  // 도우에 올린 토핑의 맛이 곧 쓸 수 있는 기술이다
+  const ownedSkills = [...new Set(run.toppings.map((t) => t.taste))].flatMap(skillsOfTaste)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -86,7 +90,6 @@ export default function Battle({
     return () => window.removeEventListener('keydown', onKey)
   }, [menu, act, ownedSkills, state.over])
 
-  const enc = ENCOUNTERS[run.stage]
   const stageRatio = state.timeLeftMs / stageLimitMs(enc.kind)
   const turnRatio = state.turnLeftMs / TURN_LIMIT_MS
   const mpMax = maxMp(run.max)
@@ -126,7 +129,7 @@ export default function Battle({
         <div className="bt__pinfo">
           <div className="bt__prow">
             <b>{run.name}</b>
-            {run.job && <span className="bt__job">{run.job.name}</span>}
+            {run.pizza && <span className="bt__job">{run.pizza.name}</span>}
             <Statuses unit={state.player} />
           </div>
           <Bar label="HP" now={state.player.hp} max={state.player.maxHp} kind="hp" />
@@ -162,7 +165,7 @@ export default function Battle({
                 key={sk.id}
                 onClick={() => act({ type: 'skill', id: sk.id })}
                 disabled={state.mp < sk.mp}
-                title={LINE_LABEL[sk.line]}
+                title={TASTE_LABEL[sk.taste]}
               >
                 <b>{i + 1}</b> {sk.name} <span className="bt__mp">{sk.mp}</span>
               </button>
@@ -184,7 +187,7 @@ function EnemyCard({ unit }: { unit: Unit }) {
       <div className="bt__enemy-body" />
       <span className="bt__enemy-name">
         {unit.name}
-        {unit.line && <i className="bt__line">{LINE_LABEL[unit.line]}</i>}
+        {unit.taste && <i className="bt__line">{TASTE_LABEL[unit.taste]}</i>}
       </span>
       <Bar label="" now={unit.hp} max={unit.maxHp} kind="enemy" />
       <Statuses unit={unit} />

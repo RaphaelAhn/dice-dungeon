@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { jobLabel } from '../core/job'
+import { pizzaLabel } from '../core/pizza'
 import type { Run } from '../core/run'
 import { PUZZLE_TOTAL } from '../core/save'
 import './Result.css'
@@ -52,12 +52,12 @@ export default function Result({
           <dd>1-{run.stage}</dd>
         </div>
         <div>
-          <dt>직업</dt>
-          <dd>{run.job ? jobLabel(run.job) : '전직 전'}</dd>
+          <dt>피자</dt>
+          <dd>{run.pizza ? pizzaLabel(run.pizza) : '굽기 전'}</dd>
         </div>
         <div>
-          <dt>스킬</dt>
-          <dd>{run.skills.length}</dd>
+          <dt>토핑</dt>
+          <dd>{run.toppings.length}</dd>
         </div>
       </dl>
 

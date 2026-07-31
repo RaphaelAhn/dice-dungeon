@@ -5,28 +5,40 @@ import DiceRoll from './ui/DiceRoll'
 import Battle from './ui/Battle'
 import Reward from './ui/Reward'
 import Result, { type ResultKind } from './ui/Result'
+import Recruit from './ui/Recruit'
 import type { Gender } from './core/character'
 import { DICE, type Face } from './core/dice'
-import { JOB_STAGE } from './core/job'
+import { BAKE_STAGE } from './core/pizza'
 import {
+  addTopping,
+  bake,
   createRun,
   FINAL_STAGE,
   healAfterStage,
   PICKS_PER_STOP,
-  promote,
   refillMp,
   REWARD_CHOICES,
   type Run,
 } from './core/run'
+import { rollEncounter, type Encounter, type EnemyDef } from './core/enemy'
+import { toppingStats } from './core/topping'
 import { loadPieces, PUZZLE_TOTAL, savePieces } from './core/save'
 import './App.css'
 
-type Screen = 'title' | 'character' | 'dice' | 'battle' | 'reward' | 'result' | 'puzzle' | 'howto'
+type Screen =
+  | 'title'
+  | 'character'
+  | 'dice'
+  | 'battle'
+  | 'recruit'
+  | 'reward'
+  | 'result'
+  | 'puzzle'
+  | 'howto'
 
-/** 클리어 시 지급하는 퍼즐 조각 ⚠ (기획서 03 §8) */
+/** 클리어 시 지급하는 조각 ⚠ */
 function piecesFor(run: Run): number {
-  if (run.job?.grade === 'full') return 2
-  return 1
+  return run.pizza?.grade === 'full' ? 2 : 1
 }
 
 // ponytail: 화면 수가 적어 라우터 없이 상태 하나로 전환한다.
@@ -36,6 +48,8 @@ export default function App() {
   const [name, setName] = useState('')
   // 런은 주사위를 굴린 순간 만들어진다. 그 전에는 캐릭터 정보만 들고 있다.
   const [run, setRun] = useState<Run | null>(null)
+  // 라운드마다 새로 뽑는다. 고정 표가 아니다.
+  const [enc, setEnc] = useState<Encounter>(() => rollEncounter(1))
   const [result, setResult] = useState<ResultKind>('lose')
   const [gained, setGained] = useState(0)
   const [pieces, setPieces] = useState(() => loadPieces())
@@ -52,6 +66,7 @@ export default function App() {
     (face: Face) => {
       // 1-1 이 보상 지점인 조합도 있으므로 전직 판정은 스테이지 진입 시 건다.
       setRun(refillMp(createRun(gender, name, face)))
+      setEnc(rollEncounter(1))
       setScreen('battle')
     },
     [gender, name],
@@ -60,8 +75,9 @@ export default function App() {
   /** 다음 스테이지로. 1-8 진입 시 전직이 걸린다. */
   const advance = useCallback((cur: Run) => {
     let next: Run = { ...cur, stage: cur.stage + 1 }
-    if (next.stage >= JOB_STAGE) next = promote(next)
+    if (next.stage >= BAKE_STAGE) next = bake(next)
     setRun(refillMp(next))
+    setEnc(rollEncounter(next.stage))
     setScreen('battle')
   }, [])
 
@@ -82,14 +98,26 @@ export default function App() {
         return
       }
 
-      if (healed.rewardStages.includes(healed.stage)) {
-        setRun(healed)
+      // 먼저 재료를 올릴지 고르고, 그다음이 보상 지점이다.
+      setRun(healed)
+      setScreen('recruit')
+    },
+    [],
+  )
+
+  /** 동료로 만들기 / 지나치기 */
+  const onRecruit = useCallback(
+    (picked: EnemyDef | null) => {
+      if (!run) return
+      const next = picked ? addTopping(run, picked.topping, toppingStats(picked.topping)) : run
+      if (next.rewardStages.includes(next.stage)) {
+        setRun(next)
         setScreen('reward')
       } else {
-        advance(healed)
+        advance(next)
       }
     },
-    [advance],
+    [run, advance],
   )
 
   const onRewardDone = useCallback((next: Run) => advance(next), [advance])
@@ -117,7 +145,11 @@ export default function App() {
 
   if (screen === 'battle' && run) {
     // key 를 스테이지에 묶어 스테이지가 바뀌면 전투 상태를 새로 만든다.
-    return <Battle key={run.stage} run={run} onWin={onWin} onEnd={onEnd} />
+    return <Battle key={run.stage} run={run} enc={enc} onWin={onWin} onEnd={onEnd} />
+  }
+
+  if (screen === 'recruit' && run) {
+    return <Recruit key={run.stage} run={run} defeated={enc.enemies} onDone={onRecruit} />
   }
 
   if (screen === 'reward' && run) {
@@ -179,7 +211,7 @@ function HowToPanel() {
           <b>{REWARD_CHOICES}개 중 1개</b>를 <b>{PICKS_PER_STOP}번</b> 고릅니다.
         </li>
         <li>
-          <b>1-{JOB_STAGE}</b>에 진입하면 무조건 전직합니다. 그때까지 모은 스킬 계열이 어떤 직업이
+          <b>1-{BAKE_STAGE}</b>에 진입하면 도우가 구워집니다. 그때까지 올린 토핑의 맛이 어떤 피자가
           될지, 또 보너스가 얼마나 강할지를 정합니다.
         </li>
         <li>사망하면 처음부터. 퍼즐 조각만 남습니다.</li>

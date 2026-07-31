@@ -4,9 +4,8 @@ import { PICKS_PER_STOP, type Run } from '../core/run'
 import './Reward.css'
 
 const SLOT_LABEL: Record<Card['slot'], string> = {
-  skill: '빌드',
-  stat: '기반',
-  heal: '기반',
+  craft: '장인',
+  age: '숙성',
   gamble: '도박',
 }
 
@@ -78,8 +77,8 @@ export default function Reward({ run, onDone }: { run: Run; onDone: (next: Run) 
           {cur.max.luk}
         </span>
         <span className="rw__skills">
-          스킬 {cur.skills.length === 0 ? '없음' : cur.skills.length}
-          {cur.topTierLeft > 0 && ` · 최고 티어 확정 ${cur.topTierLeft}회`}
+          토핑 {cur.toppings.length === 0 ? '없음' : cur.toppings.length}
+          {cur.topTierLeft > 0 && ` · 명장 확정 ${cur.topTierLeft}회`}
         </span>
       </footer>
     </div>
