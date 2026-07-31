@@ -1,6 +1,8 @@
 import type { Stats } from './character'
 import { affinity, LINES, LINE_LABEL, type SkillLine } from './skill'
 
+/* 이 파일은 전직 시점·판정·보너스를 한곳에 모은다. 규칙이 흩어지면 등급 배율이 새기 쉽다. */
+
 /**
  * 전직은 1-8 진입 시 무조건 일어난다.
  * 보유 스킬 수나 보상 획득 여부와 무관하다 — 조건 미달로 전직을 못 하는 경우는 없다.
@@ -59,6 +61,59 @@ export const JOB_NAMES: Record<SkillLine, Record<SkillLine, string>> = {
     holy: '타락사제',
     dark: '암흑주교',
   },
+}
+
+/**
+ * 주계열 보너스 ⚠ — 등급 배율이 곱해진다.
+ * 계열마다 '무엇이 세지는가'가 달라서 같은 값을 줘도 체감이 다르다.
+ */
+export const MAIN_BONUS: Record<
+  SkillLine,
+  { stats: Partial<Stats>; damageMul?: number; critAdd?: number; healMul?: number }
+> = {
+  sword: { stats: { atk: 15 }, damageMul: 0.1 },
+  fire: { stats: { mag: 15 }, damageMul: 0.15 },
+  ice: { stats: { mag: 12 }, damageMul: 0.1 },
+  holy: { stats: { hp: 30 }, healMul: 0.3 },
+  dark: { stats: { spd: 8 }, critAdd: 0.1 },
+}
+
+/** 부계열 특성 — 수치가 아니라 규칙을 하나 더한다. 빈약 등급에는 붙지 않는다. */
+export const SUB_TRAIT: Record<SkillLine, string> = {
+  sword: '통상 공격이 마나를 5 회복시킨다',
+  fire: '스킬 명중 시 3턴 화상',
+  ice: '스킬 명중 시 1턴 적 속도 절반',
+  holy: '턴 종료 시 최대 체력의 5% 회복',
+  dark: '준 피해의 15%를 체력으로 흡수',
+}
+
+export type JobBonus = {
+  stats: Partial<Stats>
+  damageMul: number
+  critAdd: number
+  healMul: number
+  /** 부계열 특성. 빈약 등급이면 null */
+  trait: SkillLine | null
+}
+
+export function jobBonus(job: Job): JobBonus {
+  const ratio = GRADE_META[job.grade].ratio
+  const b = MAIN_BONUS[job.main]
+  const scale = (n: number | undefined) => Math.round((n ?? 0) * ratio)
+  return {
+    stats: {
+      hp: scale(b.stats.hp),
+      atk: scale(b.stats.atk),
+      mag: scale(b.stats.mag),
+      spd: scale(b.stats.spd),
+      luk: scale(b.stats.luk),
+    },
+    damageMul: (b.damageMul ?? 0) * ratio,
+    critAdd: (b.critAdd ?? 0) * ratio,
+    healMul: (b.healMul ?? 0) * ratio,
+    // 부계열이 없으면 주계열이 특성을 대신 준다. 순수 직업이 특성을 못 받으면 손해다.
+    trait: job.grade === 'thin' ? null : (job.sub ?? job.main),
+  }
 }
 
 export type Job = {

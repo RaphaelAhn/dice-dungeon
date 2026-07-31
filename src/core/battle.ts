@@ -1,4 +1,5 @@
 import { ENCOUNTERS, type Encounter } from './enemy'
+import { jobBonus } from './job'
 import { maxMp, type Run } from './run'
 import { SKILLS, WEAK_TO, type SkillId, type SkillLine, type StatusKind } from './skill'
 import { stageLimitMs, TURN_LIMIT_MS } from './timer'
@@ -33,6 +34,14 @@ export type Unit = {
   luk: number
   line?: SkillLine
   statuses: Status[]
+  /** 전직 주계열 보너스 — 주는 피해 배율 가산 */
+  damageMul: number
+  /** 전직 주계열 보너스 — 치명타 확률 가산 */
+  critAdd: number
+  /** 전직 주계열 보너스 — 회복량 배율 가산 */
+  healMul: number
+  /** 전직 부계열 특성. 없으면 null */
+  trait: SkillLine | null
 }
 
 export type Command =
@@ -68,6 +77,7 @@ export type BattleState = {
 export type Rng = () => number
 
 function unitFromRun(run: Run): Unit {
+  const b = run.job ? jobBonus(run.job) : null
   return {
     id: 'p',
     name: run.name,
@@ -78,6 +88,11 @@ function unitFromRun(run: Run): Unit {
     spd: run.max.spd,
     luk: run.max.luk,
     statuses: [],
+    // 스탯 보너스는 promote() 가 이미 run.max 에 더해 뒀다. 여기서는 배율만 받는다.
+    damageMul: b?.damageMul ?? 0,
+    critAdd: b?.critAdd ?? 0,
+    healMul: b?.healMul ?? 0,
+    trait: b?.trait ?? null,
   }
 }
 
@@ -98,6 +113,10 @@ export function startBattle(run: Run, stage: number): BattleState {
       luk: 10,
       line: e.line,
       statuses: [],
+      damageMul: 0,
+      critAdd: 0,
+      healMul: 0,
+      trait: null,
     })),
     mp: run.mp,
     turn: 1,
@@ -161,7 +180,7 @@ function dodged(attacker: Unit, target: Unit, rng: Rng): boolean {
 }
 
 function critical(attacker: Unit, rng: Rng): boolean {
-  return rng() < attacker.luk * CRIT_PER_LUK
+  return rng() < attacker.luk * CRIT_PER_LUK + attacker.critAdd
 }
 
 function elementMul(skillLine: SkillLine | undefined, target: Unit): number {
@@ -220,6 +239,15 @@ export function takeTurn(prev: BattleState, cmd: Command, rng: Rng = Math.random
   if (!s.over) {
     tickStatuses(s.player, s.log)
     for (const e of s.enemies) if (alive(e)) tickStatuses(e, s.log)
+
+    // 신성 부계열 특성 — 턴 종료 회복
+    if (s.player.trait === 'holy' && s.player.hp > 0) {
+      const heal = Math.round(s.player.maxHp * 0.05)
+      const before = s.player.hp
+      s.player.hp = Math.min(s.player.maxHp, s.player.hp + heal)
+      if (s.player.hp > before) s.log.push(`신성 특성 — 체력 ${s.player.hp - before} 회복`)
+    }
+
     checkOver(s)
     s.turn += 1
     // 커맨드를 고르는 시간은 턴마다 새로 준다. 스테이지 시계는 계속 흐른다.
@@ -276,7 +304,8 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   if (cmd.type === 'attack') {
     const target = aliveEnemies(s)[0]
     if (!target) return
-    strike(s, p, target, effAtk(p), 1, undefined, rng)
+    const dealt = strike(s, p, target, effAtk(p), 1, undefined, rng)
+    applyTraitOnHit(s, p, target, dealt, 'attack')
     return
   }
 
@@ -289,7 +318,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   s.mp -= sk.mp
 
   if (sk.healRatio) {
-    const heal = Math.round(p.maxHp * sk.healRatio)
+    const heal = Math.round(p.maxHp * sk.healRatio * (1 + p.healMul))
     p.hp = Math.min(p.maxHp, p.hp + heal)
     s.log.push(`${sk.name} — 체력 ${heal} 회복`)
   }
@@ -313,12 +342,63 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
           p.hp = Math.min(p.maxHp, p.hp + back)
           s.log.push(`체력 ${back} 흡수`)
         }
+        applyTraitOnHit(s, p, t, dealt, 'skill')
       }
     }
     if (sk.inflict && sk.target !== 'self' && alive(t)) {
       applyStatus(t, sk.inflict.kind, sk.inflict.turns, sk.inflict.value ?? 0)
       s.log.push(`${t.name}에게 ${sk.name} 효과`)
     }
+  }
+}
+
+/**
+ * 전직 부계열 특성. 계열마다 발동 조건이 다르다.
+ * 검술은 통상 공격에만, 화염·얼음은 스킬에만 붙는다 — 계열 성격을 드러내는 차이다.
+ */
+function applyTraitOnHit(
+  s: BattleState,
+  p: Unit,
+  target: Unit,
+  dealt: number,
+  via: 'attack' | 'skill',
+): void {
+  if (!p.trait || dealt <= 0) return
+
+  switch (p.trait) {
+    case 'sword':
+      if (via === 'attack') {
+        const cap = p.mag
+        const gain = Math.min(cap - s.mp, 5)
+        if (gain > 0) {
+          s.mp += gain
+          s.log.push(`검술 특성 — 마나 ${gain} 회복`)
+        }
+      }
+      break
+    case 'fire':
+      if (via === 'skill' && alive(target)) {
+        applyStatus(target, 'burn', 3, 6)
+        s.log.push(`화염 특성 — ${target.name} 화상`)
+      }
+      break
+    case 'ice':
+      if (via === 'skill' && alive(target)) {
+        applyStatus(target, 'slow', 1)
+        s.log.push(`얼음 특성 — ${target.name} 둔화`)
+      }
+      break
+    case 'dark': {
+      const back = Math.round(dealt * 0.15)
+      if (back > 0) {
+        p.hp = Math.min(p.maxHp, p.hp + back)
+        s.log.push(`암흑 특성 — 체력 ${back} 흡수`)
+      }
+      break
+    }
+    case 'holy':
+      // 신성은 명중이 아니라 턴 종료에 발동한다. takeTurn 에서 처리한다.
+      break
   }
 }
 
@@ -337,7 +417,7 @@ function strike(
     return 0
   }
   const crit = critical(from, rng)
-  let amount = base * mult * variance(rng) * elementMul(line, to)
+  let amount = base * mult * variance(rng) * elementMul(line, to) * (1 + from.damageMul)
   if (crit) amount *= CRIT_MUL
   if (to.id === 'p' && has(to, 'guard')) amount *= DEFEND_TAKE
 

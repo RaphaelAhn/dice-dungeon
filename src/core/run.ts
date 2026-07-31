@@ -1,5 +1,6 @@
 import type { Gender, Stats } from './character'
 import { applyFace, DICE, type Face } from './dice'
+import { decideJob, jobBonus, type Job } from './job'
 import type { SkillLine } from './skill'
 
 export const FINAL_STAGE = 10
@@ -60,6 +61,33 @@ export type Run = {
   /** 보유 스킬. 1-8 전직 판정의 입력이 된다. */
   skills: SkillLine[]
   potions: number
+  /** 1-8 진입 전에는 null. 전직 후에는 바뀌지 않는다. */
+  job: Job | null
+}
+
+/**
+ * 1-8 진입 시 전직시킨다. 보유 스킬·보상과 무관하게 무조건 일어난다.
+ * 스탯 보너스는 여기서 최대치에 더하고, 현재 체력도 늘어난 만큼 같이 올린다 —
+ * 전직했는데 체력이 그대로면 강해진 느낌이 안 난다.
+ */
+export function promote(run: Run): Run {
+  if (run.job) return run
+  const job = decideJob(run.skills, run.max)
+  const b = jobBonus(job)
+  const max: Stats = {
+    hp: run.max.hp + (b.stats.hp ?? 0),
+    atk: run.max.atk + (b.stats.atk ?? 0),
+    mag: run.max.mag + (b.stats.mag ?? 0),
+    spd: run.max.spd + (b.stats.spd ?? 0),
+    luk: run.max.luk + (b.stats.luk ?? 0),
+  }
+  return {
+    ...run,
+    job,
+    max,
+    hp: run.hp + (b.stats.hp ?? 0),
+    mp: Math.min(maxMp(max), run.mp + (b.stats.mag ?? 0)),
+  }
 }
 
 /** ⚠ 시작 포션 개수 */
@@ -105,5 +133,6 @@ export function createRun(gender: Gender, name: string, face: Face): Run {
     topTierLeft: DICE[face].topTier ?? 0,
     skills: [],
     potions: START_POTIONS,
+    job: null,
   }
 }

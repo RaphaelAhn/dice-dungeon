@@ -30,32 +30,32 @@ export const ENCOUNTERS: Record<number, Encounter> = {
   3: {
     kind: 'normal',
     enemies: [
-      { name: '해골 병사', hp: 55, atk: 5, spd: 9, line: 'dark' },
-      { name: '해골 병사', hp: 55, atk: 5, spd: 9, line: 'dark' },
+      { name: '해골 병사', hp: 50, atk: 5, spd: 9, line: 'dark' },
+      { name: '해골 병사', hp: 50, atk: 5, spd: 9, line: 'dark' },
     ],
   },
   4: {
     kind: 'normal',
     enemies: [
-      { name: '불씨 정령', hp: 65, atk: 6, spd: 11, line: 'fire' },
-      { name: '서리 정령', hp: 65, atk: 6, spd: 11, line: 'ice' },
+      { name: '불씨 정령', hp: 60, atk: 6, spd: 11, line: 'fire' },
+      { name: '서리 정령', hp: 60, atk: 6, spd: 11, line: 'ice' },
     ],
   },
   5: {
     kind: 'midboss',
-    enemies: [{ name: '지하 감시자', hp: 260, atk: 12, spd: 12, line: 'dark' }],
+    enemies: [{ name: '지하 감시자', hp: 215, atk: 12, spd: 12, line: 'dark' }],
   },
   6: {
     kind: 'normal',
     enemies: [
-      { name: '타락 사제', hp: 80, atk: 7, spd: 12, line: 'holy' },
-      { name: '망령', hp: 75, atk: 7, spd: 14, line: 'dark' },
+      { name: '타락 사제', hp: 72, atk: 7, spd: 12, line: 'holy' },
+      { name: '망령', hp: 68, atk: 7, spd: 14, line: 'dark' },
     ],
   },
   7: {
     kind: 'normal',
     enemies: [
-      { name: '화염 골렘', hp: 95, atk: 8, spd: 10, line: 'fire' },
+      { name: '화염 골렘', hp: 86, atk: 8, spd: 10, line: 'fire' },
       { name: '불씨 정령', hp: 85, atk: 8, spd: 12, line: 'fire' },
     ],
   },

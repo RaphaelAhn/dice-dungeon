@@ -1,9 +1,20 @@
 import { aliveEnemies, startBattle, takeTurn, type BattleState, type Command } from '../src/core/battle'
 import { FACES, type Face } from '../src/core/dice'
 import { ENCOUNTERS } from '../src/core/enemy'
+import { JOB_STAGE } from '../src/core/job'
+import { applyCard, consumeTopTier, makeOffer, type Card } from '../src/core/reward'
+import { createRun, healAfterStage, promote, refillMp, type Run } from '../src/core/run'
+import { SKILLS, skillsOfLine, type SkillId } from '../src/core/skill'
 import { maxTurns } from '../src/core/timer'
-import { createRun, maxMp, type Run } from '../src/core/run'
-import { SKILLS, skillsOfLine, type SkillId, type SkillLine } from '../src/core/skill'
+
+/**
+ * 밸런스 시뮬레이터.
+ *
+ * 실제 코어(전투·보상·전직)를 그대로 불러 쓴다. 수치를 따로 베껴 두면
+ * 코드를 고칠 때마다 어긋나서 측정값이 거짓말을 한다.
+ *
+ * 실행: npm run sim
+ */
 
 /** 재현 가능한 난수 — 같은 시드면 같은 결과가 나온다 */
 function mulberry32(seed: number) {
@@ -17,82 +28,86 @@ function mulberry32(seed: number) {
   }
 }
 
-type Archetype = { label: string; skillPlan: (SkillLine | 'stat')[] }
+/** 보상 3택에서 무엇을 고르는 사람인가 */
+type Policy = { label: string; choose: (cards: Card[], run: Run) => number }
 
-/** 보상 9장을 무엇에 쓰는가. 'stat' 은 능력치 카드. */
-const ARCHETYPES: Archetype[] = [
+const POLICIES: Policy[] = [
   {
-    label: '순수 빌드 (한 계열 3 + 스탯 6)',
-    skillPlan: ['fire', 'fire', 'fire', 'stat', 'stat', 'stat', 'stat', 'stat', 'stat'],
+    // 스킬을 최우선으로, 이미 가진 계열을 이어 붙인다 — 전직 '완성' 등급을 노린다
+    label: '집중 (같은 계열 스킬 우선)',
+    choose: (cards, run) => {
+      const skill = cards.findIndex(
+        (c) => c.slot === 'skill' && (run.skills.length === 0 || run.skills.includes(c.line)),
+      )
+      if (skill >= 0 && run.skills.length < 3) return skill
+      const stat = cards.findIndex((c) => c.slot === 'stat' || c.slot === 'heal')
+      return stat >= 0 ? stat : 0
+    },
   },
   {
-    label: '하이브리드 (2+1 + 스탯 6)',
-    skillPlan: ['sword', 'sword', 'fire', 'stat', 'stat', 'stat', 'stat', 'stat', 'stat'],
+    // 계열을 안 보고 스킬이면 무조건 집는다 — '빈약' 등급으로 떨어지는 경로
+    label: '분산 (계열 안 보고 스킬)',
+    choose: (cards, run) => {
+      const skill = cards.findIndex((c) => c.slot === 'skill')
+      if (skill >= 0 && run.skills.length < 3) return skill
+      const stat = cards.findIndex((c) => c.slot === 'stat' || c.slot === 'heal')
+      return stat >= 0 ? stat : 0
+    },
   },
   {
-    label: '분산 (1+1+1 + 스탯 6)',
-    skillPlan: ['sword', 'fire', 'ice', 'stat', 'stat', 'stat', 'stat', 'stat', 'stat'],
+    label: '스탯만 (스킬 안 집음)',
+    choose: (cards) => {
+      const stat = cards.findIndex((c) => c.slot === 'stat' || c.slot === 'heal')
+      return stat >= 0 ? stat : 0
+    },
   },
   {
-    label: '스탯 몰빵 (스킬 0 + 스탯 9)',
-    skillPlan: ['stat', 'stat', 'stat', 'stat', 'stat', 'stat', 'stat', 'stat', 'stat'],
+    label: '도박 위주 (항상 도박)',
+    choose: (cards) => {
+      const g = cards.findIndex((c) => c.slot === 'gamble')
+      return g >= 0 ? g : 0
+    },
   },
   {
-    label: '스킬 과다 (스킬 6 + 스탯 3)',
-    skillPlan: ['fire', 'fire', 'fire', 'ice', 'ice', 'ice', 'stat', 'stat', 'stat'],
+    // 체력이 낮으면 회복, 아니면 집중과 같게
+    label: '균형 (체력 낮으면 회복)',
+    choose: (cards, run) => {
+      if (run.hp < run.max.hp * 0.45) {
+        const h = cards.findIndex((c) => c.slot === 'heal')
+        if (h >= 0) return h
+      }
+      const skill = cards.findIndex(
+        (c) => c.slot === 'skill' && (run.skills.length === 0 || run.skills.includes(c.line)),
+      )
+      if (skill >= 0 && run.skills.length < 3) return skill
+      const stat = cards.findIndex((c) => c.slot === 'stat')
+      return stat >= 0 ? stat : 0
+    },
   },
 ]
 
-/** 골드 티어 평균값으로 능력치 카드 1장을 반영한다 (기획서 04 §3.2) */
-function applyStatCard(run: Run, pick: number): void {
-  const table = [
-    () => (run.max.hp += 40),
-    () => (run.max.atk += 13),
-    () => (run.max.mag += 13),
-    () => (run.max.spd += 8),
-    () => (run.max.luk += 8),
-  ]
-  table[pick % table.length]()
-}
-
-function grantStop(run: Run, plan: (SkillLine | 'stat')[], statCursor: { n: number }): void {
-  for (const item of plan) {
-    if (item === 'stat') applyStatCard(run, statCursor.n++)
-    else run.skills.push(item)
-  }
-}
-
-/**
- * 스테이지 클리어 보상으로 조금씩 회복한다.
- * 회복을 보상 지점에 묶으면 조합 [1,3,9] 이 6스테이지 연속 무회복이 되어
- * [2,4,8] 보다 훨씬 불리해진다. 클리어마다 주면 조합과 무관해진다.
- */
-const STAGE_HEAL_RATIO = 0.25
-
-function healAfterStage(run: Run): void {
-  run.hp = Math.min(run.max.hp, run.hp + Math.round(run.max.hp * STAGE_HEAL_RATIO))
-}
-
 function ownedSkillIds(run: Run): SkillId[] {
-  const lines = [...new Set(run.skills)]
-  return lines.flatMap((l) => skillsOfLine(l).filter((s) => s.power).map((s) => s.id))
+  return [...new Set(run.skills)].flatMap((l) =>
+    skillsOfLine(l)
+      .filter((s) => s.power)
+      .map((s) => s.id),
+  )
 }
 
-/** 사람이 대충 잘 하는 정도의 판단 */
+/** 사람이 대충 잘 하는 정도의 전투 판단 */
 function chooseCommand(s: BattleState, owned: SkillId[]): Command {
   const hpRatio = s.player.hp / s.player.maxHp
   if (hpRatio < 0.3 && s.potions > 0) return { type: 'item' }
 
+  const many = aliveEnemies(s).length > 1
   const affordable = owned.filter((id) => SKILLS[id].mp <= s.mp)
   if (affordable.length > 0) {
-    // 적이 둘 이상이면 광역, 아니면 배율 가장 높은 것
-    const many = aliveEnemies(s).length > 1
     const best = affordable
       .map((id) => SKILLS[id])
       .sort((a, b) => {
-        const aScore = (a.power ?? 0) * (a.target === 'all' && many ? aliveEnemies(s).length : 1)
-        const bScore = (b.power ?? 0) * (b.target === 'all' && many ? aliveEnemies(s).length : 1)
-        return bScore - aScore
+        const score = (sk: (typeof SKILLS)[SkillId]) =>
+          (sk.power ?? 0) * (sk.target === 'all' && many ? aliveEnemies(s).length : 1)
+        return score(b) - score(a)
       })[0]
     return { type: 'skill', id: best.id }
   }
@@ -101,160 +116,100 @@ function chooseCommand(s: BattleState, owned: SkillId[]): Command {
   return { type: 'attack' }
 }
 
-type StageResult = { turns: number; won: boolean }
-
-/** 스테이지 제한 시간이 허용하는 턴 수를 넘겼는가 — 넘기면 규칙 1 로 게임 오버 */
-let timeouts = 0
-const overruns: number[] = Array(11).fill(0)
-
-function playStage(run: Run, stage: number, rng: () => number): StageResult {
-  // 마나는 전투 시작 시 채운다. 런 전체 자원이면 20 으로 10스테이지를 버텨야 해 스킬이 죽는다.
-  run.mp = maxMp(run.max)
-  let s = startBattle(run, stage)
-  const owned = ownedSkillIds(run)
-  let turns = 0
-  const CAP = 60 // 무한 루프 방어
-  while (!s.over && turns < CAP) {
-    s = takeTurn(s, chooseCommand(s, owned), rng)
-    turns++
-  }
-  run.hp = s.player.hp
-  run.mp = s.mp
-  run.potions = s.potions
-
-  // 규칙 1: 스테이지 제한 시간을 턴 예산으로 환산해 초과를 잡는다.
-  const cap = maxTurns(ENCOUNTERS[stage].kind)
-  if (turns > cap) {
-    timeouts++
-    overruns[stage]++
-    return { turns, won: false }
-  }
-  return { turns, won: s.over === 'win' }
-}
-
 const SEC_PER_TURN = 3.2 // ⚠ 입력 + 연출 포함 한 턴 체감 시간 가정
 
-type Row = {
-  face: Face
-  arch: string
-  turns: number
-  /** 40회 중 완주 비율 */
-  clearRate: number
-  /** 죽은 판의 평균 사망 스테이지 */
-  avgDeathStage: number | null
-  stageTurns: number[]
-  /** 스테이지별 사망 횟수 */
-  deathsAt: number[]
-}
+type Outcome = { cleared: boolean; turns: number; deadAt: number | null; timedOutAt: number | null }
 
-const rows: Row[] = []
-const TRIALS = 40
+function playRun(face: Face, policy: Policy, seed: number): Outcome {
+  const rng = mulberry32(seed)
+  let run = createRun('female', '용사', face)
+  let turns = 0
 
-for (const face of FACES) {
-  for (const arch of ARCHETYPES) {
-    let sumTurns = 0
-    let deaths = 0
-    let deathStageSum = 0
-    const perStage = Array(11).fill(0)
-    const perStageN = Array(11).fill(0)
-    const deathsAt = Array(11).fill(0)
+  for (let stage = 1; stage <= 10; stage++) {
+    if (stage === JOB_STAGE) run = promote(run)
 
-    for (let t = 0; t < TRIALS; t++) {
-      const rng = mulberry32(face * 1000 + t * 7 + arch.label.length)
-      const run = createRun('female', '용사', face)
-      // 보상 지점을 조합 A [1,3,9] 로 고정해 비교 가능하게 한다
-      run.rewardStages = [1, 3, 9]
-      const cursor = { n: 0 }
-      let died: number | null = null
-      let turns = 0
+    run = refillMp(run)
+    let s = startBattle(run, stage)
+    const owned = ownedSkillIds(run)
+    let stageTurns = 0
+    const cap = maxTurns(ENCOUNTERS[stage].kind)
 
-      for (let stage = 1; stage <= 10; stage++) {
-        const r = playStage(run, stage, rng)
-        turns += r.turns
-        perStage[stage] += r.turns
-        perStageN[stage]++
-        if (!r.won) {
-          died = stage
-          break
-        }
-        healAfterStage(run)
-        const stopIndex = run.rewardStages.indexOf(stage)
-        if (stopIndex >= 0) {
-          grantStop(run, arch.skillPlan.slice(stopIndex * 3, stopIndex * 3 + 3), cursor)
-        }
-      }
-      sumTurns += turns
-      if (died !== null) {
-        deaths++
-        deathStageSum += died
-        deathsAt[died]++
+    while (!s.over && stageTurns < cap) {
+      s = takeTurn(s, chooseCommand(s, owned), rng)
+      stageTurns++
+    }
+    turns += stageTurns
+    run = { ...run, hp: s.player.hp, mp: s.mp, potions: s.potions }
+
+    // 규칙 2: 사망
+    if (s.over === 'lose') return { cleared: false, turns, deadAt: stage, timedOutAt: null }
+    // 규칙 1: 제한 시간 (턴 예산으로 환산)
+    if (s.over !== 'win') return { cleared: false, turns, deadAt: null, timedOutAt: stage }
+
+    run = healAfterStage(run)
+
+    if (run.rewardStages.includes(stage)) {
+      for (let pick = 0; pick < 3; pick++) {
+        const offer = makeOffer(run, rng)
+        if (offer.usedTopTier) run = consumeTopTier(run)
+        run = applyCard(run, offer.cards[policy.choose(offer.cards, run)])
       }
     }
+  }
+  return { cleared: true, turns, deadAt: null, timedOutAt: null }
+}
 
-    rows.push({
-      face,
-      arch: arch.label,
-      turns: sumTurns / TRIALS,
-      clearRate: (TRIALS - deaths) / TRIALS,
-      avgDeathStage: deaths === 0 ? null : deathStageSum / deaths,
-      stageTurns: perStage.map((v, i) => (perStageN[i] ? v / perStageN[i] : 0)),
-      deathsAt,
-    })
+const TRIALS = 60
+type Cell = { cleared: number; turns: number; deaths: number[]; timeouts: number[] }
+
+const table = new Map<string, Cell>()
+for (const policy of POLICIES) {
+  for (const face of FACES) {
+    const cell: Cell = { cleared: 0, turns: 0, deaths: Array(11).fill(0), timeouts: Array(11).fill(0) }
+    for (let t = 0; t < TRIALS; t++) {
+      const o = playRun(face, policy, face * 7919 + t * 104729 + policy.label.length)
+      cell.turns += o.turns
+      if (o.cleared) cell.cleared++
+      if (o.deadAt) cell.deaths[o.deadAt]++
+      if (o.timedOutAt) cell.timeouts[o.timedOutAt]++
+    }
+    table.set(`${policy.label}|${face}`, cell)
   }
 }
 
-console.log(`=== 빌드별 결과 (주사위 6면 × ${TRIALS}회 = 240판) ===\n`)
-for (const arch of ARCHETYPES) {
-  const mine = rows.filter((r) => r.arch === arch.label)
-  const clearRate = mine.reduce((a, r) => a + r.clearRate, 0) / mine.length
-  const avgTurns = mine.reduce((a, r) => a + r.turns, 0) / mine.length
-  const withDeath = mine.filter((r) => r.avgDeathStage !== null)
-  const avgDeath = withDeath.length
-    ? withDeath.reduce((a, r) => a + (r.avgDeathStage ?? 0), 0) / withDeath.length
-    : null
-  console.log(
-    `${arch.label.padEnd(30)} 클리어 ${(clearRate * 100).toFixed(0).padStart(3)}%  ` +
-      `평균 ${avgTurns.toFixed(1).padStart(5)}턴 ≈ ${((avgTurns * SEC_PER_TURN) / 60).toFixed(1)}분` +
-      (avgDeath ? `  평균 사망 1-${avgDeath.toFixed(1)}` : ''),
-  )
+const pct = (n: number) => `${(n * 100).toFixed(0).padStart(3)}%`
+
+console.log(`=== 보상 정책별 클리어율 (주사위 6면 × ${TRIALS}회 = ${TRIALS * 6}판) ===\n`)
+console.log(`${''.padEnd(26)}${FACES.map((f) => `눈${f}`.padStart(6)).join('')}${'전체'.padStart(8)}${'평균턴'.padStart(8)}`)
+for (const policy of POLICIES) {
+  const cells = FACES.map((f) => table.get(`${policy.label}|${f}`)!)
+  const per = cells.map((c) => pct(c.cleared / TRIALS).padStart(6)).join('')
+  const all = cells.reduce((a, c) => a + c.cleared, 0) / (TRIALS * FACES.length)
+  const turns = cells.reduce((a, c) => a + c.turns, 0) / (TRIALS * FACES.length)
+  console.log(`${policy.label.padEnd(26)}${per}${pct(all).padStart(8)}${turns.toFixed(1).padStart(8)}`)
 }
 
+console.log('\n=== 실패 원인 분포 (전체 합산) ===\n')
+const deaths = Array(11).fill(0)
+const timeouts = Array(11).fill(0)
+for (const c of table.values()) {
+  for (let i = 1; i <= 10; i++) {
+    deaths[i] += c.deaths[i]
+    timeouts[i] += c.timeouts[i]
+  }
+}
+const total = deaths.reduce((a, b) => a + b, 0) + timeouts.reduce((a, b) => a + b, 0)
+console.log(`${'스테이지'.padEnd(10)}${'사망'.padStart(8)}${'시간초과'.padStart(10)}`)
+for (let stage = 1; stage <= 10; stage++) {
+  if (deaths[stage] === 0 && timeouts[stage] === 0) continue
+  console.log(`1-${String(stage).padEnd(8)}${String(deaths[stage]).padStart(8)}${String(timeouts[stage]).padStart(10)}`)
+}
 console.log(
-  `\n=== 제한 시간 초과 ===\n\n` +
-    `일반 스테이지 최대 ${maxTurns('normal')}턴 · 보스 최대 ${maxTurns('boss')}턴\n` +
-    `시간 초과로 끝난 스테이지: ${timeouts}건`,
-)
-for (let stage = 1; stage <= 10; stage++) {
-  if (overruns[stage] > 0) console.log(`  1-${stage}  ${overruns[stage]}건`)
-}
-
-console.log('\n=== 사망 스테이지 분포 (전체 빌드 합산) ===\n')
-const totalDeaths = Array(11).fill(0)
-for (const r of rows) for (let i = 1; i <= 10; i++) totalDeaths[i] += r.deathsAt[i]
-const maxD = Math.max(...totalDeaths)
-for (let stage = 1; stage <= 10; stage++) {
-  const n = totalDeaths[stage]
-  const bar = '█'.repeat(Math.round((n / (maxD || 1)) * 40))
-  console.log(`1-${String(stage).padEnd(2)} ${String(n).padStart(4)}판  ${bar}`)
-}
-
-console.log('\n=== 스테이지별 평균 턴 (순수 빌드 기준) ===\n')
-const pure = rows.filter((r) => r.arch === ARCHETYPES[0].label)
-for (let stage = 1; stage <= 10; stage++) {
-  const avg = pure.reduce((a, r) => a + r.stageTurns[stage], 0) / pure.length
-  const bar = '█'.repeat(Math.round(avg))
-  console.log(`1-${String(stage).padEnd(2)} ${avg.toFixed(1).padStart(5)}턴  ${bar}`)
-}
-
-const total = pure.reduce((a, r) => a + r.turns, 0) / pure.length
-console.log(
-  `\n총합 ${total.toFixed(1)}턴 × ${SEC_PER_TURN}초 = ${((total * SEC_PER_TURN) / 60).toFixed(1)}분`,
+  `\n총 실패 ${total}판 — 사망 ${deaths.reduce((a, b) => a + b, 0)} / 시간 초과 ${timeouts.reduce((a, b) => a + b, 0)}`,
 )
 
-console.log('\n=== 주사위 눈별 완주 여부 (순수 빌드) ===\n')
-for (const r of pure) {
-  console.log(
-    `눈 ${r.face}  클리어 ${(r.clearRate * 100).toFixed(0).padStart(3)}%  ` +
-      `${r.turns.toFixed(1).padStart(5)}턴`,
-  )
-}
+const bestTurns =
+  [...table.values()].reduce((a, c) => a + c.turns, 0) / (TRIALS * FACES.length * POLICIES.length)
+console.log(
+  `평균 ${bestTurns.toFixed(1)}턴 × ${SEC_PER_TURN}초 ≈ ${((bestTurns * SEC_PER_TURN) / 60).toFixed(1)}분 (전투만)`,
+)
