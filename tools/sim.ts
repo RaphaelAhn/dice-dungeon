@@ -15,7 +15,7 @@ import {
 } from '../src/core/run'
 import { SKILLS, skillsOfTaste, type SkillId } from '../src/core/skill'
 import { maxTurns } from '../src/core/timer'
-import { toppingStats, type Taste } from '../src/core/topping'
+import { TASTE_CLASH, toppingStats, type Taste } from '../src/core/topping'
 
 /**
  * 밸런스 시뮬레이터.
@@ -64,6 +64,23 @@ const RECRUITS: RecruitPolicy[] = [
     pick: (opts, run) => {
       if (!canAddTopping(run)) return null
       return [...opts].sort((a, b) => a.topping.weight - b.topping.weight)[0]
+    },
+  },
+  {
+    /*
+     * 충돌 쌍은 매콤↔새콤, 진한↔향긋 둘뿐이고 담백은 어느 것과도 안 부딪친다.
+     * "한 맛만 고집"과 "아무거나" 사이에 이 전략이 있는데 재고 있지 않았다.
+     */
+    label: '안 부딪치는 것만',
+    pick: (opts, run) => {
+      if (!canAddTopping(run)) return null
+      const have = new Set(run.toppings.map((t) => t.taste))
+      return (
+        opts.find((o) => {
+          const other = TASTE_CLASH[o.topping.taste]
+          return !other || !have.has(other)
+        }) ?? null
+      )
     },
   },
   {

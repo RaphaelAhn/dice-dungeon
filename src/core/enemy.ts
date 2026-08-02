@@ -23,16 +23,16 @@ export type Encounter = {
  * 토핑은 이름과 맛만 준다.
  */
 const SPEC: Record<number, { kind: Encounter['kind']; count: number; hp: number[]; atk: number; spd: number[] }> = {
-  1: { kind: 'normal', count: 1, hp: [70], atk: 6, spd: [9] },
-  2: { kind: 'normal', count: 1, hp: [85], atk: 7, spd: [10] },
-  3: { kind: 'normal', count: 2, hp: [50, 50], atk: 5, spd: [9, 9] },
-  4: { kind: 'normal', count: 2, hp: [60, 60], atk: 6, spd: [11, 11] },
-  5: { kind: 'midboss', count: 1, hp: [170], atk: 10, spd: [12] },
-  6: { kind: 'normal', count: 2, hp: [62, 58], atk: 6, spd: [12, 14] },
-  7: { kind: 'normal', count: 2, hp: [74, 72], atk: 7, spd: [10, 12] },
-  8: { kind: 'normal', count: 2, hp: [90, 82], atk: 8, spd: [13, 13] },
-  9: { kind: 'normal', count: 2, hp: [104, 90], atk: 9, spd: [15, 16] },
-  10: { kind: 'boss', count: 1, hp: [350], atk: 14, spd: [16] },
+  1: { kind: 'normal', count: 1, hp: [108], atk: 9, spd: [9] },
+  2: { kind: 'normal', count: 1, hp: [132], atk: 10, spd: [10] },
+  3: { kind: 'normal', count: 2, hp: [78, 78], atk: 7, spd: [9, 9] },
+  4: { kind: 'normal', count: 2, hp: [93, 93], atk: 9, spd: [11, 11] },
+  5: { kind: 'midboss', count: 1, hp: [264], atk: 14, spd: [12] },
+  6: { kind: 'normal', count: 2, hp: [96, 90], atk: 9, spd: [12, 14] },
+  7: { kind: 'normal', count: 2, hp: [115, 112], atk: 10, spd: [10, 12] },
+  8: { kind: 'normal', count: 2, hp: [140, 127], atk: 12, spd: [13, 13] },
+  9: { kind: 'normal', count: 2, hp: [161, 140], atk: 13, spd: [15, 16] },
+  10: { kind: 'boss', count: 1, hp: [542], atk: 20, spd: [16] },
 }
 
 function poolFor(kind: Encounter['kind']): Topping[] {
