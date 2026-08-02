@@ -1,16 +1,9 @@
 import { useEffect } from 'react'
+import { STAT_LABEL } from '../core/character'
 import type { EnemyDef } from '../core/enemy'
 import { canAddTopping, type Run } from '../core/run'
 import { KIND_LABEL, MAX_TOPPINGS, TASTE_LABEL, toppingStats } from '../core/topping'
 import './Recruit.css'
-
-const STAT_LABEL: Record<string, string> = {
-  hp: '반죽 두께',
-  atk: '불의 세기',
-  mag: '반죽 탄력',
-  spd: '손놀림',
-  luk: '감각',
-}
 
 /**
  * 라운드를 이긴 뒤 나오는 화면.
@@ -74,9 +67,9 @@ export default function Recruit({
               <b className="rc__name">{t.name}</b>
               <span className="rc__taste">{TASTE_LABEL[t.taste]}</span>
               <span className="rc__gain">
-                {STAT_LABEL[key]} +{value}
+                {STAT_LABEL[key as keyof typeof STAT_LABEL]} +{value}
               </span>
-              <span className="rc__weight">무게 {t.weight} — 손놀림 -{t.weight}</span>
+              <span className="rc__weight">무게 {t.weight} — 손놀림 −{t.weight}</span>
               <span className="rc__key">{i + 1}</span>
             </button>
           )

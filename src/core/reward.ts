@@ -1,4 +1,4 @@
-import type { Stats } from './character'
+import { STAT_LABEL, type Stats } from './character'
 import { maxMp, type Run } from './run'
 
 export type Tier = 'bronze' | 'silver' | 'gold' | 'platinum'
@@ -49,14 +49,6 @@ const STAT_CARD: Record<keyof Stats, Record<Tier, number>> = {
   mag: { bronze: 15, silver: 24, gold: 39, platinum: 60 },
   spd: { bronze: 9, silver: 15, gold: 24, platinum: 36 },
   luk: { bronze: 9, silver: 15, gold: 24, platinum: 36 },
-}
-
-const STAT_LABEL: Record<keyof Stats, string> = {
-  hp: '반죽 두께',
-  atk: '불의 세기',
-  mag: '반죽 탄력',
-  spd: '손놀림',
-  luk: '감각',
 }
 
 /**

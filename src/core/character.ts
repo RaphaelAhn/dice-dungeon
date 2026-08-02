@@ -9,8 +9,8 @@ export type Stats = {
 }
 
 /**
- * 모든 캐릭터는 동일 스탯으로 시작한다.
- * 시작 차이는 스탯이 아니라 주사위 '시작 축복'이 만든다. (기획서 v0.2 §2)
+ * 모든 도우는 같은 값으로 시작한다.
+ * 시작 차이는 주사위가 만든다.
  */
 export const BASE_STATS: Stats = {
   hp: 100,
@@ -20,20 +20,32 @@ export const BASE_STATS: Stats = {
   luk: 10,
 }
 
+/**
+ * 능력치 이름은 여기 한 곳에서만 정한다.
+ * 화면마다 따로 적어 두면 같은 값이 '마법력'과 '반죽 탄력'으로 갈린다.
+ */
 export const STAT_META: { key: keyof Stats; label: string; desc: string }[] = [
-  { key: 'hp', label: '체력', desc: '0이 되면 사망' },
-  { key: 'atk', label: '공격력', desc: '물리 데미지' },
-  { key: 'mag', label: '마법력', desc: '스킬 데미지·최대 마나' },
-  { key: 'spd', label: '속도', desc: '선공 판정·회피' },
-  { key: 'luk', label: '행운', desc: '보상 티어·크리티컬' },
+  { key: 'hp', label: '반죽 두께', desc: '0이 되면 무너진다' },
+  { key: 'atk', label: '불의 세기', desc: '직접 때리는 힘' },
+  { key: 'mag', label: '반죽 탄력', desc: '기술 위력과 최대 탄력' },
+  { key: 'spd', label: '손놀림', desc: '선공 판정·회피' },
+  { key: 'luk', label: '감각', desc: '보상 등급·결정적 한 방' },
 ]
+
+export const STAT_LABEL: Record<keyof Stats, string> = {
+  hp: '반죽 두께',
+  atk: '불의 세기',
+  mag: '반죽 탄력',
+  spd: '손놀림',
+  luk: '감각',
+}
 
 export const GENDER_LABEL: Record<Gender, string> = {
   female: '여성',
   male: '남성',
 }
 
-/** 성별은 외형만 바꾼다. 성능 차이는 없다. */
+/** 모양은 겉모습만 바꾼다. 성능 차이는 없다. */
 export const GENDERS: Gender[] = ['female', 'male']
 
 export const NAME_MAX = 8

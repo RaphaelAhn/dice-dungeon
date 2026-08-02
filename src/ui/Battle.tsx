@@ -9,10 +9,10 @@ import CharacterSprite from './CharacterSprite'
 import './Battle.css'
 
 const STATUS_LABEL: Record<string, string> = {
-  burn: '화상',
-  stun: '빙결',
-  slow: '둔화',
-  atkDown: '약화',
+  burn: '눌음',
+  stun: '굳음',
+  slow: '처짐',
+  atkDown: '식음',
   guard: '방어',
 }
 
@@ -98,7 +98,7 @@ export default function Battle({
     <div className={`bt bt--${enc.kind}`}>
       <header className="bt__top">
         <span className="bt__stage">
-          스테이지 1-{run.stage}
+          {run.stage} 라운드
           {enc.kind !== 'normal' && <b className="bt__badge">{enc.kind === 'boss' ? 'BOSS' : '중간보스'}</b>}
         </span>
         <span className={stageRatio < 0.25 ? 'bt__clock is-low' : 'bt__clock'}>
@@ -132,8 +132,8 @@ export default function Battle({
             {run.pizza && <span className="bt__job">{run.pizza.name}</span>}
             <Statuses unit={state.player} />
           </div>
-          <Bar label="HP" now={state.player.hp} max={state.player.maxHp} kind="hp" />
-          <Bar label="MP" now={state.mp} max={mpMax} kind="mp" />
+          <Bar label="두께" now={state.player.hp} max={state.player.maxHp} kind="hp" />
+          <Bar label="탄력" now={state.mp} max={mpMax} kind="mp" />
         </div>
       </section>
 
@@ -152,10 +152,10 @@ export default function Battle({
               <b>2</b> 방어
             </button>
             <button onClick={() => setMenu('skill')} disabled={ownedSkills.length === 0}>
-              <b>3</b> 스킬
+              <b>3</b> 기술
             </button>
             <button onClick={() => act({ type: 'item' })} disabled={state.potions <= 0}>
-              <b>4</b> 포션 {state.potions}
+              <b>4</b> 반죽물 {state.potions}
             </button>
           </>
         ) : (

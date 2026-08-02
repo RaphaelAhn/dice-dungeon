@@ -52,8 +52,8 @@ export default function CharacterCreate({
   return (
     <div className="cc">
       <header className="cc__head">
-        <h2>캐릭터 생성</h2>
-        <p>외형만 다릅니다. 시작 스탯은 동일합니다.</p>
+        <h2>도우 빚기</h2>
+        <p>겉모습만 다릅니다. 시작 능력은 같습니다.</p>
       </header>
 
       <div className="cc__stage">
@@ -88,7 +88,7 @@ export default function CharacterCreate({
       </section>
 
       <section className="cc__stats">
-        <h3>시작 스탯</h3>
+        <h3>시작 능력</h3>
         <ul>
           {STAT_META.map((s) => (
             <li key={s.key}>
@@ -99,7 +99,7 @@ export default function CharacterCreate({
           ))}
         </ul>
         <p className="cc__note">
-          시작 차이는 스탯이 아니라 <b>주사위 축복</b>이 만듭니다. 다음 단계에서 단 한 번 굴립니다.
+          시작 차이는 <b>주사위</b>가 만듭니다. 다음 단계에서 단 한 번 굴립니다.
         </p>
       </section>
 

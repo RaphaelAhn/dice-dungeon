@@ -42,9 +42,9 @@ export default function TitleScreen({ onSelect }: { onSelect: (a: TitleAction) =
       <div className="title__top">
         <Dice face={face} idle />
         <h1 className="title__logo">
-          주사위 <span>던전</span>
+          도우 <span>던전</span>
         </h1>
-        <p className="title__tag">한 번의 주사위, 열 개의 스테이지</p>
+        <p className="title__tag">굴리고, 모으고, 구워라</p>
       </div>
 
       <nav className="title__menu">

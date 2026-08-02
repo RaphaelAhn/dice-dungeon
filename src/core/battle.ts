@@ -204,7 +204,7 @@ function tickStatuses(u: Unit, log: string[]): void {
   for (const s of u.statuses) {
     if (s.kind === 'burn') {
       u.hp = Math.max(0, u.hp - s.value)
-      log.push(`${u.name}이(가) 화상으로 ${s.value} 피해`)
+      log.push(`${u.name}이(가) 눌어 ${s.value} 피해`)
     }
     s.turns -= 1
   }
@@ -246,7 +246,7 @@ export function takeTurn(prev: BattleState, cmd: Command, rng: Rng = Math.random
       const heal = Math.round(s.player.maxHp * 0.05)
       const before = s.player.hp
       s.player.hp = Math.min(s.player.maxHp, s.player.hp + heal)
-      if (s.player.hp > before) s.log.push(`담백 특성 — 체력 ${s.player.hp - before} 회복`)
+      if (s.player.hp > before) s.log.push(`담백 특성 — 두께 ${s.player.hp - before} 회복`)
     }
 
     checkOver(s)
@@ -267,7 +267,7 @@ function checkOver(s: BattleState): boolean {
   }
   if (aliveEnemies(s).length === 0) {
     s.over = 'win'
-    s.log.push('전투 승리')
+    s.log.push('라운드 클리어')
     return true
   }
   return false
@@ -277,7 +277,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   const p = s.player
 
   if (has(p, 'stun')) {
-    s.log.push(`${p.name}은(는) 얼어붙어 움직일 수 없다`)
+    s.log.push(`${p.name}이(가) 굳어 움직일 수 없다`)
     return
   }
 
@@ -286,19 +286,19 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
     const gain = Math.min(cap - s.mp, Math.round(cap * DEFEND_MP_RATIO))
     s.mp += gain
     applyStatus(p, 'guard', 1)
-    s.log.push(`${p.name}이(가) 방어 태세 — 마나 ${gain} 회복`)
+    s.log.push(`${p.name} 방어 태세 — 탄력 ${gain} 회복`)
     return
   }
 
   if (cmd.type === 'item') {
     if (s.potions <= 0) {
-      s.log.push('포션이 없다')
+      s.log.push('반죽물이 없다')
       return
     }
     s.potions -= 1
     const heal = Math.round(p.maxHp * POTION_RATIO)
     p.hp = Math.min(p.maxHp, p.hp + heal)
-    s.log.push(`포션 사용 — 체력 ${heal} 회복`)
+    s.log.push(`반죽물 — 두께 ${heal} 회복`)
     return
   }
 
@@ -313,7 +313,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   // 스킬
   const sk = SKILLS[cmd.id]
   if (s.mp < sk.mp) {
-    s.log.push(`마나가 부족하다 (${sk.name} — ${sk.mp} 필요)`)
+    s.log.push(`탄력이 부족하다 (${sk.name} — ${sk.mp} 필요)`)
     return
   }
   s.mp -= sk.mp
@@ -321,7 +321,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   if (sk.healRatio) {
     const heal = Math.round(p.maxHp * sk.healRatio * (1 + p.healMul))
     p.hp = Math.min(p.maxHp, p.hp + heal)
-    s.log.push(`${sk.name} — 체력 ${heal} 회복`)
+    s.log.push(`${sk.name} — 두께 ${heal} 회복`)
   }
 
   if (sk.target === 'self' && sk.inflict) {
@@ -341,7 +341,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
         if (sk.drain && dealt > 0) {
           const back = Math.round(dealt * sk.drain)
           p.hp = Math.min(p.maxHp, p.hp + back)
-          s.log.push(`체력 ${back} 흡수`)
+          s.log.push(`두께 ${back} 흡수`)
         }
         applyTraitOnHit(s, p, t, dealt, 'skill')
       }
@@ -393,7 +393,7 @@ function applyTraitOnHit(
       const back = Math.round(dealt * 0.15)
       if (back > 0) {
         p.hp = Math.min(p.maxHp, p.hp + back)
-        s.log.push(`진한 특성 — 체력 ${back} 흡수`)
+        s.log.push(`진한 특성 — 두께 ${back} 흡수`)
       }
       break
     }
@@ -428,7 +428,7 @@ function strike(
       elementMul(line, to) > 1 ? ' (약점)' : ''
     }`,
   )
-  if (!alive(to)) s.log.push(`${to.name} 격파`)
+  if (!alive(to)) s.log.push(`${to.name} 처치`)
   return dealt
 }
 
@@ -436,7 +436,7 @@ function resolveEnemies(s: BattleState, rng: Rng): void {
   for (const e of s.enemies) {
     if (!alive(e) || s.over) continue
     if (has(e, 'stun')) {
-      s.log.push(`${e.name}은(는) 얼어붙어 움직일 수 없다`)
+      s.log.push(`${e.name}이(가) 굳어 움직일 수 없다`)
       continue
     }
     strike(s, e, s.player, effAtk(e), 1, e.taste, rng, `${e.name}의 공격`)

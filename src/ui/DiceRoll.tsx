@@ -80,7 +80,7 @@ export default function DiceRoll({
       </div>
 
       <section className="dr__result" aria-live="polite">
-        {phase === 'ready' && <p className="dr__wait">굴려서 이번 판의 시작 능력치를 정하세요.</p>}
+        {phase === 'ready' && <p className="dr__wait">굴려서 이 도우의 시작 능력을 정하세요.</p>}
         {phase === 'rolling' && <p className="dr__wait">굴리는 중…</p>}
         {phase === 'done' && rolledFace && (
           <>
@@ -101,7 +101,7 @@ export default function DiceRoll({
           </button>
         ) : (
           <button className="dr__btn dr__btn--go" onClick={() => result && onStart(result)}>
-            스테이지 1-1 시작 →
+            1 라운드 시작 →
           </button>
         )}
         <p className="dr__hint">Enter / Space</p>

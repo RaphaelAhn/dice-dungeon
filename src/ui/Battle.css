@@ -218,7 +218,8 @@
   font-size: 11px;
 }
 .bar__label {
-  width: 20px;
+  width: 30px;
+  white-space: nowrap;
   color: var(--muted);
 }
 .bar__track {
