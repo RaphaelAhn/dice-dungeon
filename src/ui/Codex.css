@@ -1,0 +1,191 @@
+.cx {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /*
+   * safe center — 내용이 화면보다 커지면 가운데 정렬이 위쪽을 잘라 먹는다.
+   * safe 를 붙이면 그때만 시작 정렬로 물러나고, 넘치는 만큼 스크롤된다.
+   */
+  justify-content: safe center;
+  overflow-y: auto;
+  gap: 10px;
+  padding: 16px;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 30%, rgba(232, 176, 75, 0.08), transparent 70%),
+    var(--bg);
+}
+
+.cx__head {
+  text-align: center;
+}
+.cx__head h2 {
+  font-size: 21px;
+}
+.cx__head p {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.cx__head b {
+  color: var(--accent);
+  font-size: 18px;
+}
+
+/* 머리글 한 줄 + 5행, 각 행은 머리글 한 칸 + 5칸 */
+.cx__grid {
+  display: grid;
+  grid-template-columns: 44px repeat(5, minmax(0, 84px));
+  gap: 5px;
+}
+
+.cx__corner {
+  display: block;
+}
+
+.cx__axis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+.cx__axis--row {
+  justify-content: flex-end;
+  padding-right: 8px;
+}
+
+.cx__cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px;
+  border: 2px solid var(--line);
+  background: var(--panel);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.cx__cell.is-empty {
+  color: var(--muted);
+  opacity: 0.35;
+  font-size: 20px;
+}
+
+/* 대각선 = 한 맛으로만 채운 피자. 살짝 구분해 둔다. */
+.cx__cell.is-pure {
+  border-style: dashed;
+}
+
+.cx__cell.is-found {
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s;
+}
+.cx__cell.is-found:hover,
+.cx__cell.is-found:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  outline: none;
+}
+.cx__cell b {
+  font-size: 12px;
+  font-weight: 700;
+}
+.cx__cell i {
+  font-style: normal;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 2px;
+}
+
+/* 완성도에 따라 칸 색이 다르다 — 채우는 것과 잘 만드는 것은 다른 목표다 */
+.cx__cell--full {
+  border-color: rgba(232, 176, 75, 0.6);
+}
+.cx__cell--full i {
+  color: #e8b04b;
+  background: rgba(232, 176, 75, 0.14);
+}
+.cx__cell--partial i {
+  color: var(--sky);
+  background: rgba(125, 211, 252, 0.14);
+}
+.cx__cell--thin i {
+  color: var(--muted);
+  background: rgba(139, 144, 165, 0.14);
+}
+
+.cx__legend {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.cx__detail {
+  min-height: 54px;
+  width: min(100%, 640px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.cx__detail--empty {
+  color: var(--muted);
+  opacity: 0.6;
+  font-size: 13px;
+}
+.cx__detail-name {
+  font-size: 18px;
+  color: var(--accent);
+}
+.cx__detail-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.cx__detail-tops {
+  font-size: 12px;
+  color: var(--sky);
+}
+
+.cx__back {
+  padding: 10px 26px;
+  font-size: 14px;
+  border: 2px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+}
+.cx__back:hover,
+.cx__back:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
+@media (max-width: 720px) {
+  .cx__grid {
+    grid-template-columns: 40px repeat(5, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .cx__cell b {
+    font-size: 10px;
+  }
+  .cx__axis {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx__cell.is-found:hover {
+    transform: none;
+  }
+}

@@ -93,3 +93,20 @@
   color: var(--muted);
   opacity: 0.6;
 }
+
+/* 완성작 이름 — 이 판의 결과물이라 가장 크게 보인다 */
+.rs__piece {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.rs__made {
+  font-size: 22px;
+  color: var(--accent);
+}
+.rs__codex {
+  font-size: 13px;
+  color: var(--sky);
+  font-variant-numeric: tabular-nums;
+}

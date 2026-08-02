@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react'
-import { loadPieces, PUZZLE_TOTAL } from '../core/save'
+import { CODEX_TOTAL, discoveredCount, loadCodex } from '../core/codex'
 import Dice from './Dice'
 import './TitleScreen.css'
 
-export type TitleAction = 'start' | 'puzzle' | 'howto'
+export type TitleAction = 'start' | 'codex' | 'howto'
 
 const MENU: { id: TitleAction; label: string }[] = [
   { id: 'start', label: '게임 시작' },
-  { id: 'puzzle', label: '퍼즐 조각' },
+  { id: 'codex', label: '피자 도감' },
   { id: 'howto', label: '조작 안내' },
 ]
 
 export default function TitleScreen({ onSelect }: { onSelect: (a: TitleAction) => void }) {
   const [cursor, setCursor] = useState(0)
   const [face, setFace] = useState(6)
-  const pieces = loadPieces()
+  const found = discoveredCount(loadCodex())
 
   // 타이틀 장식용 주사위. 계속 굴러가지만 게임 로직과는 무관하다.
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function TitleScreen({ onSelect }: { onSelect: (a: TitleAction) =
 
       <footer className="title__foot">
         <span className="title__pieces">
-          퍼즐 조각 <b>{pieces}</b> / {PUZZLE_TOTAL}
+          도감 <b>{found}</b> / {CODEX_TOTAL}
         </span>
         <span className="title__hint">↑↓ 선택 · Enter 결정</span>
       </footer>

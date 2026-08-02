@@ -6,6 +6,7 @@ import Battle from './ui/Battle'
 import Reward from './ui/Reward'
 import Result, { type ResultKind } from './ui/Result'
 import Recruit from './ui/Recruit'
+import Codex from './ui/Codex'
 import type { Gender } from './core/character'
 import { DICE, type Face } from './core/dice'
 import { BAKE_STAGE } from './core/pizza'
@@ -22,7 +23,7 @@ import {
 } from './core/run'
 import { rollEncounter, type Encounter, type EnemyDef } from './core/enemy'
 import { toppingStats } from './core/topping'
-import { loadPieces, PUZZLE_TOTAL, savePieces } from './core/save'
+import { CODEX_TOTAL, discoveredCount, fullName, loadCodex, recordPizza } from './core/codex'
 import './App.css'
 
 type Screen =
@@ -33,13 +34,9 @@ type Screen =
   | 'recruit'
   | 'reward'
   | 'result'
-  | 'puzzle'
+  | 'codex'
   | 'howto'
 
-/** 클리어 시 지급하는 조각 ⚠ */
-function piecesFor(run: Run): number {
-  return run.pizza?.grade === 'full' ? 2 : 1
-}
 
 // ponytail: 화면 수가 적어 라우터 없이 상태 하나로 전환한다.
 export default function App() {
@@ -51,8 +48,9 @@ export default function App() {
   // 라운드마다 새로 뽑는다. 고정 표가 아니다.
   const [enc, setEnc] = useState<Encounter>(() => rollEncounter(1))
   const [result, setResult] = useState<ResultKind>('lose')
-  const [gained, setGained] = useState(0)
-  const [pieces, setPieces] = useState(() => loadPieces())
+  // 결과 화면에 보여 줄 완성작 이름과 도감 진행도
+  const [madeName, setMadeName] = useState('')
+  const [found, setFound] = useState(() => discoveredCount(loadCodex()))
 
   const back = useCallback(() => setScreen('title'), [])
 
@@ -87,12 +85,15 @@ export default function App() {
       const healed = healAfterStage(afterBattle)
 
       if (healed.stage >= FINAL_STAGE) {
-        const got = piecesFor(healed)
-        const total = Math.min(PUZZLE_TOTAL, loadPieces() + got)
-        savePieces(total)
-        setPieces(total)
-        setGained(got)
-        setRun(healed)
+        // 보스를 잡으면 그 소스가 발려 피자가 완성된다. 소스는 보스에서만 나온다.
+        const sauce = enc.enemies.find((e) => e.topping.kind === 'sauce')?.topping
+        const done: Run = sauce ? { ...healed, toppings: [...healed.toppings, sauce] } : healed
+
+        if (done.pizza) {
+          setMadeName(fullName(done.pizza, done.toppings))
+          setFound(discoveredCount(recordPizza(done.pizza, done.toppings)))
+        }
+        setRun(done)
         setResult('clear')
         setScreen('result')
         return
@@ -102,7 +103,7 @@ export default function App() {
       setRun(healed)
       setScreen('recruit')
     },
-    [],
+    [enc],
   )
 
   /** 동료로 만들기 / 지나치기 */
@@ -122,14 +123,11 @@ export default function App() {
 
   const onRewardDone = useCallback((next: Run) => advance(next), [advance])
 
-  const onEnd = useCallback(
-    (reason: 'lose' | 'timeout') => {
-      setGained(0)
-      setResult(reason)
-      setScreen('result')
-    },
-    [],
-  )
+  const onEnd = useCallback((reason: 'lose' | 'timeout') => {
+    setMadeName('')
+    setResult(reason)
+    setScreen('result')
+  }, [])
 
   if (screen === 'title') {
     return <TitleScreen onSelect={(a) => setScreen(a === 'start' ? 'character' : a)} />
@@ -157,36 +155,22 @@ export default function App() {
   }
 
   if (screen === 'result' && run) {
-    return <Result kind={result} run={run} gained={gained} pieces={pieces} onBack={back} />
+    return <Result kind={result} run={run} madeName={madeName} found={found} onBack={back} />
+  }
+
+  if (screen === 'codex') {
+    return <Codex onBack={back} />
   }
 
   return (
     <div className="stub">
       <div className="stub__panel">
-        {screen === 'puzzle' && <PuzzlePanel pieces={pieces} />}
         {screen === 'howto' && <HowToPanel />}
         <button className="stub__back" onClick={back}>
           ← 돌아가기
         </button>
       </div>
     </div>
-  )
-}
-
-function PuzzlePanel({ pieces }: { pieces: number }) {
-  return (
-    <>
-      <h2>퍼즐 조각</h2>
-      <div className="puzzle">
-        {Array.from({ length: PUZZLE_TOTAL }, (_, i) => (
-          <span key={i} className={i < pieces ? 'cell got' : 'cell'} />
-        ))}
-      </div>
-      <p className="stub__desc">
-        스테이지 1-10 클리어 시 조각 획득. 전직 등급이 <b>완성</b>이면 2개.{' '}
-        {PUZZLE_TOTAL}개를 모두 모으면 업적 달성.
-      </p>
-    </>
   )
 }
 
@@ -214,7 +198,9 @@ function HowToPanel() {
           <b>1-{BAKE_STAGE}</b>에 진입하면 도우가 구워집니다. 그때까지 올린 토핑의 맛이 어떤 피자가
           될지, 또 보너스가 얼마나 강할지를 정합니다.
         </li>
-        <li>사망하면 처음부터. 퍼즐 조각만 남습니다.</li>
+        <li>
+          실패하면 처음부터. 완성한 피자만 <b>도감</b>에 남습니다 (총 {CODEX_TOTAL}종).
+        </li>
       </ul>
       <p className="stub__desc">
         주사위 눈: {Object.values(DICE).map((d) => d.desc).join(' · ')}

@@ -1,32 +1,32 @@
 import { useEffect } from 'react'
-import { pizzaLabel } from '../core/pizza'
+import { CODEX_TOTAL } from '../core/codex'
+import { GRADE_META } from '../core/pizza'
 import type { Run } from '../core/run'
-import { PUZZLE_TOTAL } from '../core/save'
 import './Result.css'
 
 export type ResultKind = 'lose' | 'timeout' | 'clear'
 
 const COPY: Record<ResultKind, { title: string; line: string }> = {
   // 규칙 2 — 시간이 남아 있어도 끝이다
-  lose: { title: '쓰러졌다', line: '체력이 다했습니다.' },
+  lose: { title: '반죽이 무너졌다', line: '도우가 버티지 못했습니다.' },
   // 규칙 1 — 살아 있어도 끝이다
-  timeout: { title: '시간 초과', line: '제한 시간 안에 끝내지 못했습니다.' },
-  clear: { title: '클리어', line: '1-10 을 넘어섰습니다.' },
+  timeout: { title: '타 버렸다', line: '제한 시간 안에 끝내지 못했습니다.' },
+  clear: { title: '완성', line: '피자가 구워졌습니다.' },
 }
 
 export default function Result({
   kind,
   run,
-  gained,
-  pieces,
+  madeName,
+  found,
   onBack,
 }: {
   kind: ResultKind
   run: Run
-  /** 이번 판에서 얻은 퍼즐 조각 */
-  gained: number
-  /** 누적 퍼즐 조각 */
-  pieces: number
+  /** 완성한 피자의 전체 이름. 실패하면 빈 문자열 */
+  madeName: string
+  /** 도감에 모은 종 수 */
+  found: number
   onBack: () => void
 }) {
   useEffect(() => {
@@ -52,8 +52,8 @@ export default function Result({
           <dd>1-{run.stage}</dd>
         </div>
         <div>
-          <dt>피자</dt>
-          <dd>{run.pizza ? pizzaLabel(run.pizza) : '굽기 전'}</dd>
+          <dt>완성도</dt>
+          <dd>{run.pizza ? GRADE_META[run.pizza.grade].label : '굽기 전'}</dd>
         </div>
         <div>
           <dt>토핑</dt>
@@ -61,9 +61,12 @@ export default function Result({
         </div>
       </dl>
 
-      {gained > 0 && (
+      {madeName && (
         <p className="rs__piece">
-          퍼즐 조각 <b>+{gained}</b> — 모은 조각 {pieces} / {PUZZLE_TOTAL}
+          <b className="rs__made">{madeName}</b>
+          <span className="rs__codex">
+            도감 {found} / {CODEX_TOTAL} 종
+          </span>
         </p>
       )}
 

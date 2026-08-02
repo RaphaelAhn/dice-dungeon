@@ -154,9 +154,9 @@ export function decidePizza(toppings: Topping[], stats: Stats): Pizza {
 
   const clashes = countClashes(toppings)
 
-  // 토핑이 없거나 하나뿐인데 그럴듯한 이름이 붙으면 어색하다.
+  // '맨'은 아무것도 안 올린 도우에만 붙인다. 하나라도 있으면 맨 도우가 아니다.
   // 맛이 두 쌍 이상 부딪치면 이름부터 그렇게 보인다.
-  const prefix = toppings.length <= 1 ? '맨 ' : clashes >= 2 ? '뒤죽박죽 ' : ''
+  const prefix = toppings.length === 0 ? '맨 ' : clashes >= 2 ? '뒤죽박죽 ' : ''
 
   return { main, sub, grade, name: prefix + PIZZA_NAMES[main][sub ?? main], clashes }
 }
