@@ -62,11 +62,19 @@ export default function DiceRoll({
   const stats = result ? applyFace(result) : BASE_STATS
 
   return (
-    <div className="dr">
+    <div className={`dr dr--${phase}`}>
       <header className="dr__head">
-        <h2>주사위 굴리기</h2>
+        <h2>{phase === 'done' ? '도우 숙성 완료' : '도우 숙성'}</h2>
         <p>
-          주사위는 <b>단 한 번</b> 굴립니다. 다시 굴릴 수 없습니다.
+          {phase === 'done' ? (
+            <>
+              이 반죽으로 <b>1 라운드</b>에 들어갑니다.
+            </>
+          ) : (
+            <>
+              숙성은 <b>단 한 번</b>뿐입니다. 다시 할 수 없습니다.
+            </>
+          )}
         </p>
       </header>
 
@@ -80,8 +88,10 @@ export default function DiceRoll({
       </div>
 
       <section className="dr__result" aria-live="polite">
-        {phase === 'ready' && <p className="dr__wait">굴려서 이 도우의 시작 능력을 정하세요.</p>}
-        {phase === 'rolling' && <p className="dr__wait">굴리는 중…</p>}
+        {phase === 'ready' && (
+          <p className="dr__wait">숙성을 시작해 이 도우의 시작 능력을 정하세요.</p>
+        )}
+        {phase === 'rolling' && <p className="dr__wait">숙성 중…</p>}
         {phase === 'done' && rolledFace && (
           <>
             <div className="dr__card">
@@ -97,7 +107,7 @@ export default function DiceRoll({
       <footer className="dr__foot">
         {phase !== 'done' ? (
           <button className="dr__btn" onClick={roll} disabled={phase === 'rolling'}>
-            {phase === 'rolling' ? '…' : '주사위 굴리기'}
+            {phase === 'rolling' ? '숙성 중…' : '도우 숙성 시작'}
           </button>
         ) : (
           <button className="dr__btn dr__btn--go" onClick={() => result && onStart(result)}>
