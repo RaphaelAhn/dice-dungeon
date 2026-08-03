@@ -339,3 +339,29 @@
     animation: none;
   }
 }
+
+/* --- 차례 표시 --- */
+.bt__phase {
+  align-self: flex-start;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+/* 누구 차례인지 색으로도 알린다 — 로그를 읽지 않아도 구분된다 */
+.bt__log--mine {
+  border-left-color: var(--sky);
+}
+.bt__log--mine .bt__phase {
+  color: var(--sky);
+}
+.bt__log--theirs {
+  border-left-color: #f2695f;
+}
+.bt__log--theirs .bt__phase {
+  color: #f2695f;
+}
+
+.bt__cmds.is-locked {
+  opacity: 0.55;
+}

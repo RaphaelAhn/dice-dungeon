@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { startBattle, takeTurn, tick, type BattleState, type Command, type Unit } from '../core/battle'
+import {
+  enemyAct,
+  endTurn,
+  playerAct,
+  playerFirst,
+  startBattle,
+  tick,
+  type BattleState,
+  type Command,
+  type Unit,
+} from '../core/battle'
 import type { Encounter } from '../core/enemy'
 import { maxMp, type Run } from '../core/run'
 import { skillsOfTaste } from '../core/skill'
@@ -7,6 +17,11 @@ import { TASTE_LABEL } from '../core/topping'
 import { formatClock, stageLimitMs, TURN_LIMIT_MS } from '../core/timer'
 import CharacterSprite from './CharacterSprite'
 import './Battle.css'
+
+/** 한 조각을 보여 주는 시간 ⚠ 짧으면 못 읽고 길면 답답하다 */
+const STEP_MS = 750
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 const STATUS_LABEL: Record<string, string> = {
   burn: '눌음',
@@ -31,19 +46,78 @@ export default function Battle({
 }) {
   const [state, setState] = useState<BattleState>(() => startBattle(run, enc))
   const [menu, setMenu] = useState<'root' | 'skill'>('root')
+  /**
+   * 'choose'  — 내가 명령을 고르는 중. 이때만 시계가 돈다.
+   * 'mine'    — 내 행동이 화면에 나오는 중
+   * 'theirs'  — 상대 행동이 화면에 나오는 중
+   *
+   * 한 번에 다 처리하면 로그가 동시에 쏟아져 주고받는 느낌이 사라진다.
+   */
+  const [phase, setPhase] = useState<'choose' | 'mine' | 'theirs'>('choose')
   // 실제 경과 시간으로 재야 탭을 옮겨도 시계가 멈추지 않는다.
   const last = useRef(Date.now())
+  const busy = useRef(false)
+
+  /*
+   * 최신 상태를 ref 로 따로 들고 있는다.
+   *
+   * setState 업데이터 안에서 연출을 시작했더니 StrictMode 가 업데이터를 두 번
+   * 호출해 한 턴이 겹쳐 돌았다. 업데이터는 순수해야 한다.
+   */
+  const stateRef = useRef(state)
+  stateRef.current = state
 
   const act = useCallback((cmd: Command) => {
+    const cur = stateRef.current
+    if (busy.current || cur.over) return
+    busy.current = true
     setMenu('root')
-    setState((s) => (s.over ? s : takeTurn(s, cmd)))
+    // 순서는 손놀림이 정한다
+    void runTurn(cur, cmd, playerFirst(cur))
+  }, [])
+
+  /** 조각을 하나씩 보여 준다. 사이의 틈이 '주고받는' 느낌을 만든다. */
+  const runTurn = useCallback(async (from: BattleState, cmd: Command, iGoFirst: boolean) => {
+    const step = async (next: BattleState, who: 'mine' | 'theirs') => {
+      setPhase(who)
+      setState(next)
+      stateRef.current = next
+      await sleep(next.over ? 500 : STEP_MS)
+      return next
+    }
+
+    let s = from
+    if (iGoFirst) {
+      s = await step(playerAct(s, cmd), 'mine')
+      if (!s.over) s = await step(enemyAct(s), 'theirs')
+    } else {
+      s = await step(enemyAct(s), 'theirs')
+      if (!s.over) s = await step(playerAct(s, cmd), 'mine')
+    }
+
+    if (!s.over) {
+      const ended = endTurn(s)
+      // 상태이상 피해 같은 마무리 로그가 있을 때만 한 박자 더 보여 준다
+      setState(ended)
+      stateRef.current = ended
+      // 상태이상 피해 같은 마무리 로그가 있을 때만 한 박자 더 보여 준다
+      if (ended.log.length > 0) await sleep(STEP_MS)
+      s = ended
+    }
+
+    if (!s.over) setPhase('choose')
+    // 시계는 고르는 동안만 도는데, 연출 중 흐른 시간이 한꺼번에 깎이면 안 된다.
+    last.current = Date.now()
+    busy.current = false
   }, [])
 
   // 시계. requestAnimationFrame 은 비활성 탭에서 느려지지만
   // Date.now() 차분으로 계산하므로 흘러간 시간은 그대로 반영된다.
+  // 시계는 내가 고르는 동안에만 돈다. 연출 시간은 내 시간이 아니다.
   useEffect(() => {
-    if (state.over) return
+    if (state.over || phase !== 'choose') return
     let raf = 0
+    let timedOut = false
     const loop = () => {
       const now = Date.now()
       const dt = now - last.current
@@ -51,15 +125,19 @@ export default function Battle({
       setState((s) => {
         if (s.over) return s
         const { state: next, autoAct } = tick(s, dt)
-        // 턴 제한을 넘기면 자동으로 공격한다. 아무것도 안 하면 교착이 된다.
-        return autoAct && !next.over ? takeTurn(next, { type: 'attack' }) : next
+        // 명령 시간을 넘기면 자동으로 공격한다. 아무것도 안 하면 교착이 된다.
+        if (autoAct && !next.over && !timedOut) {
+          timedOut = true
+          setTimeout(() => act({ type: 'attack' }), 0)
+        }
+        return next
       })
       raf = requestAnimationFrame(loop)
     }
     last.current = Date.now()
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
-  }, [state.over])
+  }, [state.over, phase, act])
 
   useEffect(() => {
     if (state.over === 'win') {
@@ -74,7 +152,7 @@ export default function Battle({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (state.over) return
+      if (state.over || phase !== 'choose') return
       if (e.key === 'Escape') return setMenu('root')
       if (menu === 'root') {
         if (e.key === '1') act({ type: 'attack' })
@@ -88,7 +166,7 @@ export default function Battle({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [menu, act, ownedSkills, state.over])
+  }, [menu, act, ownedSkills, state.over, phase])
 
   const stageRatio = state.timeLeftMs / stageLimitMs(enc.kind)
   const turnRatio = state.turnLeftMs / TURN_LIMIT_MS
@@ -116,9 +194,12 @@ export default function Battle({
         ))}
       </section>
 
-      <section className="bt__log" aria-live="polite">
+      <section className={`bt__log bt__log--${phase}`} aria-live="polite">
+        <span className="bt__phase">
+          {phase === 'theirs' ? '상대 차례' : phase === 'mine' ? '내 차례' : '명령을 고르세요'}
+        </span>
         {state.log.length === 0 ? (
-          <p className="bt__log-empty">명령을 고르세요</p>
+          <p className="bt__log-empty">공격 · 방어 · 기술 · 반죽물</p>
         ) : (
           state.log.slice(-4).map((l, i) => <p key={i}>{l}</p>)
         )}
@@ -142,19 +223,19 @@ export default function Battle({
         <span>{Math.ceil(state.turnLeftMs / 1000)}</span>
       </div>
 
-      <nav className="bt__cmds">
+      <nav className={phase === 'choose' ? 'bt__cmds' : 'bt__cmds is-locked'}>
         {menu === 'root' ? (
           <>
-            <button onClick={() => act({ type: 'attack' })}>
+            <button onClick={() => act({ type: 'attack' })} disabled={phase !== 'choose'}>
               <b>1</b> 공격
             </button>
-            <button onClick={() => act({ type: 'defend' })}>
+            <button onClick={() => act({ type: 'defend' })} disabled={phase !== 'choose'}>
               <b>2</b> 방어
             </button>
-            <button onClick={() => setMenu('skill')} disabled={ownedSkills.length === 0}>
+            <button onClick={() => setMenu('skill')} disabled={ownedSkills.length === 0 || phase !== 'choose'}>
               <b>3</b> 기술
             </button>
-            <button onClick={() => act({ type: 'item' })} disabled={state.potions <= 0}>
+            <button onClick={() => act({ type: 'item' })} disabled={state.potions <= 0 || phase !== 'choose'}>
               <b>4</b> 반죽물 {state.potions}
             </button>
           </>
@@ -164,7 +245,7 @@ export default function Battle({
               <button
                 key={sk.id}
                 onClick={() => act({ type: 'skill', id: sk.id })}
-                disabled={state.mp < sk.mp}
+                disabled={state.mp < sk.mp || phase !== 'choose'}
                 title={TASTE_LABEL[sk.taste]}
               >
                 <b>{i + 1}</b> {sk.name} <span className="bt__mp">{sk.mp}</span>

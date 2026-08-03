@@ -218,45 +218,67 @@ function damage(target: Unit, amount: number): number {
   return dealt
 }
 
-/**
- * 플레이어 한 턴 + 적 전원 한 턴을 처리한 새 상태를 돌려준다.
- * 원본을 건드리지 않는 이유는 UI 가 이전 상태와 비교해 연출을 뽑기 때문이다.
+/*
+ * 한 턴은 세 조각으로 나뉜다 — 내 행동 / 상대 행동 / 턴 마무리.
+ *
+ * 한 번에 다 처리하면 로그가 동시에 쏟아져서 주고받는 느낌이 사라진다.
+ * UI 는 조각을 하나씩 보여 주며 사이에 틈을 둔다.
+ * 시뮬레이터처럼 연출이 필요 없는 곳은 takeTurn 으로 한 번에 돌린다.
  */
-export function takeTurn(prev: BattleState, cmd: Command, rng: Rng = Math.random): BattleState {
-  if (prev.over) return prev
 
+/** 내 차례 */
+export function playerAct(prev: BattleState, cmd: Command, rng: Rng = Math.random): BattleState {
+  if (prev.over) return prev
   const s: BattleState = structuredClone(prev)
   s.log = []
   s.defending = cmd.type === 'defend'
+  resolvePlayer(s, cmd, rng)
+  checkOver(s)
+  return s
+}
 
-  const first = playerFirst(s)
-  if (first) {
-    resolvePlayer(s, cmd, rng)
-    if (!checkOver(s)) resolveEnemies(s, rng)
-  } else {
-    resolveEnemies(s, rng)
-    if (!checkOver(s)) resolvePlayer(s, cmd, rng)
+/** 상대 차례 */
+export function enemyAct(prev: BattleState, rng: Rng = Math.random): BattleState {
+  if (prev.over) return prev
+  const s: BattleState = structuredClone(prev)
+  s.log = []
+  resolveEnemies(s, rng)
+  checkOver(s)
+  return s
+}
+
+/** 턴 마무리 — 상태 진행, 턴 수 증가, 명령 시간 초기화 */
+export function endTurn(prev: BattleState): BattleState {
+  if (prev.over) return prev
+  const s: BattleState = structuredClone(prev)
+  s.log = []
+
+  tickStatuses(s.player, s.log)
+  for (const e of s.enemies) if (alive(e)) tickStatuses(e, s.log)
+
+  // 담백 부 풍미 특성 — 턴 종료 회복
+  if (s.player.trait === 'mild' && s.player.hp > 0) {
+    const heal = Math.round(s.player.maxHp * 0.05)
+    const before = s.player.hp
+    s.player.hp = Math.min(s.player.maxHp, s.player.hp + heal)
+    if (s.player.hp > before) s.log.push(`담백 특성 — 두께 ${s.player.hp - before} 회복`)
   }
 
+  checkOver(s)
   if (!s.over) {
-    tickStatuses(s.player, s.log)
-    for (const e of s.enemies) if (alive(e)) tickStatuses(e, s.log)
-
-    // 신성 부계열 특성 — 턴 종료 회복
-    if (s.player.trait === 'mild' && s.player.hp > 0) {
-      const heal = Math.round(s.player.maxHp * 0.05)
-      const before = s.player.hp
-      s.player.hp = Math.min(s.player.maxHp, s.player.hp + heal)
-      if (s.player.hp > before) s.log.push(`담백 특성 — 두께 ${s.player.hp - before} 회복`)
-    }
-
-    checkOver(s)
     s.turn += 1
-    // 커맨드를 고르는 시간은 턴마다 새로 준다. 스테이지 시계는 계속 흐른다.
     s.turnLeftMs = TURN_LIMIT_MS
   }
-
   return s
+}
+
+/** 세 조각을 한 번에. 연출이 필요 없는 곳(시뮬레이터)에서 쓴다. */
+export function takeTurn(prev: BattleState, cmd: Command, rng: Rng = Math.random): BattleState {
+  if (prev.over) return prev
+  const first = playerFirst(prev)
+  let s = first ? playerAct(prev, cmd, rng) : enemyAct(prev, rng)
+  s = first ? enemyAct(s, rng) : playerAct(s, cmd, rng)
+  return endTurn(s)
 }
 
 function checkOver(s: BattleState): boolean {

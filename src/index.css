@@ -5,17 +5,25 @@
  * font-display: swap 을 쓴다. 폰트를 기다리며 글자를 감추면 첫 화면이 비어 보인다.
  * 시스템 폰트로 먼저 그리고 도착하면 바꿔 끼운다.
  */
+/*
+ * unicode-range 로 낱자 자모(U+3130-318F)를 뺀다.
+ * 이 폰트는 낱자 글리프가 없는데 cmap 에는 등록돼 있어, 빼 두지 않으면
+ * 'ㅁ' 같은 글자가 폴백도 못 타고 두부(□)로 찍힌다.
+ * 이름 입력 중 조합이 안 끝난 글자가 그대로 보일 수 있어 실제로 걸린다.
+ */
 @font-face {
   font-family: 'Galmuri11';
   src: url('./assets/fonts/Galmuri11.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
+  unicode-range: U+0-312F, U+3190-10FFFF;
 }
 @font-face {
   font-family: 'Galmuri11';
   src: url('./assets/fonts/Galmuri11-Bold.woff2') format('woff2');
   font-weight: 700 900;
   font-display: swap;
+  unicode-range: U+0-312F, U+3190-10FFFF;
 }
 
 :root {
