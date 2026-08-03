@@ -246,7 +246,7 @@ export default function Battle({
       </section>
 
       <section className="bt__player">
-        <CharacterSprite shape={run.shape} scale={0.45} />
+        <CharacterSprite shape={run.shape} scale={0.6} toppings={run.toppings} />
         <div className="bt__pinfo">
           <div className="bt__prow">
             <b>{run.name}</b>

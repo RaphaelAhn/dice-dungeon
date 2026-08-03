@@ -122,3 +122,9 @@
     font-size: 33px;
   }
 }
+
+/* 완성된(또는 실패한) 도우 */
+.rs__dough {
+  display: flex;
+  justify-content: center;
+}

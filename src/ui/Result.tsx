@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { CODEX_TOTAL } from '../core/codex'
+import CharacterSprite from './CharacterSprite'
 import { GRADE_META } from '../core/pizza'
 import type { Run } from '../core/run'
 import './Result.css'
@@ -43,6 +44,10 @@ export default function Result({
   const c = COPY[kind]
   return (
     <div className={`rs rs--${kind}`}>
+      <div className="rs__dough">
+        <CharacterSprite shape={run.shape} scale={1.1} toppings={run.toppings} />
+      </div>
+
       <h2 className="rs__title">{c.title}</h2>
       <p className="rs__line">{c.line}</p>
 

@@ -129,3 +129,9 @@
     transform: none;
   }
 }
+
+/* 지금까지 만든 도우 */
+.rc__dough {
+  display: flex;
+  justify-content: center;
+}

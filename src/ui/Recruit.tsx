@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { STAT_LABEL } from '../core/character'
 import type { EnemyDef } from '../core/enemy'
 import { canAddTopping, type Run } from '../core/run'
+import CharacterSprite from './CharacterSprite'
 import { KIND_LABEL, MAX_TOPPINGS, TASTE_LABEL, toppingStats } from '../core/topping'
 import './Recruit.css'
 
@@ -49,6 +50,11 @@ export default function Recruit({
           </b>
         </p>
       </header>
+
+      {/* 지금 도우가 어떤 모습인지 보고 고른다 */}
+      <div className="rc__dough">
+        <CharacterSprite shape={run.shape} scale={1} toppings={run.toppings} />
+      </div>
 
       <div className="rc__cards">
         {defeated.map((e, i) => {
