@@ -3,7 +3,7 @@
 > **숙성하고, 모으고, 구워라**
 > NAN 2026 Game × AI 해커톤 사전 과제 · 개인 참가
 
-### ▶ [지금 바로 플레이하기](https://raphaelahn.github.io/dice-dungeon/)
+### ▶ [지금 바로 플레이하기](https://raphaelahn.github.io/dough-dungeon/)
 
 설치 없이 브라우저에서 바로 실행됩니다. 약 207KB (+ 폰트 671KB, 기다리지 않고 바로 플레이).
 
