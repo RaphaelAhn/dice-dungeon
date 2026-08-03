@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      index.html 은 파일명이 고정이라 브라우저가 오래 붙든다. 안쪽 js·css 는
+      이름에 해시가 붙어 새 이름이면 반드시 새로 받지만, 그 이름을 알려주는
+      이 파일이 옛것이면 옛 js 를 계속 쓴다. 실제로 배포 후에도 이전 화면이
+      보이는 일이 반복됐다.
+      GitHub Pages 는 응답 헤더를 못 바꾸므로 meta 로 요청한다.
+    -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>도우 던전</title>
   </head>
   <body>
