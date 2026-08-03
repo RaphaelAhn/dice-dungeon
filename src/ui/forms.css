@@ -1,0 +1,112 @@
+/*
+ * 재료 생김새. 이미지 없이 CSS 도형으로만 그린다.
+ *
+ * 색은 맛이 정하고(부모가 background 를 준다) 모양은 form 이 정한다.
+ * 두 자식 i.form__a / i.form__b 로 꼭지·무늬 같은 곁가지를 붙인다.
+ */
+.form {
+  position: relative;
+}
+.form__a,
+.form__b {
+  position: absolute;
+  display: none;
+}
+
+/* 동그란 것 — 토마토, 완두콩, 올리브 */
+.form--round {
+  border-radius: 50%;
+}
+
+/* 뿌리·덩이 — 감자, 고구마, 마늘. 위아래로 길쭉한 타원 */
+.form--root {
+  border-radius: 50% 50% 46% 46% / 42% 42% 58% 58%;
+}
+
+/* 잎 — 바질, 시금치. 한쪽이 뾰족하다 */
+.form--leaf {
+  border-radius: 0 78% 0 78%;
+  transform: rotate(-12deg);
+}
+.form--leaf .form__a {
+  display: block;
+  inset: 46% 12% 46% 12%;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 2px;
+  transform: rotate(-32deg);
+}
+
+/* 고추 — 아래로 갈수록 좁아지고 꼭지가 달렸다 */
+.form--chili {
+  border-radius: 46% 46% 46% 46% / 26% 26% 74% 74%;
+  clip-path: polygon(28% 0, 72% 0, 62% 100%, 38% 100%);
+}
+.form--chili .form__a {
+  display: block;
+  left: 42%;
+  top: -8%;
+  width: 16%;
+  height: 22%;
+  background: #4c7a3a;
+  border-radius: 2px;
+}
+
+/* 버섯 — 갓과 기둥 */
+.form--mushroom {
+  border-radius: 50% 50% 12% 12%;
+}
+.form--mushroom .form__a {
+  display: block;
+  left: 34%;
+  bottom: -22%;
+  width: 32%;
+  height: 34%;
+  background: #e8dcc0;
+  border: 2px solid rgba(120, 80, 40, 0.3);
+  border-top: none;
+  border-radius: 0 0 40% 40%;
+}
+
+/* 링 — 양파, 파프리카, 파인애플. 가운데가 비었다 */
+.form--ring {
+  border-radius: 50%;
+}
+.form--ring .form__a {
+  display: block;
+  inset: 30%;
+  background: var(--panel);
+  border: 2px solid rgba(120, 80, 40, 0.3);
+  border-radius: 50%;
+}
+
+/* 얇게 썬 것 — 페퍼로니, 살라미. 납작한 원반에 점무늬 */
+.form--slice {
+  border-radius: 50%;
+}
+.form--slice .form__a,
+.form--slice .form__b {
+  display: block;
+  width: 16%;
+  height: 16%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+}
+.form--slice .form__a {
+  left: 26%;
+  top: 30%;
+}
+.form--slice .form__b {
+  right: 24%;
+  bottom: 26%;
+}
+
+/* 덩어리 — 닭가슴살, 소시지. 모서리가 둥근 네모 */
+.form--chunk {
+  border-radius: 28% 28% 24% 24% / 30% 30% 26% 26%;
+}
+
+/* 소스 — 물방울 */
+.form--drop {
+  border-radius: 50% 50% 50% 8%;
+  transform: rotate(-45deg);
+}

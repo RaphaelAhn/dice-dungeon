@@ -370,7 +370,12 @@ function FoeArt(p: FoeProps) {
     .join(' ')
   return (
     <div className={cls} {...pickProps(p)}>
-      <div className={`bt__foe-body bt__foe-body--${p.unit.taste ?? 'plain'}`} />
+      <div
+        className={`bt__foe-body bt__foe-body--${p.unit.taste ?? 'plain'} form form--${p.unit.form ?? 'round'}`}
+      >
+        <i className="form__a" />
+        <i className="form__b" />
+      </div>
     </div>
   )
 }

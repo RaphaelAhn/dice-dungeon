@@ -85,8 +85,13 @@
 .bt__field {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 12px;
+  /*
+   * space-between 으로 두면 남는 세로를 전부 둘 사이에 밀어 넣는다.
+   * 720px 화면에서 간격이 303px 까지 벌어져 서로 딴 화면처럼 보였다.
+   * 가운데로 모으고 간격을 고정한다.
+   */
+  justify-content: center;
+  gap: 40px;
   padding: 6px 0;
 }
 

@@ -66,7 +66,7 @@ export default function CharacterSprite({
             return (
               <i
                 key={`${t.id}-${i}`}
-                className={`sprite__top sprite__top--${t.taste} sprite__top--${t.kind}`}
+                className={`sprite__top sprite__top--${t.taste} form form--${t.form}`}
                 style={{
                   left: `${50 + Math.cos(rad) * r * 100}%`,
                   top: `${50 + Math.sin(rad) * r * 100}%`,

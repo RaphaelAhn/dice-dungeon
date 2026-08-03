@@ -5,7 +5,7 @@ import { pizzaBonus } from './pizza'
 import { maxMp, type Run } from './run'
 import { SKILLS, type SkillId, type StatusKind } from './skill'
 import { stageLimitMs, TURN_LIMIT_MS } from './timer'
-import { TASTE_CLASH, type Taste } from './topping'
+import { TASTE_CLASH, type Form, type Taste } from './topping'
 
 /** 방어 시 받는 피해 배율 (기획서 03 §4) */
 const DEFEND_TAKE = 0.5
@@ -36,6 +36,8 @@ export type Unit = {
   spd: number
   luk: number
   taste?: Taste
+  /** 화면에 그릴 생김새 */
+  form?: Form
   statuses: Status[]
   /** 전직 주계열 보너스 — 주는 피해 배율 가산 */
   damageMul: number
@@ -119,6 +121,7 @@ export function startBattle(run: Run, enc: Encounter): BattleState {
       spd: e.spd,
       luk: 10,
       taste: e.taste,
+      form: e.topping.form,
       statuses: [],
       damageMul: 0,
       critAdd: 0,

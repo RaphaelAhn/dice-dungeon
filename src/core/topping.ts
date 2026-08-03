@@ -50,6 +50,8 @@ export type Topping = {
   taste: Taste
   /** 도우가 무거워지는 정도. 총합만큼 속도가 깎인다. */
   weight: number
+  /** 화면에 그릴 생김새. 이름에서 자동으로 정해진다. (formOf) */
+  form: Form
 }
 
 /** 종류별 기본 무게 — 고기와 소스가 무겁다 */
@@ -58,6 +60,47 @@ const WEIGHT: Record<ToppingKind, number> = { veg: 1, meat: 2, sauce: 2 }
 /** 토핑 하나가 올려 주는 능력치 크기 ⚠ */
 const GAIN: Record<ToppingKind, number> = { veg: 1, meat: 2, sauce: 3 }
 
+/* ── 생김새 ── */
+
+/**
+ * 재료의 생김새. 이름에서 자동으로 정해진다.
+ *
+ * 88종을 하나씩 그려 두면 재료를 추가할 때마다 그림도 같이 손봐야 한다.
+ * 이름에 든 낱말로 판정하면 새 재료를 넣어도 알맞은 모양이 저절로 붙는다.
+ */
+export type Form =
+  | 'round'
+  | 'leaf'
+  | 'chili'
+  | 'mushroom'
+  | 'ring'
+  | 'root'
+  | 'slice'
+  | 'chunk'
+  | 'drop'
+
+/** 앞에 있는 규칙이 먼저 이긴다 — '표고버섯'은 버섯이지 뿌리가 아니다. */
+const FORM_RULES: [Form, string[]][] = [
+  ['mushroom', ['버섯', '포르치니', '송이']],
+  ['chili', ['고추', '할라피뇨', '페페론치노', '와사비', '겨자', '후추', '생강']],
+  ['leaf', ['바질', '루꼴라', '시금치', '오레가노', '파슬리', '로즈마리', '타임', '세이지',
+            '딜', '차이브', '민트', '고수', '숙주', '겨자잎', '아스파라거스', '쪽파']],
+  ['ring', ['양파', '파프리카', '파인애플', '링', '올리브']],
+  ['root', ['감자', '고구마', '연근', '단호박', '마늘', '유자', '레몬', '라임', '트러플']],
+  ['slice', ['하몽', '프로슈토', '살라미', '베이컨', '판체타', '앤초비', '연어', '페퍼로니']],
+  ['chunk', ['치킨', '가슴살', '오리', '새우', '관자', '소시지', '초리조', '불고기', '램', '두부']],
+  ['round', ['토마토', '완두콩', '옥수수', '애호박', '콜리플라워', '가지', '아티초크',
+             '피클', '케이퍼', '사과', '체리']],
+]
+
+export function formOf(name: string, kind: ToppingKind): Form {
+  for (const [form, words] of FORM_RULES) {
+    if (words.some((w) => name.includes(w))) return form
+  }
+  // 못 찾으면 종류로 되돌린다. 소스는 방울, 고기는 덩어리, 야채는 동그라미.
+  return kind === 'sauce' ? 'drop' : kind === 'meat' ? 'chunk' : 'round'
+}
+
 function make(kind: ToppingKind, taste: Taste, names: string[]): Topping[] {
   return names.map((name, i) => ({
     id: `${kind}-${taste}-${i}`,
@@ -65,6 +108,7 @@ function make(kind: ToppingKind, taste: Taste, names: string[]): Topping[] {
     kind,
     taste,
     weight: WEIGHT[kind],
+    form: formOf(name, kind),
   }))
 }
 

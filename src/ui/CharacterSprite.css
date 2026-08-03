@@ -3,8 +3,15 @@
   display: grid;
   place-items: end center;
   animation: sprite-idle 2.2s ease-in-out infinite;
-  /* 축소해도 바깥으로 새지 않게 막는다 */
-  overflow: hidden;
+  /*
+   * overflow:hidden 을 걸면 안 된다.
+   *
+   * transform: scale() 은 겉보기만 줄이고 레이아웃 높이는 원본(112px) 그대로다.
+   * 상자는 112×scale 이라 원본보다 낮고, 그러면 잘라내기가 걸려 도우 아래쪽이
+   * 사라진다 (0.72 배에서 31px 이 잘려 나갔다).
+   * transform-origin 이 bottom center 라 축소하면 상자 안에 들어오므로 잘라낼
+   * 이유도 없다.
+   */
 }
 
 /*
