@@ -64,7 +64,7 @@ export default function CharacterCreate({
             onMouseEnter={() => setIndex(i)}
             onClick={() => setIndex(i)}
           >
-            <CharacterSprite shape={g} scale={1} />
+            <CharacterSprite shape={g} scale={0.72} />
             <span className="cc__name">{SHAPE_LABEL[g]}</span>
           </button>
         ))}
