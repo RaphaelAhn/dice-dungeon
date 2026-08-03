@@ -22,19 +22,15 @@
    * 이미지 파일 없이 그라디언트만 겹쳐 만든다.
    */
   background:
-    radial-gradient(ellipse 60% 30% at 50% -5%, rgba(125, 211, 252, 0.22), transparent 70%),
+    radial-gradient(ellipse 60% 30% at 50% -5%, rgba(120, 190, 230, 0.28), transparent 70%),
     repeating-linear-gradient(
       0deg,
       transparent 0 78px,
-      rgba(125, 211, 252, 0.07) 78px 80px,
-      rgba(0, 0, 0, 0.28) 80px 84px
+      rgba(120, 190, 230, 0.16) 78px 80px,
+      rgba(160, 130, 90, 0.14) 80px 84px
     ),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0 118px,
-      rgba(148, 197, 224, 0.05) 118px 120px
-    ),
-    linear-gradient(180deg, #0d1420 0%, #0a1018 55%, #070b12 100%);
+    repeating-linear-gradient(90deg, transparent 0 118px, rgba(160, 130, 90, 0.09) 118px 120px),
+    linear-gradient(180deg, #eef6fb 0%, #f7f1e4 55%, #fdf5e6 100%);
 }
 
 /* 서리 — 가장자리에 낀 성에 */
@@ -45,10 +41,10 @@
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 120% 60% at 50% 100%, rgba(125, 211, 252, 0.1), transparent 70%),
-    radial-gradient(circle at 8% 12%, rgba(200, 235, 255, 0.09), transparent 22%),
-    radial-gradient(circle at 92% 18%, rgba(200, 235, 255, 0.07), transparent 20%),
-    radial-gradient(circle at 12% 88%, rgba(200, 235, 255, 0.06), transparent 24%);
+    radial-gradient(ellipse 120% 60% at 50% 100%, rgba(120, 190, 230, 0.18), transparent 70%),
+    radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.65), transparent 22%),
+    radial-gradient(circle at 92% 18%, rgba(255, 255, 255, 0.5), transparent 20%),
+    radial-gradient(circle at 12% 88%, rgba(255, 255, 255, 0.45), transparent 24%);
 }
 
 /*
@@ -64,8 +60,8 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(ellipse 40% 22% at 30% 40%, rgba(125, 211, 252, 0.06), transparent 70%),
-    radial-gradient(ellipse 34% 18% at 72% 62%, rgba(125, 211, 252, 0.05), transparent 70%);
+  background: radial-gradient(ellipse 40% 22% at 30% 40%, rgba(120, 190, 230, 0.14), transparent 70%),
+    radial-gradient(ellipse 34% 18% at 72% 62%, rgba(120, 190, 230, 0.12), transparent 70%);
   background-size: 140% 140%;
   animation: dr-chill 14s ease-in-out infinite alternate;
 }
@@ -87,15 +83,15 @@
 /* 완료되면 온기가 살짝 돈다 — 다음은 화덕이다 */
 .dr--done {
   background:
-    radial-gradient(ellipse 60% 34% at 50% 24%, rgba(255, 156, 89, 0.12), transparent 70%),
-    radial-gradient(ellipse 60% 30% at 50% -5%, rgba(125, 211, 252, 0.16), transparent 70%),
+    radial-gradient(ellipse 60% 34% at 50% 24%, rgba(238, 171, 46, 0.3), transparent 70%),
+    radial-gradient(ellipse 60% 30% at 50% -5%, rgba(120, 190, 230, 0.18), transparent 70%),
     repeating-linear-gradient(
       0deg,
       transparent 0 78px,
-      rgba(125, 211, 252, 0.06) 78px 80px,
-      rgba(0, 0, 0, 0.28) 80px 84px
+      rgba(120, 190, 230, 0.12) 78px 80px,
+      rgba(160, 130, 90, 0.12) 80px 84px
     ),
-    linear-gradient(180deg, #0f1520 0%, #0b1018 55%, #080c12 100%);
+    linear-gradient(180deg, #f8f2e6 0%, #fbf3e2 55%, #fdf5e6 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -205,7 +201,7 @@
   gap: 2px;
   padding: 8px 6px;
   border: 1px solid var(--line);
-  background: rgba(20, 22, 31, 0.6);
+  background: var(--panel);
 }
 .dr__stats li.is-up {
   border-color: rgba(125, 211, 252, 0.5);

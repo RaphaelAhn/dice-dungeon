@@ -108,7 +108,7 @@
   border-color: rgba(232, 176, 75, 0.6);
 }
 .cx__cell--full i {
-  color: #e8b04b;
+  color: var(--cheese);
   background: rgba(232, 176, 75, 0.14);
 }
 .cx__cell--partial i {

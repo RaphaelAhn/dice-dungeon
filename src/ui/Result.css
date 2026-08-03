@@ -31,7 +31,7 @@
   text-shadow: 0 4px 0 #000;
 }
 .rs--lose .rs__title {
-  color: #f2695f;
+  color: var(--accent);
 }
 .rs--timeout .rs__title {
   color: var(--muted);

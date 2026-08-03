@@ -13,7 +13,7 @@
   padding: 32px 16px 40px;
   background:
     radial-gradient(ellipse 70% 50% at 50% 20%, rgba(125, 211, 252, 0.08), transparent 70%),
-    repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 0, 0, 0.25) 3px 4px),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(160, 120, 70, 0.1) 3px 4px),
     var(--bg);
 }
 

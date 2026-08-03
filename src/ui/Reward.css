@@ -62,10 +62,10 @@
 }
 .rw__card--age,
 .rw__card--age2 {
-  border-top: 4px solid #5fd3a0;
+  border-top: 4px solid var(--sky);
 }
 .rw__card--gamble {
-  border-top: 4px solid #f2695f;
+  border-top: 4px solid var(--accent);
 }
 
 .rw__tier {

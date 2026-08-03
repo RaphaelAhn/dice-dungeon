@@ -3,7 +3,7 @@
   display: grid;
   place-items: center;
   background:
-    repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 0, 0, 0.25) 3px 4px),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(160, 120, 70, 0.12) 3px 4px),
     var(--bg);
 }
 
@@ -49,7 +49,7 @@
 }
 .puzzle .cell {
   aspect-ratio: 1;
-  background: #0e1017;
+  background: var(--bg-2);
   border: 2px solid var(--line);
 }
 .puzzle .cell.got {

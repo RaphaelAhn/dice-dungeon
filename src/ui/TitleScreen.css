@@ -12,8 +12,8 @@
   gap: 48px;
   position: relative;
   background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 156, 89, 0.12), transparent 70%),
-    repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 0, 0, 0.25) 3px 4px),
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(226, 118, 43, 0.1), transparent 70%),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(160, 120, 70, 0.1) 3px 4px),
     var(--bg);
 }
 
@@ -34,7 +34,7 @@
   /* 픽셀 폰트는 글자 상자가 1em 보다 크다. 1 로 두면 위아래가 잘려
      아래 문구와 겹쳐 보인다. */
   line-height: 1.35;
-  text-shadow: 0 4px 0 #000, 0 0 28px rgba(125, 211, 252, 0.25);
+  text-shadow: 0 4px 0 rgba(160, 110, 60, 0.35);
 }
 .title__logo span {
   color: var(--accent);
@@ -73,8 +73,8 @@
 
 .menu__item.is-on {
   color: var(--text);
-  background: rgba(255, 156, 89, 0.08);
-  border-color: rgba(255, 156, 89, 0.4);
+  background: rgba(226, 118, 43, 0.12);
+  border-color: var(--accent);
 }
 
 /* --- 하단 --- */
