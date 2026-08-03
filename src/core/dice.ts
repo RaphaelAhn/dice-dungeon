@@ -15,6 +15,10 @@ export type DiceResult = {
   desc: string
   /** 이 눈이 유리하게 만들어 주는 방향. "낮은 눈 = 손해"가 아님을 보여주는 라벨 */
   favors: string
+  /** 숙성 온도(℃) — 화면에 보여 줄 값이고 계산에는 쓰지 않는다 */
+  temp: number
+  /** 발효도(%) — 마찬가지로 표시용 */
+  ferment: number
   /** 시작 스탯에 더할 값 */
   stats?: Partial<Stats>
   /** 보상 티어를 최고 등급으로 확정해 주는 횟수 */
@@ -28,6 +32,8 @@ export type DiceResult = {
 export const DICE: Record<Face, DiceResult> = {
   1: {
     face: 1,
+    temp: 2,
+    ferment: 95,
     name: '두툼한 반죽',
     desc: '반죽 두께 +40',
     favors: '맞아가며 버티는 도우 · 담백한 재료',
@@ -35,6 +41,8 @@ export const DICE: Record<Face, DiceResult> = {
   },
   2: {
     face: 2,
+    temp: 9,
+    ferment: 70,
     name: '뜨거운 화덕',
     desc: '불의 세기 +10',
     favors: '직접 때려잡는 도우 · 매콤한 재료',
@@ -42,6 +50,8 @@ export const DICE: Record<Face, DiceResult> = {
   },
   3: {
     face: 3,
+    temp: 5,
+    ferment: 88,
     // 반죽 탄력은 기술 위력과 최대 탄력을 겸한다. 같은 수치라도 두 몫을 한다.
     name: '쫄깃한 반죽',
     desc: '반죽 탄력 +12',
@@ -50,6 +60,8 @@ export const DICE: Record<Face, DiceResult> = {
   },
   4: {
     face: 4,
+    temp: 8,
+    ferment: 62,
     name: '빠른 손',
     desc: '손놀림 +8',
     favors: '선공과 회피 · 향긋한 재료',
@@ -57,6 +69,8 @@ export const DICE: Record<Face, DiceResult> = {
   },
   5: {
     face: 5,
+    temp: 6,
+    ferment: 78,
     name: '예민한 혀',
     desc: '감각 +8',
     favors: '보상 등급과 결정타 · 새콤한 재료',
@@ -64,6 +78,8 @@ export const DICE: Record<Face, DiceResult> = {
   },
   6: {
     face: 6,
+    temp: 0,
+    ferment: 100,
     // 유일하게 능력치가 아닌 눈. 횟수로 다른 눈과 무게를 맞춘다.
     // 1회일 때 클리어율이 27% 로 혼자 처져 2회로 올렸다 (시뮬레이션 360판).
     // 매 스테이지 확정으로 바꾸려면 이 숫자만 올리면 된다.

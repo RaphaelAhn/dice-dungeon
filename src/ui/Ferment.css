@@ -1,0 +1,142 @@
+/* 냉장 숙성실의 계기 두 개. 이미지 없이 CSS 도형으로만 그린다. */
+.fm {
+  display: flex;
+  align-items: flex-end;
+  gap: 26px;
+}
+
+/* --- 온도계 --- */
+.fm__thermo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.fm__tube {
+  position: relative;
+  width: 22px;
+  height: 132px;
+  background: #0c1018;
+  border: 3px solid #2a3446;
+  border-bottom: none;
+  border-radius: 11px 11px 0 0;
+  overflow: hidden;
+}
+
+/* 수은주는 아래에서 자란다 */
+.fm__mercury {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(180deg, #7dd3fc, #3b82c4);
+  transition: height 0.12s linear;
+}
+
+.fm__tick {
+  position: absolute;
+  right: 0;
+  width: 8px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  z-index: 1;
+}
+
+.fm__bulb {
+  width: 34px;
+  height: 34px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, #7dd3fc, #2f6f9e);
+  border: 3px solid #2a3446;
+}
+
+.fm__temp {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sky);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 발효 게이지 --- */
+.fm__gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 30px;
+}
+
+.fm__label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+
+.fm__bar {
+  position: relative;
+  display: block;
+  width: 168px;
+  height: 20px;
+  background: #0c1018;
+  border: 3px solid #2a3446;
+  overflow: hidden;
+}
+.fm__bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #b9975f, #f4e3c4);
+  transition: width 0.12s linear;
+}
+
+/* 잘 익은 구간 표시 — 80% 부터 */
+.fm__sweet {
+  position: absolute;
+  top: 0;
+  left: 80%;
+  right: 0;
+  height: 100%;
+  border-left: 2px dashed rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+.fm__pct {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f4e3c4;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 숙성 중 --- */
+.fm--rolling .fm__tube,
+.fm--rolling .fm__bar {
+  border-color: var(--sky);
+  box-shadow: 0 0 18px rgba(125, 211, 252, 0.35);
+}
+.fm--rolling .fm__bulb {
+  animation: fm-pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes fm-pulse {
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+@media (max-width: 560px) {
+  .fm {
+    gap: 16px;
+  }
+  .fm__bar {
+    width: 120px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fm--rolling .fm__bulb {
+    animation: none;
+  }
+}

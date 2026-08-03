@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BASE_STATS, STAT_META, type Shape, type Stats } from '../core/character'
 import { applyFace, DICE, rollDice, type Face } from '../core/dice'
 import CharacterSprite from './CharacterSprite'
-import Dice from './Dice'
+import Ferment from './Ferment'
 import './DiceRoll.css'
 
 /** 굴러가는 연출 길이. 짧으면 싱겁고 길면 지루하다. */
@@ -22,7 +22,8 @@ export default function DiceRoll({
   onStart: (face: Face) => void
 }) {
   const [phase, setPhase] = useState<Phase>('ready')
-  const [shown, setShown] = useState(1)
+  // 숙성 중 흔들릴 계기 값. 멈추면 결과의 조건으로 고정된다.
+  const [gauge, setGauge] = useState({ temp: 4, ferment: 0 })
   const [result, setResult] = useState<Face | null>(null)
   // 리롤 불가가 이 게임의 규칙이다. 연타나 키 중복 입력으로도 두 번 굴러선 안 된다.
   const rolled = useRef(false)
@@ -37,10 +38,18 @@ export default function DiceRoll({
     setPhase('rolling')
 
     const settled = rollDice()
-    const spin = setInterval(() => setShown(1 + Math.floor(Math.random() * 6)), TICK_MS)
+    const started = Date.now()
+    // 발효도는 0 에서 결과값까지 차오르고, 온도는 끝까지 흔들린다.
+    const spin = setInterval(() => {
+      const t = Math.min(1, (Date.now() - started) / ROLL_MS)
+      setGauge({
+        temp: Math.round(-1 + Math.random() * 12),
+        ferment: Math.round(t * DICE[settled].ferment),
+      })
+    }, TICK_MS)
     const stop = setTimeout(() => {
       clearInterval(spin)
-      setShown(settled)
+      setGauge({ temp: DICE[settled].temp, ferment: DICE[settled].ferment })
       setResult(settled)
       setPhase('done')
     }, ROLL_MS)
@@ -84,7 +93,7 @@ export default function DiceRoll({
           <b className="dr__char-name">{name}</b>
         </div>
 
-        <Dice face={shown} size={120} idle={phase === 'ready'} rolling={phase === 'rolling'} />
+        <Ferment temp={gauge.temp} ferment={gauge.ferment} rolling={phase === 'rolling'} />
       </div>
 
       <section className="dr__result" aria-live="polite">

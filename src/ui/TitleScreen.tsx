@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CODEX_TOTAL, discoveredCount, loadCodex } from '../core/codex'
-import Dice from './Dice'
+import PizzaMark from './PizzaMark'
 import './TitleScreen.css'
 
 export type TitleAction = 'start' | 'codex' | 'howto'
@@ -13,14 +13,7 @@ const MENU: { id: TitleAction; label: string }[] = [
 
 export default function TitleScreen({ onSelect }: { onSelect: (a: TitleAction) => void }) {
   const [cursor, setCursor] = useState(0)
-  const [face, setFace] = useState(6)
   const found = discoveredCount(loadCodex())
-
-  // 타이틀 장식용 주사위. 계속 굴러가지만 게임 로직과는 무관하다.
-  useEffect(() => {
-    const t = setInterval(() => setFace(1 + Math.floor(Math.random() * 6)), 900)
-    return () => clearInterval(t)
-  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -40,11 +33,11 @@ export default function TitleScreen({ onSelect }: { onSelect: (a: TitleAction) =
   return (
     <div className="title">
       <div className="title__top">
-        <Dice face={face} idle />
+        <PizzaMark size={104} />
         <h1 className="title__logo">
           도우 <span>던전</span>
         </h1>
-        <p className="title__tag">굴리고, 모으고, 구워라</p>
+        <p className="title__tag">숙성하고, 모으고, 구워라</p>
       </div>
 
       <nav className="title__menu">

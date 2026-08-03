@@ -1,0 +1,72 @@
+/* 타이틀 장식 피자. 이미지 없이 CSS 도형으로만 그린다. */
+.pm {
+  position: relative;
+  animation: pm-tilt 3.6s ease-in-out infinite;
+}
+
+.pm__crust,
+.pm__sauce {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.pm__crust {
+  inset: 0;
+  background: linear-gradient(165deg, #f4e3c4, #d9bd8b);
+  border: 4px solid #b9975f;
+  box-shadow: 0 0 24px rgba(255, 156, 89, 0.3);
+}
+
+.pm__sauce {
+  inset: 14%;
+  background: radial-gradient(circle at 40% 35%, #e0603f, #b8412a);
+}
+
+.pm__top {
+  position: absolute;
+  width: 13%;
+  height: 13%;
+  margin: -6.5% 0 0 -6.5%;
+  border-radius: 50%;
+  animation: pm-drop 0.24s ease-out;
+}
+/* 세 가지 재료가 번갈아 놓인다 */
+.pm__top--0 {
+  background: #c9553d;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+.pm__top--1 {
+  background: #5fd3a0;
+  border-radius: 30%;
+}
+.pm__top--2 {
+  background: #f2efe6;
+}
+
+@keyframes pm-tilt {
+  0%,
+  100% {
+    transform: rotate(-5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(5deg) translateY(-6px);
+  }
+}
+
+@keyframes pm-drop {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pm,
+  .pm__top {
+    animation: none;
+  }
+}

@@ -1,6 +1,6 @@
 # 도우 던전 (Dough Dungeon)
 
-> **굴리고, 모으고, 구워라**
+> **숙성하고, 모으고, 구워라**
 > NAN 2026 Game × AI 해커톤 사전 과제 · 개인 참가
 
 ### ▶ [지금 바로 플레이하기](https://raphaelahn.github.io/dice-dungeon/)
