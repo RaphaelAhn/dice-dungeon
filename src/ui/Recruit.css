@@ -3,7 +3,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /*
+   * safe center + overflow-y — 내용이 화면보다 커지면 가운데 정렬이 위아래를
+   * 잘라 먹는다. safe 를 붙이면 그때만 시작 정렬로 물러나고 넘친 만큼 스크롤된다.
+   */
+  justify-content: safe center;
+  overflow-y: auto;
   gap: 26px;
   padding: 24px;
   background:
