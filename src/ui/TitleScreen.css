@@ -23,10 +23,14 @@
 
 /* --- 로고 --- */
 .title__logo {
-  font-size: clamp(40px, 9vw, 76px);
+  /* 11 의 배수로 고정한다. clamp 는 화면 폭마다 소수점 크기를 만들어
+     픽셀 폰트가 해상도마다 다르게 뭉갠다. */
+  font-size: 66px;
   font-weight: 900;
   letter-spacing: 0.06em;
-  line-height: 1;
+  /* 픽셀 폰트는 글자 상자가 1em 보다 크다. 1 로 두면 위아래가 잘려
+     아래 문구와 겹쳐 보인다. */
+  line-height: 1.35;
   text-shadow: 0 4px 0 #000, 0 0 28px rgba(125, 211, 252, 0.25);
 }
 .title__logo span {
@@ -60,7 +64,7 @@
 }
 
 .menu__mark {
-  width: 18px;
+  width: 22px;
   color: var(--accent);
 }
 
@@ -86,4 +90,10 @@
 }
 .title__hint {
   opacity: 0.6;
+}
+
+@media (max-width: 560px) {
+  .title__logo {
+    font-size: 44px;
+  }
 }

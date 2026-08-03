@@ -37,9 +37,14 @@
 
   color-scheme: dark;
   font-family: 'Galmuri11', 'Pretendard', system-ui, sans-serif;
-  /* 도트 폰트는 소수점 크기에서 뭉갠다. 정수 픽셀에 붙인다. */
-  -webkit-font-smoothing: none;
-  font-smooth: never;
+  /*
+   * 안티에일리어싱을 켜 둔다.
+   *
+   * 껐더니 획이 뭉개져 글자가 겹쳐 보였다. Galmuri11 은 11px 배수에서만
+   * 픽셀이 맞는데 화면 대부분이 13·14·15px 이라, 스무딩까지 끄면 획이
+   * 제멋대로 스냅된다. 배수로 다 맞추려면 11 과 22 사이에 쓸 크기가 없어
+   * 자간·정보량을 포기해야 한다. 살짝 부드러운 편이 낫다.
+   */
 }
 
 * {
