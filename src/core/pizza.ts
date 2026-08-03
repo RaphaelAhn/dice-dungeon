@@ -1,4 +1,5 @@
 import type { Stats } from './character'
+import { STAT_SHORT } from './character'
 import { TASTE_CLASH, tasteAffinity, TASTE_LABEL, TASTES, type Taste, type Topping } from './topping'
 
 /* 피자의 정체성이 정해지는 시점·판정·보너스를 한곳에 모은다. */
@@ -32,8 +33,8 @@ export const MAIN_BONUS: Record<
 
 /** 부 풍미 특성 — 수치가 아니라 규칙을 하나 더한다 */
 export const SUB_TRAIT: Record<Taste, string> = {
-  mild: '턴 종료 시 최대 체력의 5% 회복',
-  spicy: '통상 공격이 반죽 탄력을 5 회복시킨다',
+  mild: `턴 종료 시 최대 ${STAT_SHORT.hp}의 5% 회복`,
+  spicy: `통상 공격이 ${STAT_SHORT.mag}를 5 회복시킨다`,
   tangy: '기술 명중 시 1턴 상대 둔화',
   herbal: '기술 명중 시 3턴 지속 피해',
   rich: '준 피해의 15%를 체력으로 흡수',

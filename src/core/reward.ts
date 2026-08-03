@@ -1,4 +1,4 @@
-import { STAT_LABEL, type Stats } from './character'
+import { STAT_LABEL, STAT_SHORT, type Stats } from './character'
 import { maxMp, type Run } from './run'
 
 export type Tier = 'bronze' | 'silver' | 'gold' | 'platinum'
@@ -63,18 +63,21 @@ const AGE_NAMES = ['완벽한 숙성', '저온 발효', '하룻밤 휴지']
 /** 슬롯 C — 무리한 반죽. 크게 얻고 확실히 잃는다. */
 type GambleDef = {
   name: string
-  desc: (n: number, m: number) => string
   gain: keyof Stats
   cost: keyof Stats
 }
 
+/* 설명은 STAT_LABEL 에서 만든다. 이름을 적어 두면 이름이 바뀔 때 어긋난다. */
 const GAMBLES: GambleDef[] = [
-  { name: '과한 불길', desc: (n, m) => `불의 세기 +${n}, 반죽 두께 -${m}`, gain: 'atk', cost: 'hp' },
-  { name: '과발효', desc: (n, m) => `반죽 탄력 +${n}, 반죽 두께 -${m}`, gain: 'mag', cost: 'hp' },
-  { name: '얇게 밀기', desc: (n, m) => `손놀림 +${n}, 불의 세기 -${m}`, gain: 'spd', cost: 'atk' },
-  { name: '즉흥 배합', desc: (n, m) => `감각 +${n}, 반죽 탄력 -${m}`, gain: 'luk', cost: 'mag' },
-  { name: '두툼한 도우', desc: (n, m) => `반죽 두께 +${n}, 손놀림 -${m}`, gain: 'hp', cost: 'spd' },
+  { name: '과한 불길', gain: 'atk', cost: 'hp' },
+  { name: '과발효', gain: 'mag', cost: 'hp' },
+  { name: '얇게 밀기', gain: 'spd', cost: 'atk' },
+  { name: '즉흥 배합', gain: 'luk', cost: 'mag' },
+  { name: '두툼한 도우', gain: 'hp', cost: 'spd' },
 ]
+
+const gambleDesc = (g: GambleDef, gain: number, cost: number) =>
+  `${STAT_LABEL[g.gain]} +${gain}, ${STAT_LABEL[g.cost]} -${cost}`
 
 const GAMBLE_GAIN = 1.8
 const GAMBLE_COST = 0.7
@@ -131,7 +134,7 @@ function ageCard(run: Run, tier: Tier, rng: () => number): Card {
     slot: 'age',
     tier,
     name: pick(AGE_NAMES, rng),
-    desc: `모든 능력 소폭 상승 (두께 +${share('hp')}, 불 +${share('atk')}, 탄력 +${share('mag')})`,
+    desc: `모든 능력 소폭 상승 (${STAT_SHORT.hp} +${share('hp')}, ${STAT_SHORT.atk} +${share('atk')}, ${STAT_SHORT.mag} +${share('mag')})`,
     stats: {
       hp: share('hp'),
       atk: share('atk'),
@@ -151,7 +154,7 @@ function gambleCard(tier: Tier, rng: () => number): Card {
     slot: 'gamble',
     tier,
     name: g.name,
-    desc: g.desc(gain, cost),
+    desc: gambleDesc(g, gain, cost),
     gain: { [g.gain]: gain },
     cost: { [g.cost]: cost },
   }

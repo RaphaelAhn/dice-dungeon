@@ -11,6 +11,7 @@ import {
   type Unit,
 } from '../core/battle'
 import type { Encounter } from '../core/enemy'
+import { STAT_SHORT } from '../core/character'
 import { maxMp, type Run } from '../core/run'
 import { skillsOfTaste } from '../core/skill'
 import { TASTE_LABEL } from '../core/topping'
@@ -261,8 +262,8 @@ export default function Battle({
                 {run.pizza && <span className="bt__job">{run.pizza.name}</span>}
                 <Statuses unit={state.player} />
               </div>
-              <Bar label="두께" now={state.player.hp} max={state.player.maxHp} kind="hp" />
-              <Bar label="탄력" now={state.mp} max={mpMax} kind="mp" />
+              <Bar label={STAT_SHORT.hp} now={state.player.hp} max={state.player.maxHp} kind="hp" />
+              <Bar label={STAT_SHORT.mag} now={state.mp} max={mpMax} kind="mp" />
             </div>
           </div>
         </div>

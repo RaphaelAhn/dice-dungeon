@@ -1,4 +1,4 @@
-import { BASE_STATS, type Stats } from './character'
+import { BASE_STATS, STAT_LABEL, type Stats } from './character'
 
 export type Face = 1 | 2 | 3 | 4 | 5 | 6
 
@@ -35,7 +35,7 @@ export const DICE: Record<Face, DiceResult> = {
     temp: 2,
     ferment: 95,
     name: '두툼한 반죽',
-    desc: '반죽 두께 +40',
+    desc: `${STAT_LABEL.hp} +40`,
     favors: '맞아가며 버티는 도우 · 담백한 재료',
     stats: { hp: 40 },
   },
@@ -44,7 +44,7 @@ export const DICE: Record<Face, DiceResult> = {
     temp: 9,
     ferment: 70,
     name: '뜨거운 화덕',
-    desc: '불의 세기 +10',
+    desc: `${STAT_LABEL.atk} +10`,
     favors: '직접 때려잡는 도우 · 매콤한 재료',
     stats: { atk: 10 },
   },
@@ -52,9 +52,9 @@ export const DICE: Record<Face, DiceResult> = {
     face: 3,
     temp: 5,
     ferment: 88,
-    // 반죽 탄력은 기술 위력과 최대 탄력을 겸한다. 같은 수치라도 두 몫을 한다.
+    // 이 값은 기술 위력이자 기술을 쓸 밑천을 겸한다. 같은 수치라도 두 몫을 한다.
     name: '쫄깃한 반죽',
-    desc: '반죽 탄력 +12',
+    desc: `${STAT_LABEL.mag} +12`,
     favors: '기술로 풀어 가는 도우 · 진한 재료',
     stats: { mag: 12 },
   },
@@ -63,7 +63,7 @@ export const DICE: Record<Face, DiceResult> = {
     temp: 8,
     ferment: 62,
     name: '빠른 손',
-    desc: '손놀림 +8',
+    desc: `${STAT_LABEL.spd} +8`,
     favors: '선공과 회피 · 향긋한 재료',
     stats: { spd: 8 },
   },
@@ -72,7 +72,7 @@ export const DICE: Record<Face, DiceResult> = {
     temp: 6,
     ferment: 78,
     name: '예민한 혀',
-    desc: '감각 +8',
+    desc: `${STAT_LABEL.luk} +8`,
     favors: '보상 등급과 결정타 · 새콤한 재료',
     stats: { luk: 8 },
   },

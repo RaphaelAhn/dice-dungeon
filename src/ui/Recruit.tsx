@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { STAT_LABEL } from '../core/character'
+import { STAT_LABEL, STAT_SHORT } from '../core/character'
 import type { EnemyDef } from '../core/enemy'
 import { canAddTopping, type Run } from '../core/run'
 import CharacterSprite from './CharacterSprite'
@@ -75,7 +75,9 @@ export default function Recruit({
               <span className="rc__gain">
                 {STAT_LABEL[key as keyof typeof STAT_LABEL]} +{value}
               </span>
-              <span className="rc__weight">무게 {t.weight} — 손놀림 −{t.weight}</span>
+              <span className="rc__weight">
+                무게 {t.weight} — {STAT_SHORT.spd} −{t.weight}
+              </span>
               <span className="rc__key">{i + 1}</span>
             </button>
           )

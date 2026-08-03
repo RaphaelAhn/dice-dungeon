@@ -25,19 +25,28 @@ export const BASE_STATS: Stats = {
  * 화면마다 따로 적어 두면 같은 값이 '마법력'과 '반죽 탄력'으로 갈린다.
  */
 export const STAT_META: { key: keyof Stats; label: string; desc: string }[] = [
-  { key: 'hp', label: '반죽 두께', desc: '0이 되면 무너진다' },
-  { key: 'atk', label: '불의 세기', desc: '직접 때리는 힘' },
-  { key: 'mag', label: '반죽 탄력', desc: '기술 위력과 최대 탄력' },
-  { key: 'spd', label: '손놀림', desc: '선공 판정·회피' },
-  { key: 'luk', label: '감각', desc: '보상 등급·결정적 한 방' },
+  { key: 'hp', label: '신선도', desc: '0이 되면 상해서 버린다' },
+  { key: 'atk', label: '반죽 탄력', desc: '직접 때리는 힘' },
+  { key: 'mag', label: '반죽 두께', desc: '기술 위력이자 기술을 쓸 밑천' },
+  { key: 'spd', label: '발효도', desc: '선공 판정·회피' },
+  { key: 'luk', label: '촉감', desc: '보상 등급·결정적 한 방' },
 ]
 
 export const STAT_LABEL: Record<keyof Stats, string> = {
-  hp: '반죽 두께',
-  atk: '불의 세기',
-  mag: '반죽 탄력',
-  spd: '손놀림',
-  luk: '감각',
+  hp: '신선도',
+  atk: '반죽 탄력',
+  mag: '반죽 두께',
+  spd: '발효도',
+  luk: '촉감',
+}
+
+/** 짧게 쓰는 자리(게이지 라벨, 전투 로그)용 */
+export const STAT_SHORT: Record<keyof Stats, string> = {
+  hp: '신선도',
+  atk: '탄력',
+  mag: '두께',
+  spd: '발효',
+  luk: '촉감',
 }
 
 export const SHAPE_LABEL: Record<Shape, string> = {

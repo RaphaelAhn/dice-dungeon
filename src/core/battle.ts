@@ -1,3 +1,4 @@
+import { STAT_SHORT } from './character'
 import type { Encounter } from './enemy'
 import { ga, reul } from './josa'
 import { pizzaBonus } from './pizza'
@@ -272,7 +273,7 @@ export function endTurn(prev: BattleState): BattleState {
     const heal = Math.round(s.player.maxHp * 0.05)
     const before = s.player.hp
     s.player.hp = Math.min(s.player.maxHp, s.player.hp + heal)
-    if (s.player.hp > before) s.log.push(`담백 특성 — 두께 ${s.player.hp - before} 회복`)
+    if (s.player.hp > before) s.log.push(`담백 특성 — ${STAT_SHORT.hp} ${s.player.hp - before} 회복`)
   }
 
   checkOver(s)
@@ -320,7 +321,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
     const gain = Math.min(cap - s.mp, Math.round(cap * DEFEND_MP_RATIO))
     s.mp += gain
     applyStatus(p, 'guard', 1)
-    s.log.push(`${p.name} 방어 태세 — 탄력 ${gain} 회복`)
+    s.log.push(`${p.name} 방어 태세 — ${STAT_SHORT.mag} ${gain} 회복`)
     return
   }
 
@@ -332,7 +333,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
     s.potions -= 1
     const heal = Math.round(p.maxHp * POTION_RATIO)
     p.hp = Math.min(p.maxHp, p.hp + heal)
-    s.log.push(`반죽물 — 두께 ${heal} 회복`)
+    s.log.push(`반죽물 — ${STAT_SHORT.hp} ${heal} 회복`)
     return
   }
 
@@ -347,7 +348,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   // 스킬
   const sk = SKILLS[cmd.id]
   if (s.mp < sk.mp) {
-    s.log.push(`탄력이 부족하다 (${sk.name} — ${sk.mp} 필요)`)
+    s.log.push(`${STAT_SHORT.mag}가 부족하다 (${sk.name} — ${sk.mp} 필요)`)
     return
   }
   s.mp -= sk.mp
@@ -355,7 +356,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   if (sk.healRatio) {
     const heal = Math.round(p.maxHp * sk.healRatio * (1 + p.healMul))
     p.hp = Math.min(p.maxHp, p.hp + heal)
-    s.log.push(`${sk.name} — 두께 ${heal} 회복`)
+    s.log.push(`${sk.name} — ${STAT_SHORT.hp} ${heal} 회복`)
   }
 
   if (sk.target === 'self' && sk.inflict) {
@@ -376,7 +377,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
         if (sk.drain && dealt > 0) {
           const back = Math.round(dealt * sk.drain)
           p.hp = Math.min(p.maxHp, p.hp + back)
-          s.log.push(`두께 ${back} 흡수`)
+          s.log.push(`${STAT_SHORT.hp} ${back} 흡수`)
         }
         applyTraitOnHit(s, p, t, dealt, 'skill')
       }
@@ -408,7 +409,7 @@ function applyTraitOnHit(
         const gain = Math.min(cap - s.mp, 5)
         if (gain > 0) {
           s.mp += gain
-          s.log.push(`매콤 특성 — 반죽 탄력 ${gain} 회복`)
+          s.log.push(`매콤 특성 — ${STAT_SHORT.mag} ${gain} 회복`)
         }
       }
       break
@@ -428,7 +429,7 @@ function applyTraitOnHit(
       const back = Math.round(dealt * 0.15)
       if (back > 0) {
         p.hp = Math.min(p.maxHp, p.hp + back)
-        s.log.push(`진한 특성 — 두께 ${back} 흡수`)
+        s.log.push(`진한 특성 — ${STAT_SHORT.hp} ${back} 흡수`)
       }
       break
     }
@@ -488,7 +489,7 @@ function enemySpecial(s: BattleState, e: Unit, rng: Rng): boolean {
     }
     case 'tangy': {
       applyStatus(p, 'slow', 2)
-      s.log.push(`${ga(e.name)} 새콤한 즙을 뿌렸다 — 손놀림 저하`)
+      s.log.push(`${ga(e.name)} 새콤한 즙을 뿌렸다 — ${STAT_SHORT.spd} 저하`)
       return true
     }
     case 'herbal': {

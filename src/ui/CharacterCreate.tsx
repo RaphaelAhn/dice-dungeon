@@ -99,7 +99,7 @@ export default function CharacterCreate({
           ))}
         </ul>
         <p className="cc__note">
-          시작 차이는 <b>주사위</b>가 만듭니다. 다음 단계에서 단 한 번 굴립니다.
+          시작 차이는 <b>도우 숙성</b>이 만듭니다. 다음 단계에서 단 한 번뿐입니다.
         </p>
       </section>
 
