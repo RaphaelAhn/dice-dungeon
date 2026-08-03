@@ -78,10 +78,14 @@
 }
 
 /* --- 하단 --- */
-/* 바닥 고정을 풀고 흐름 안에서 아래로 민다. 고정하면 메뉴와 겹칠 수 있다. */
+/*
+ * 바닥에 붙이지 않는다.
+ *
+ * position:absolute 로 고정하면 메뉴와 겹치고, margin-top:auto 로 밀면
+ * 남은 공간을 전부 먹어 로고와 메뉴가 화면 위로 몰린다. 실제로 412px 를
+ * 흡수하고 있었다. 그냥 흐름에 두고 전체를 한 덩어리로 가운데 맞춘다.
+ */
 .title__foot {
-  margin-top: auto;
-  padding-top: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;

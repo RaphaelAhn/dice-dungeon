@@ -51,24 +51,31 @@
     radial-gradient(circle at 12% 88%, rgba(200, 235, 255, 0.06), transparent 24%);
 }
 
-/* 냉기가 천천히 흐른다. 숙성 중에는 빨라진다. */
+/*
+ * 냉기가 천천히 흐른다. 숙성 중에는 빨라진다.
+ *
+ * inset 을 음수로 주고 transform 으로 밀었더니 상자 밖으로 삐져나가
+ * overflow-y:auto 인 부모의 스크롤 영역을 211px 나 늘렸다. 장식이 레이아웃을
+ * 밀면 안 된다. 상자에 딱 맞추고 background-position 만 움직인다.
+ */
 .dr::after {
   content: '';
   position: absolute;
-  inset: -20% -10%;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
   background: radial-gradient(ellipse 40% 22% at 30% 40%, rgba(125, 211, 252, 0.06), transparent 70%),
     radial-gradient(ellipse 34% 18% at 72% 62%, rgba(125, 211, 252, 0.05), transparent 70%);
+  background-size: 140% 140%;
   animation: dr-chill 14s ease-in-out infinite alternate;
 }
 
 @keyframes dr-chill {
   from {
-    transform: translate3d(-2%, 1%, 0);
+    background-position: 20% 60%;
   }
   to {
-    transform: translate3d(3%, -2%, 0);
+    background-position: 70% 30%;
   }
 }
 
