@@ -28,13 +28,17 @@ export type DiceResult = {
 /**
  * ⚠ 수치는 시뮬레이션(npm run sim)으로 맞춘 값이다.
  * 눈별 클리어율이 한쪽으로 쏠리면 이 표만 고친다. 다른 파일은 손댈 필요 없다.
+ *
+ * 이름이 등급 사다리처럼 읽히지만 여섯 결과에 우열은 없다. 클리어율이
+ * 45~73% 로 비슷하게 맞춰져 있고, 그래야 '나쁘게 시작해도 선택으로 만회'가
+ * 성립한다. 이름은 성격을 부르는 별명이지 등급이 아니다.
  */
 export const DICE: Record<Face, DiceResult> = {
   1: {
     face: 1,
     temp: 2,
     ferment: 95,
-    name: '두툼한 반죽',
+    name: '응애 도우',
     desc: `${STAT_LABEL.hp} +40`,
     favors: '맞아가며 버티는 도우 · 담백한 재료',
     stats: { hp: 40 },
@@ -43,7 +47,7 @@ export const DICE: Record<Face, DiceResult> = {
     face: 2,
     temp: 9,
     ferment: 70,
-    name: '뜨거운 화덕',
+    name: '근본 도우',
     desc: `${STAT_LABEL.atk} +10`,
     favors: '직접 때려잡는 도우 · 매콤한 재료',
     stats: { atk: 10 },
@@ -53,7 +57,7 @@ export const DICE: Record<Face, DiceResult> = {
     temp: 5,
     ferment: 88,
     // 이 값은 기술 위력이자 기술을 쓸 밑천을 겸한다. 같은 수치라도 두 몫을 한다.
-    name: '쫄깃한 반죽',
+    name: '좀 치는 도우',
     desc: `${STAT_LABEL.mag} +12`,
     favors: '기술로 풀어 가는 도우 · 진한 재료',
     stats: { mag: 12 },
@@ -62,7 +66,7 @@ export const DICE: Record<Face, DiceResult> = {
     face: 4,
     temp: 8,
     ferment: 62,
-    name: '빠른 손',
+    name: '도우 GOAT',
     desc: `${STAT_LABEL.spd} +8`,
     favors: '선공과 회피 · 향긋한 재료',
     stats: { spd: 8 },
@@ -71,7 +75,7 @@ export const DICE: Record<Face, DiceResult> = {
     face: 5,
     temp: 6,
     ferment: 78,
-    name: '예민한 혀',
+    name: '도우의 현자',
     desc: `${STAT_LABEL.luk} +8`,
     favors: '보상 등급과 결정타 · 새콤한 재료',
     stats: { luk: 8 },
@@ -83,7 +87,7 @@ export const DICE: Record<Face, DiceResult> = {
     // 유일하게 능력치가 아닌 눈. 횟수로 다른 눈과 무게를 맞춘다.
     // 1회일 때 클리어율이 27% 로 혼자 처져 2회로 올렸다 (시뮬레이션 360판).
     // 매 스테이지 확정으로 바꾸려면 이 숫자만 올리면 된다.
-    name: '정해진 운명',
+    name: '떡잎부터 다른 도우',
     desc: '보상 2회의 티어가 최고 등급으로 확정',
     favors: '어느 방향이든 — 초반에 좋은 카드가 몰려 온다',
     topTier: 2,
