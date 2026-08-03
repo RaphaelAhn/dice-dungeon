@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type HTMLAttributes } from 'react'
 import {
   enemyAct,
   endTurn,
@@ -220,16 +220,52 @@ export default function Battle({
         <i style={{ width: `${Math.max(0, stageRatio) * 100}%` }} />
       </div>
 
-      <section className="bt__enemies">
-        {state.enemies.map((e, i) => (
-          <EnemyCard
-            key={e.id}
-            unit={e}
-            selected={i === target && aliveCount > 1}
-            pickable={e.hp > 0 && aliveCount > 1 && phase === 'choose'}
-            onPick={() => setTarget(i)}
-          />
-        ))}
+      {/*
+        고전 JRPG 구도. 상대는 위 오른쪽, 상대 정보는 위 왼쪽.
+        나는 아래 왼쪽, 내 정보는 아래 오른쪽. 시선이 대각선으로 오간다.
+      */}
+      <section className="bt__field">
+        <div className="bt__side bt__side--foe">
+          <div className="bt__info-col">
+            {state.enemies.map((e, i) => (
+              <FoeInfo
+                key={e.id}
+                unit={e}
+                selected={i === target && aliveCount > 1}
+                pickable={e.hp > 0 && aliveCount > 1 && phase === 'choose'}
+                onPick={() => setTarget(i)}
+              />
+            ))}
+          </div>
+          <div className="bt__art-col">
+            {state.enemies.map((e, i) => (
+              <FoeArt
+                key={e.id}
+                unit={e}
+                selected={i === target && aliveCount > 1}
+                pickable={e.hp > 0 && aliveCount > 1 && phase === 'choose'}
+                onPick={() => setTarget(i)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="bt__side bt__side--mine">
+          <div className="bt__art-col">
+            <CharacterSprite shape={run.shape} scale={0.72} toppings={run.toppings} />
+          </div>
+          <div className="bt__info-col">
+            <div className="bt__box bt__box--mine">
+              <div className="bt__box-top">
+                <b className="bt__who">{run.name}</b>
+                {run.pizza && <span className="bt__job">{run.pizza.name}</span>}
+                <Statuses unit={state.player} />
+              </div>
+              <Bar label="두께" now={state.player.hp} max={state.player.maxHp} kind="hp" />
+              <Bar label="탄력" now={state.mp} max={mpMax} kind="mp" />
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className={`bt__log bt__log--${phase}`} aria-live="polite">
@@ -243,19 +279,6 @@ export default function Battle({
         ) : (
           state.log.slice(-4).map((l, i) => <p key={i}>{l}</p>)
         )}
-      </section>
-
-      <section className="bt__player">
-        <CharacterSprite shape={run.shape} scale={0.6} toppings={run.toppings} />
-        <div className="bt__pinfo">
-          <div className="bt__prow">
-            <b>{run.name}</b>
-            {run.pizza && <span className="bt__job">{run.pizza.name}</span>}
-            <Statuses unit={state.player} />
-          </div>
-          <Bar label="두께" now={state.player.hp} max={state.player.maxHp} kind="hp" />
-          <Bar label="탄력" now={state.mp} max={mpMax} kind="mp" />
-        </div>
       </section>
 
       <div className="bt__turnbar">
@@ -301,37 +324,52 @@ export default function Battle({
   )
 }
 
-function EnemyCard({
-  unit,
-  selected,
-  pickable,
-  onPick,
-}: {
-  unit: Unit
-  selected: boolean
-  pickable: boolean
-  onPick: () => void
-}) {
-  const dead = unit.hp <= 0
-  const cls = ['bt__enemy', dead && 'is-dead', selected && 'is-target'].filter(Boolean).join(' ')
+type FoeProps = { unit: Unit; selected: boolean; pickable: boolean; onPick: () => void }
+
+/** 클릭·키보드로 대상을 고를 수 있게 감싼다 */
+function pickProps(p: FoeProps): HTMLAttributes<HTMLDivElement> {
+  if (!p.pickable) return {}
+  return {
+    onClick: p.onPick,
+    role: 'button',
+    tabIndex: 0,
+    onKeyDown: (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        p.onPick()
+      }
+    },
+    'aria-pressed': p.selected,
+    style: { cursor: 'pointer' },
+  }
+}
+
+/** 위 왼쪽 — 상대 정보 */
+function FoeInfo(p: FoeProps) {
+  const cls = ['bt__box', 'bt__box--foe', p.unit.hp <= 0 && 'is-dead', p.selected && 'is-target']
+    .filter(Boolean)
+    .join(' ')
   return (
-    <div
-      className={cls}
-      onClick={pickable ? onPick : undefined}
-      role={pickable ? 'button' : undefined}
-      tabIndex={pickable ? 0 : undefined}
-      onKeyDown={pickable ? (e) => (e.key === 'Enter' || e.key === ' ') && onPick() : undefined}
-      aria-pressed={pickable ? selected : undefined}
-      style={pickable ? { cursor: 'pointer' } : undefined}
-    >
-      <span className="bt__aim">{selected ? '▼' : ''}</span>
-      <div className="bt__enemy-body" />
-      <span className="bt__enemy-name">
-        {unit.name}
-        {unit.taste && <i className="bt__line">{TASTE_LABEL[unit.taste]}</i>}
-      </span>
-      <Bar label="" now={unit.hp} max={unit.maxHp} kind="enemy" />
-      <Statuses unit={unit} />
+    <div className={cls} {...pickProps(p)}>
+      <div className="bt__box-top">
+        <span className="bt__aim">{p.selected ? '▶' : ''}</span>
+        <b className="bt__who">{p.unit.name}</b>
+        {p.unit.taste && <i className="bt__line">{TASTE_LABEL[p.unit.taste]}</i>}
+      </div>
+      <Bar label="" now={p.unit.hp} max={p.unit.maxHp} kind="enemy" />
+      <Statuses unit={p.unit} />
+    </div>
+  )
+}
+
+/** 위 오른쪽 — 상대 그림 */
+function FoeArt(p: FoeProps) {
+  const cls = ['bt__foe', p.unit.hp <= 0 && 'is-dead', p.selected && 'is-target']
+    .filter(Boolean)
+    .join(' ')
+  return (
+    <div className={cls} {...pickProps(p)}>
+      <div className={`bt__foe-body bt__foe-body--${p.unit.taste ?? 'plain'}`} />
     </div>
   )
 }

@@ -3,7 +3,8 @@
   max-width: 860px;
   margin: 0 auto;
   display: grid;
-  grid-template-rows: auto auto minmax(160px, 1fr) auto auto auto auto;
+  /* 상단 · 진행바 · 전장 · 로그 · 턴타이머 · 명령 */
+  grid-template-rows: auto auto minmax(200px, 1fr) auto auto auto;
   gap: 10px;
   padding: 16px 20px 20px;
   /* 화덕 불빛이 위에서 내려온다. 보스로 갈수록 불이 세진다. */
@@ -76,48 +77,76 @@
   transition: width 0.1s linear;
 }
 
-/* --- 적 --- */
-/* 화면이 세로로 길어도 적이 위쪽에 붙지 않도록 가운데에 둔다 */
-.bt__enemies {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 28px;
-  padding: 8px 0;
-}
-.bt__enemy {
-  width: 168px;
+/* --- 전장 --- */
+/*
+ * 고전 JRPG 구도. 위 줄은 상대(정보 왼쪽 · 그림 오른쪽),
+ * 아래 줄은 나(그림 왼쪽 · 정보 오른쪽). 시선이 대각선으로 오간다.
+ */
+.bt__field {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-.bt__enemy.is-dead {
-  opacity: 0.25;
-  filter: grayscale(1);
-}
-.bt__enemy-body {
-  width: 96px;
-  height: 96px;
-  background: linear-gradient(160deg, #f0dcb4, #d9bd8b);
-  border: 3px solid var(--line-strong);
-  box-shadow: inset 0 -6px 0 rgba(150, 110, 60, 0.15);
-  animation: bt-float 2.4s ease-in-out infinite;
-}
-.bt__enemy.is-dead .bt__enemy-body {
-  animation: none;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
 }
 
-@keyframes bt-float {
-  50% {
-    transform: translateY(-6px);
-  }
-}
-.bt__enemy-name {
-  font-size: 13px;
+.bt__side {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 16px;
+}
+.bt__side--foe {
+  justify-content: space-between;
+}
+.bt__side--mine {
+  justify-content: space-between;
+}
+
+.bt__info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.bt__art-col {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+/* 정보 상자 — 아래(또는 위)로 뻗는 꼬리가 고전 UI 의 인상을 만든다 */
+.bt__box {
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border: 2px solid var(--line-strong);
+}
+.bt__box--foe {
+  border-bottom-width: 5px;
+  border-right-width: 5px;
+}
+.bt__box--mine {
+  border-top-width: 5px;
+  border-left-width: 5px;
+}
+.bt__box.is-dead {
+  opacity: 0.35;
+}
+.bt__box.is-target {
+  border-color: var(--accent);
+}
+
+.bt__box-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.bt__who {
+  font-weight: 700;
 }
 .bt__line {
   font-size: 10px;
@@ -126,56 +155,74 @@
   border: 1px solid var(--line);
   padding: 0 4px;
 }
-
-/* --- 로그 --- */
-.bt__log {
-  align-self: center;
-  min-height: 76px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-  padding: 8px 14px;
-  background: var(--panel);
-  border-left: 2px solid var(--line);
-  font-size: 13px;
-}
-.bt__log p {
-  color: var(--text);
-}
-.bt__log p:not(:last-child) {
-  opacity: 0.45;
-}
-.bt__log-empty {
-  color: var(--muted);
-}
-
-/* --- 플레이어 --- */
-.bt__player {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-}
-.bt__pinfo {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.bt__prow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
 .bt__job {
   font-size: 11px;
   color: var(--accent);
-  border: 1px solid rgba(255, 156, 89, 0.4);
+  border: 1px solid var(--accent);
   padding: 1px 7px;
+}
+.bt__aim {
+  font-size: 12px;
+  color: var(--accent);
+  min-width: 12px;
+}
+
+/* 상대 그림 */
+.bt__foe {
+  display: flex;
+  align-items: flex-end;
+}
+.bt__foe-body {
+  width: 92px;
+  height: 92px;
+  border: 3px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: inset 0 -6px 0 rgba(150, 110, 60, 0.15);
+  animation: bt-float 2.4s ease-in-out infinite;
+}
+.bt__foe.is-dead {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+.bt__foe.is-dead .bt__foe-body {
+  animation: none;
+}
+.bt__foe.is-target .bt__foe-body {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 -6px 0 rgba(150, 110, 60, 0.15),
+    0 0 16px rgba(187, 68, 32, 0.4);
+}
+.bt__foe[role='button']:hover .bt__foe-body,
+.bt__foe[role='button']:focus-visible .bt__foe-body {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* 재료의 맛이 색으로 드러난다 — 상성을 눈으로 고른다 */
+.bt__foe-body--mild {
+  background: linear-gradient(160deg, #f4e8c8, #e2d0a6);
+}
+.bt__foe-body--spicy {
+  background: linear-gradient(160deg, #e08a72, #c8523a);
+}
+.bt__foe-body--tangy {
+  background: linear-gradient(160deg, #f0cb72, #d9a52c);
+}
+.bt__foe-body--herbal {
+  background: linear-gradient(160deg, #8fc79a, #4f9a62);
+}
+.bt__foe-body--rich {
+  background: linear-gradient(160deg, #b08a63, #7a5230);
+}
+.bt__foe-body--plain {
+  background: linear-gradient(160deg, #e8dcc4, #cbb890);
+}
+
+@keyframes bt-float {
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 /* --- 상태 --- */
@@ -321,11 +368,13 @@
 }
 
 @media (max-width: 560px) {
-  .bt__enemies {
-    gap: 12px;
+  .bt__box {
+    min-width: 0;
+    flex: 1;
   }
-  .bt__enemy {
-    width: 130px;
+  .bt__foe-body {
+    width: 68px;
+    height: 68px;
   }
   .bt__cmds {
     grid-template-columns: repeat(2, 1fr);
@@ -367,25 +416,3 @@
   opacity: 0.55;
 }
 
-/* --- 공격 대상 --- */
-.bt__aim {
-  height: 16px;
-  font-size: 13px;
-  color: var(--accent);
-  line-height: 1;
-}
-.bt__enemy.is-target .bt__enemy-body {
-  border-color: var(--accent);
-  box-shadow:
-    inset 0 -6px 0 rgba(150, 110, 60, 0.15),
-    0 0 16px rgba(255, 156, 89, 0.45);
-}
-.bt__enemy.is-target .bt__enemy-name {
-  color: var(--accent);
-}
-/* 고를 수 있을 때만 반응한다 */
-.bt__enemy[role='button']:hover .bt__enemy-body,
-.bt__enemy[role='button']:focus-visible .bt__enemy-body {
-  border-color: var(--accent);
-  outline: none;
-}
