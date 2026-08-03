@@ -1,3 +1,4 @@
+import { doughName, FERMENT_TIERS } from '../core/dice'
 import './Ferment.css'
 
 /** 온도계 눈금 범위 (℃). 냉장 숙성이라 한 자릿수다. */
@@ -39,12 +40,18 @@ export default function Ferment({
         <span className="fm__temp">{temp}℃</span>
       </div>
 
-      <div className="fm__gauge" role="img" aria-label={`발효도 ${ferment}퍼센트`}>
+      <div className="fm__gauge" role="img" aria-label={`발효도 ${ferment}퍼센트 — ${doughName(ferment)}`}>
         <span className="fm__label">발효도</span>
         <span className="fm__bar">
           <i style={{ width: `${clamp01(ferment / 100) * 100}%` }} />
-          {/* 잘 익은 구간 — 여기 들어오면 조건이 좋다 */}
-          <em className="fm__sweet" />
+          {/*
+            구간 경계. 이름이 발효도에서 나오니 어디서 이름이 바뀌는지 보여야 한다.
+            예전엔 80% 부터를 '잘 익은 구간'으로 칠했는데, 그러면 높을수록 좋다는
+            뜻이 되어 '여섯 결과에 우열이 없다'는 규칙과 어긋난다.
+          */}
+          {FERMENT_TIERS.slice(1).map((t) => (
+            <em key={t.min} className="fm__div" style={{ left: `${t.min}%` }} />
+          ))}
         </span>
         <span className="fm__pct">{ferment}%</span>
       </div>

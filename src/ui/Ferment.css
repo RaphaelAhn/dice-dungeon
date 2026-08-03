@@ -91,15 +91,13 @@
   transition: width 0.12s linear;
 }
 
-/* 잘 익은 구간 표시 — 80% 부터 */
-.fm__sweet {
+/* 구간 경계 — 여기를 넘으면 도우 이름이 바뀐다 */
+.fm__div {
   position: absolute;
   top: 0;
-  left: 80%;
-  right: 0;
+  width: 0;
   height: 100%;
-  border-left: 2px dashed rgba(120, 90, 50, 0.45);
-  background: rgba(238, 171, 46, 0.18);
+  border-left: 2px dashed rgba(120, 90, 50, 0.4);
   pointer-events: none;
 }
 
