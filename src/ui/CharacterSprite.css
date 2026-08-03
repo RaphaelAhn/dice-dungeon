@@ -1,25 +1,24 @@
 /* 도우. 이미지 파일 없이 CSS 도형으로만 그린다 — 외부 에셋 0건을 지킨다. */
 .sprite {
-  display: grid;
-  place-items: end center;
+  position: relative;
   animation: sprite-idle 2.2s ease-in-out infinite;
-  /*
-   * overflow:hidden 을 걸면 안 된다.
-   *
-   * transform: scale() 은 겉보기만 줄이고 레이아웃 높이는 원본(112px) 그대로다.
-   * 상자는 112×scale 이라 원본보다 낮고, 그러면 잘라내기가 걸려 도우 아래쪽이
-   * 사라진다 (0.72 배에서 31px 이 잘려 나갔다).
-   * transform-origin 이 bottom center 라 축소하면 상자 안에 들어오므로 잘라낼
-   * 이유도 없다.
-   */
 }
 
 /*
  * 그림은 96x112 고정으로 그리고 확대·축소는 transform 이 한다.
  * 각 부위의 px 을 scale 마다 다시 계산하면 픽셀 정렬이 깨진다.
+ *
+ * 다만 transform 은 겉보기만 줄이고 레이아웃 높이는 원본(112px) 그대로다.
+ * 흐름 안에 두면 상자(112×scale)보다 커서 바깥을 밀어낸다 — 실제로 이름표를
+ * 덮었다. 잘라내기로 막으면 이번엔 도우 아래쪽이 사라진다.
+ * 그래서 흐름에서 떼어내 상자 바닥에 붙인다. 상자 크기는 부모가 정하고
+ * 그림은 그 안에서만 산다.
  */
 .sprite__stack {
-  position: relative;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  margin-left: -48px;
   width: 96px;
   height: 112px;
   transform: scale(var(--s, 1));
