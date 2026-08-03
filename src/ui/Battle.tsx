@@ -226,36 +226,28 @@ export default function Battle({
         나는 아래 왼쪽, 내 정보는 아래 오른쪽. 시선이 대각선으로 오간다.
       */}
       <section className="bt__field">
+        {/* 상대는 하나씩 '정보 + 그림'을 한 덩어리로 묶는다. 따로 두면 어느 상자가
+            어느 몬스터 것인지 눈으로 이어지지 않는다. */}
         <div className="bt__side bt__side--foe">
-          <div className="bt__info-col">
-            {state.enemies.map((e, i) => (
-              <FoeInfo
-                key={e.id}
-                unit={e}
-                selected={i === target && aliveCount > 1}
-                pickable={e.hp > 0 && aliveCount > 1 && phase === 'choose'}
-                onPick={() => setTarget(i)}
-              />
-            ))}
-          </div>
-          <div className="bt__art-col">
-            {state.enemies.map((e, i) => (
-              <FoeArt
-                key={e.id}
-                unit={e}
-                selected={i === target && aliveCount > 1}
-                pickable={e.hp > 0 && aliveCount > 1 && phase === 'choose'}
-                onPick={() => setTarget(i)}
-              />
-            ))}
-          </div>
+          {state.enemies.map((e, i) => {
+            const props = {
+              unit: e,
+              selected: i === target && aliveCount > 1,
+              pickable: e.hp > 0 && aliveCount > 1 && phase === 'choose',
+              onPick: () => setTarget(i),
+            }
+            return (
+              <div className="bt__unit" key={e.id}>
+                <FoeInfo {...props} />
+                <FoeArt {...props} />
+              </div>
+            )
+          })}
         </div>
 
         <div className="bt__side bt__side--mine">
-          <div className="bt__art-col">
+          <div className="bt__unit">
             <CharacterSprite shape={run.shape} scale={0.72} toppings={run.toppings} />
-          </div>
-          <div className="bt__info-col">
             <div className="bt__box bt__box--mine">
               <div className="bt__box-top">
                 <b className="bt__who">{run.name}</b>
