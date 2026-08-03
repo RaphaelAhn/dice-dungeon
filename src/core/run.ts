@@ -1,5 +1,6 @@
 import type { Shape, Stats } from './character'
 import { applyFace, DICE, type Face } from './dice'
+import { rollEncounter, type Encounter } from './enemy'
 import { countClashes, decidePizza, pizzaBonus, type Pizza } from './pizza'
 import { MAX_TOPPINGS, totalWeight, type Topping } from './topping'
 
@@ -46,6 +47,8 @@ export type Run = {
   topTierLeft: number
   /** 도우에 올린 토핑. 이 목록이 곧 빌드이자 도감 항목이 된다. */
   toppings: Topping[]
+  /** 이번 판에서 만난 재료 id — 올렸든 지나쳤든. 재등장을 막는 데만 쓴다. */
+  met: string[]
   potions: number
   /** 1-8 진입 전에는 null. 구워진 뒤에는 바뀌지 않는다. */
   pizza: Pizza | null
@@ -143,6 +146,23 @@ export function bake(run: Run): Run {
   }
 }
 
+/**
+ * 이번 라운드의 적을 뽑고, 만난 재료를 기록해 둔다.
+ *
+ * 한 판에서 같은 재료를 두 번 만나지 않게 한다. 60종에서 14마리를 뽑으면
+ * 그냥 두었을 때 77% 확률로 겹친다.
+ */
+export function drawEncounter(
+  run: Run,
+  rng: () => number = Math.random,
+): { run: Run; enc: Encounter } {
+  const enc = rollEncounter(run.stage, rng, new Set(run.met))
+  return {
+    run: { ...run, met: [...run.met, ...enc.enemies.map((e) => e.topping.id)] },
+    enc,
+  }
+}
+
 export function createRun(shape: Shape, name: string, face: Face): Run {
   const max = applyFace(face)
   return {
@@ -156,6 +176,7 @@ export function createRun(shape: Shape, name: string, face: Face): Run {
     rewardStages: rollSchedule(),
     topTierLeft: DICE[face].topTier ?? 0,
     toppings: [],
+    met: [],
     potions: START_POTIONS,
     pizza: null,
   }

@@ -14,6 +14,7 @@ import {
   addTopping,
   bake,
   createRun,
+  drawEncounter,
   FINAL_STAGE,
   healAfterStage,
   PICKS_PER_STOP,
@@ -62,8 +63,9 @@ export default function App() {
 
   const startRun = useCallback(
     (face: Face) => {
-      setRun(refillMp(createRun(shape, name, face)))
-      setEnc(rollEncounter(1))
+      const started = drawEncounter(refillMp(createRun(shape, name, face)))
+      setRun(started.run)
+      setEnc(started.enc)
       setScreen('battle')
     },
     [shape, name],
@@ -73,8 +75,9 @@ export default function App() {
   const advance = useCallback((cur: Run) => {
     let next: Run = { ...cur, stage: cur.stage + 1 }
     if (next.stage >= BAKE_STAGE) next = bake(next)
-    setRun(refillMp(next))
-    setEnc(rollEncounter(next.stage))
+    const drawn = drawEncounter(refillMp(next))
+    setRun(drawn.run)
+    setEnc(drawn.enc)
     setScreen('battle')
   }, [])
 

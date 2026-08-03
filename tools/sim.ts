@@ -8,6 +8,7 @@ import {
   bake,
   canAddTopping,
   createRun,
+  drawEncounter,
   healAfterStage,
   PICKS_PER_STOP,
   refillMp,
@@ -167,7 +168,9 @@ function playRun(face: Face, rec: RecruitPolicy, rw: RewardPolicy, seed: number)
     if (stage >= BAKE_STAGE) run = bake(run)
     run = refillMp(run)
 
-    const enc = rollEncounter(stage, rng)
+    const drawn = drawEncounter(run, rng)
+    run = drawn.run
+    const enc = drawn.enc
     let s = startBattle(run, enc)
     const owned = ownedSkillIds(run)
     let stageTurns = 0

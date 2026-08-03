@@ -45,9 +45,17 @@ function poolFor(kind: Encounter['kind']): Topping[] {
  * 라운드마다 적을 새로 뽑는다. 고정 표가 아니라 매 판 달라진다.
  * 같은 라운드에 같은 재료가 둘 나오지 않게 막는다.
  */
-export function rollEncounter(stage: number, rng: () => number = Math.random): Encounter {
+export function rollEncounter(
+  stage: number,
+  rng: () => number = Math.random,
+  /** 이번 판에서 이미 만난 재료 id. 같은 얼굴을 두 번 보지 않게 뺀다. */
+  met?: ReadonlySet<string>,
+): Encounter {
   const spec = SPEC[stage] ?? SPEC[10]
-  const pool = [...poolFor(spec.kind)]
+  const all = poolFor(spec.kind)
+  // 다 만났으면 제외를 풀어 준다. 뽑을 게 없으면 라운드가 만들어지지 않는다.
+  const fresh = met ? all.filter((t) => !met.has(t.id)) : all
+  const pool = [...(fresh.length >= spec.count ? fresh : all)]
   const enemies: EnemyDef[] = []
 
   for (let i = 0; i < spec.count; i++) {
