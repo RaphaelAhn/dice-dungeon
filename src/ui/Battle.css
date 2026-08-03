@@ -365,3 +365,26 @@
 .bt__cmds.is-locked {
   opacity: 0.55;
 }
+
+/* --- 공격 대상 --- */
+.bt__aim {
+  height: 16px;
+  font-size: 13px;
+  color: var(--accent);
+  line-height: 1;
+}
+.bt__enemy.is-target .bt__enemy-body {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.05),
+    0 0 16px rgba(255, 156, 89, 0.45);
+}
+.bt__enemy.is-target .bt__enemy-name {
+  color: var(--accent);
+}
+/* 고를 수 있을 때만 반응한다 */
+.bt__enemy[role='button']:hover .bt__enemy-body,
+.bt__enemy[role='button']:focus-visible .bt__enemy-body {
+  border-color: var(--accent);
+  outline: none;
+}

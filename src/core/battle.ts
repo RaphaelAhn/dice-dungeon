@@ -46,10 +46,15 @@ export type Unit = {
   trait: Taste | null
 }
 
+/**
+ * target 은 s.enemies 의 인덱스다.
+ * 지정이 없거나 이미 쓰러진 대상이면 살아 있는 첫 적으로 되돌린다 —
+ * 고른 적이 먼저 죽는 경우가 실제로 나온다.
+ */
 export type Command =
-  | { type: 'attack' }
+  | { type: 'attack'; target?: number }
   | { type: 'defend' }
-  | { type: 'skill'; id: SkillId }
+  | { type: 'skill'; id: SkillId; target?: number }
   | { type: 'item' }
 
 export type BattleState = {
@@ -151,6 +156,12 @@ export function tick(prev: BattleState, elapsedMs: number): { state: BattleState
 
 const alive = (u: Unit) => u.hp > 0
 export const aliveEnemies = (s: BattleState) => s.enemies.filter(alive)
+
+/** 지정한 적. 없거나 쓰러졌으면 살아 있는 첫 적. */
+export function pickTarget(s: BattleState, index?: number): Unit | undefined {
+  const chosen = index === undefined ? undefined : s.enemies[index]
+  return chosen && alive(chosen) ? chosen : aliveEnemies(s)[0]
+}
 
 function has(u: Unit, kind: StatusKind): Status | undefined {
   return u.statuses.find((s) => s.kind === kind)
@@ -326,7 +337,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   }
 
   if (cmd.type === 'attack') {
-    const target = aliveEnemies(s)[0]
+    const target = pickTarget(s, cmd.target)
     if (!target) return
     const dealt = strike(s, p, target, effAtk(p), 1, undefined, rng)
     applyTraitOnHit(s, p, target, dealt, 'attack')
@@ -352,7 +363,8 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
     s.log.push(`${sk.name} 발동`)
   }
 
-  const targets = sk.target === 'all' ? aliveEnemies(s) : aliveEnemies(s).slice(0, 1)
+  const one = pickTarget(s, cmd.target)
+  const targets = sk.target === 'all' ? aliveEnemies(s) : one ? [one] : []
   const base = sk.kind === 'physical' ? effAtk(p) : p.mag
   const hits = sk.hits ?? 1
 

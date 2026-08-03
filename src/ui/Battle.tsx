@@ -54,6 +54,13 @@ export default function Battle({
    * 한 번에 다 처리하면 로그가 동시에 쏟아져 주고받는 느낌이 사라진다.
    */
   const [phase, setPhase] = useState<'choose' | 'mine' | 'theirs'>('choose')
+  /**
+   * 공격이 향할 적. 적이 둘 이상일 때만 의미가 있다.
+   *
+   * 고르는 단계를 따로 두지 않고 커서를 상시 둔다 — 명령 시간이 10초라
+   * 단계를 하나 더 끼우면 그것만으로 시간이 간다.
+   */
+  const [target, setTarget] = useState(0)
   // 실제 경과 시간으로 재야 탭을 옮겨도 시계가 멈추지 않는다.
   const last = useRef(Date.now())
   const busy = useRef(false)
@@ -67,13 +74,19 @@ export default function Battle({
   const stateRef = useRef(state)
   stateRef.current = state
 
+  const targetRef = useRef(target)
+  targetRef.current = target
+
   const act = useCallback((cmd: Command) => {
     const cur = stateRef.current
     if (busy.current || cur.over) return
     busy.current = true
     setMenu('root')
+    // 대상은 커서가 정한다. defend/item 은 대상이 없다.
+    const aimed: Command =
+      cmd.type === 'attack' || cmd.type === 'skill' ? { ...cmd, target: targetRef.current } : cmd
     // 순서는 손놀림이 정한다
-    void runTurn(cur, cmd, playerFirst(cur))
+    void runTurn(cur, aimed, playerFirst(cur))
   }, [])
 
   /** 조각을 하나씩 보여 준다. 사이의 틈이 '주고받는' 느낌을 만든다. */
@@ -147,6 +160,13 @@ export default function Battle({
     }
   }, [state.over, state.player.hp, state.mp, state.potions, run, onWin, onEnd])
 
+  // 고른 적이 먼저 쓰러지는 경우가 있다. 그때는 살아 있는 쪽으로 옮긴다.
+  useEffect(() => {
+    if (state.enemies[target]?.hp > 0) return
+    const next = state.enemies.findIndex((e) => e.hp > 0)
+    if (next >= 0) setTarget(next)
+  }, [state.enemies, target])
+
   // 도우에 올린 토핑의 맛이 곧 쓸 수 있는 기술이다
   const ownedSkills = [...new Set(run.toppings.map((t) => t.taste))].flatMap(skillsOfTaste)
 
@@ -154,6 +174,17 @@ export default function Battle({
     const onKey = (e: KeyboardEvent) => {
       if (state.over || phase !== 'choose') return
       if (e.key === 'Escape') return setMenu('root')
+
+      // 적이 둘 이상일 때만 대상을 옮긴다
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault()
+        const living = state.enemies.map((en, i) => (en.hp > 0 ? i : -1)).filter((i) => i >= 0)
+        if (living.length < 2) return
+        const at = Math.max(0, living.indexOf(target))
+        const step = e.key === 'ArrowLeft' ? -1 : 1
+        setTarget(living[(at + step + living.length) % living.length])
+        return
+      }
       if (menu === 'root') {
         if (e.key === '1') act({ type: 'attack' })
         else if (e.key === '2') act({ type: 'defend' })
@@ -166,8 +197,9 @@ export default function Battle({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [menu, act, ownedSkills, state.over, phase])
+  }, [menu, act, ownedSkills, state.over, phase, state.enemies, target])
 
+  const aliveCount = state.enemies.filter((e) => e.hp > 0).length
   const stageRatio = state.timeLeftMs / stageLimitMs(enc.kind)
   const turnRatio = state.turnLeftMs / TURN_LIMIT_MS
   const mpMax = maxMp(run.max)
@@ -189,8 +221,14 @@ export default function Battle({
       </div>
 
       <section className="bt__enemies">
-        {state.enemies.map((e) => (
-          <EnemyCard key={e.id} unit={e} />
+        {state.enemies.map((e, i) => (
+          <EnemyCard
+            key={e.id}
+            unit={e}
+            selected={i === target && aliveCount > 1}
+            pickable={e.hp > 0 && aliveCount > 1 && phase === 'choose'}
+            onPick={() => setTarget(i)}
+          />
         ))}
       </section>
 
@@ -199,7 +237,9 @@ export default function Battle({
           {phase === 'theirs' ? '상대 차례' : phase === 'mine' ? '내 차례' : '명령을 고르세요'}
         </span>
         {state.log.length === 0 ? (
-          <p className="bt__log-empty">공격 · 방어 · 기술 · 반죽물</p>
+          <p className="bt__log-empty">
+            공격 · 방어 · 기술 · 반죽물{aliveCount > 1 ? ' — ←→ 로 대상 변경' : ''}
+          </p>
         ) : (
           state.log.slice(-4).map((l, i) => <p key={i}>{l}</p>)
         )}
@@ -261,10 +301,30 @@ export default function Battle({
   )
 }
 
-function EnemyCard({ unit }: { unit: Unit }) {
+function EnemyCard({
+  unit,
+  selected,
+  pickable,
+  onPick,
+}: {
+  unit: Unit
+  selected: boolean
+  pickable: boolean
+  onPick: () => void
+}) {
   const dead = unit.hp <= 0
+  const cls = ['bt__enemy', dead && 'is-dead', selected && 'is-target'].filter(Boolean).join(' ')
   return (
-    <div className={dead ? 'bt__enemy is-dead' : 'bt__enemy'}>
+    <div
+      className={cls}
+      onClick={pickable ? onPick : undefined}
+      role={pickable ? 'button' : undefined}
+      tabIndex={pickable ? 0 : undefined}
+      onKeyDown={pickable ? (e) => (e.key === 'Enter' || e.key === ' ') && onPick() : undefined}
+      aria-pressed={pickable ? selected : undefined}
+      style={pickable ? { cursor: 'pointer' } : undefined}
+    >
+      <span className="bt__aim">{selected ? '▼' : ''}</span>
       <div className="bt__enemy-body" />
       <span className="bt__enemy-name">
         {unit.name}
