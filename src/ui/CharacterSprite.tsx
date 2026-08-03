@@ -1,41 +1,34 @@
-import type { Gender } from '../core/character'
+import { SHAPE_LABEL, type Shape } from '../core/character'
 import './CharacterSprite.css'
 
 /**
- * 도트 스프라이트 자리를 잡아두는 임시 실루엣.
- * ponytail: 실제 시트가 나오면 이 파일만 background-image + steps() 애니메이션으로 갈아끼운다.
- * 바깥에서는 <CharacterSprite gender scale /> 시그니처만 보므로 다른 화면은 손댈 필요 없다.
+ * 도우 캐릭터. 이미지 파일 없이 CSS 도형으로만 그린다.
+ *
+ * 원본을 96×112 로 고정해 그리고 확대·축소는 transform 이 한다.
+ * 바깥 상자만 줄이면 안쪽 그림이 상자를 뚫고 나온다 — 실제로 그 버그가 있었다.
  */
-/** 원본 그림 크기. scale 은 이 값에 곱해진다. */
 const ART_W = 96
-const ART_H = 176
+const ART_H = 112
 
-export default function CharacterSprite({
-  gender,
-  scale = 4,
-}: {
-  gender: Gender
-  scale?: number
-}) {
+export default function CharacterSprite({ shape, scale = 4 }: { shape: Shape; scale?: number }) {
   return (
     <div
-      className={`sprite sprite--${gender}`}
-      // 바깥 상자만 줄이면 안쪽 그림(96x176 고정)이 상자를 뚫고 나온다.
-      // 실제 축소는 CSS 의 transform 이 하고, 여기서는 그 결과 크기만 알려 준다.
+      className={`sprite sprite--${shape}`}
       style={{
         width: ART_W * scale,
         height: ART_H * scale,
         ['--s' as string]: scale,
       }}
       role="img"
-      aria-label={gender === 'female' ? '여성 캐릭터' : '남성 캐릭터'}
+      aria-label={SHAPE_LABEL[shape]}
     >
       <div className="sprite__stack">
-        <span className="sprite__hair" />
-        <span className="sprite__head" />
-        <span className="sprite__body" />
-        <span className="sprite__legs" />
         <span className="sprite__shadow" />
+        <span className="sprite__body">
+          <i className="sprite__eye sprite__eye--l" />
+          <i className="sprite__eye sprite__eye--r" />
+          <i className="sprite__mouth" />
+        </span>
       </div>
     </div>
   )

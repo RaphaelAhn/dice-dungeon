@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BASE_STATS, STAT_META, type Gender, type Stats } from '../core/character'
+import { BASE_STATS, STAT_META, type Shape, type Stats } from '../core/character'
 import { applyFace, DICE, rollDice, type Face } from '../core/dice'
 import CharacterSprite from './CharacterSprite'
 import Dice from './Dice'
@@ -13,11 +13,11 @@ const TICK_MS = 70
 type Phase = 'ready' | 'rolling' | 'done'
 
 export default function DiceRoll({
-  gender,
+  shape,
   name,
   onStart,
 }: {
-  gender: Gender
+  shape: Shape
   name: string
   onStart: (face: Face) => void
 }) {
@@ -72,7 +72,7 @@ export default function DiceRoll({
 
       <div className="dr__stage">
         <div className="dr__char">
-          <CharacterSprite gender={gender} scale={1} />
+          <CharacterSprite shape={shape} scale={1} />
           <b className="dr__char-name">{name}</b>
         </div>
 

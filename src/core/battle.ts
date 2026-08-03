@@ -1,4 +1,5 @@
 import type { Encounter } from './enemy'
+import { ga, reul } from './josa'
 import { pizzaBonus } from './pizza'
 import { maxMp, type Run } from './run'
 import { SKILLS, type SkillId, type StatusKind } from './skill'
@@ -204,7 +205,7 @@ function tickStatuses(u: Unit, log: string[]): void {
   for (const s of u.statuses) {
     if (s.kind === 'burn') {
       u.hp = Math.max(0, u.hp - s.value)
-      log.push(`${u.name}이(가) 눌어 ${s.value} 피해`)
+      log.push(`${ga(u.name)} 눌어 ${s.value} 피해`)
     }
     s.turns -= 1
   }
@@ -262,7 +263,7 @@ function checkOver(s: BattleState): boolean {
   if (s.player.hp <= 0) {
     s.player.hp = 0
     s.over = 'lose'
-    s.log.push(`${s.player.name}이(가) 쓰러졌다`)
+    s.log.push(`${ga(s.player.name)} 쓰러졌다`)
     return true
   }
   if (aliveEnemies(s).length === 0) {
@@ -277,7 +278,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   const p = s.player
 
   if (has(p, 'stun')) {
-    s.log.push(`${p.name}이(가) 굳어 움직일 수 없다`)
+    s.log.push(`${ga(p.name)} 굳어 움직일 수 없다`)
     return
   }
 
@@ -414,13 +415,13 @@ function strike(
   label = '공격',
 ): number {
   if (dodged(from, to, rng)) {
-    s.log.push(`${to.name}이(가) ${label}을 회피`)
+    s.log.push(`${ga(to.name)} ${reul(label)} 회피`)
     return 0
   }
   const crit = critical(from, rng)
   let amount = base * mult * variance(rng) * elementMul(line, to) * (1 + from.damageMul)
   if (crit) amount *= CRIT_MUL
-  if (to.id === 'p' && has(to, 'guard')) amount *= DEFEND_TAKE
+  if (has(to, 'guard')) amount *= DEFEND_TAKE
 
   const dealt = damage(to, amount)
   s.log.push(
@@ -432,11 +433,69 @@ function strike(
   return dealt
 }
 
+/**
+ * 적이 맛에 맞는 한 수를 쓸 확률 ⚠
+ * 보스는 더 자주 쓴다 — 통상 공격만 하는 보스는 큰 체력 덩어리에 불과하다.
+ */
+const ENEMY_SKILL_CHANCE = 0.25
+const BOSS_SKILL_CHANCE = 0.45
+
+/**
+ * 적의 특기. 맛마다 하나씩이고 플레이어의 기술과 짝을 이룬다.
+ * 무엇이 오는지 이름으로 예고되므로 방어할지 밀어붙일지 판단할 수 있다.
+ */
+function enemySpecial(s: BattleState, e: Unit, rng: Rng): boolean {
+  const p = s.player
+  switch (e.taste) {
+    case 'spicy': {
+      // 크게 한 방 — 방어로 받아내면 손해가 반이다
+      strike(s, e, p, effAtk(e), 1.6, e.taste, rng, `${e.name}의 매운 일격`)
+      return true
+    }
+    case 'tangy': {
+      applyStatus(p, 'slow', 2)
+      s.log.push(`${ga(e.name)} 새콤한 즙을 뿌렸다 — 손놀림 저하`)
+      return true
+    }
+    case 'herbal': {
+      applyStatus(p, 'burn', 3, Math.max(3, Math.round(e.atk * 0.35)))
+      s.log.push(`${e.name}의 진한 향 — 3턴 지속 피해`)
+      return true
+    }
+    case 'rich': {
+      const dealt = strike(s, e, p, effAtk(e), 0.9, e.taste, rng, `${e.name}의 기름진 공격`)
+      if (dealt > 0) {
+        const back = Math.round(dealt * 0.5)
+        e.hp = Math.min(e.maxHp, e.hp + back)
+        s.log.push(`${ga(e.name)} ${back} 흡수`)
+      }
+      return true
+    }
+    case 'mild': {
+      // 담백은 버틴다 — 오래 끌면 시간 제한이 조여 온다
+      applyStatus(e, 'guard', 1)
+      const heal = Math.round(e.maxHp * 0.08)
+      const before = e.hp
+      e.hp = Math.min(e.maxHp, e.hp + heal)
+      s.log.push(`${ga(e.name)} 자세를 낮췄다 — ${e.hp - before} 회복`)
+      return true
+    }
+    default:
+      return false
+  }
+}
+
 function resolveEnemies(s: BattleState, rng: Rng): void {
+  const chance = s.kind === 'normal' ? ENEMY_SKILL_CHANCE : BOSS_SKILL_CHANCE
+
   for (const e of s.enemies) {
     if (!alive(e) || s.over) continue
     if (has(e, 'stun')) {
-      s.log.push(`${e.name}이(가) 굳어 움직일 수 없다`)
+      s.log.push(`${ga(e.name)} 굳어 움직일 수 없다`)
+      continue
+    }
+    if (rng() < chance && enemySpecial(s, e, rng)) {
+      if (s.player.hp <= 0) break
       continue
     }
     strike(s, e, s.player, effAtk(e), 1, e.taste, rng, `${e.name}의 공격`)

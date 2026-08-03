@@ -1,3 +1,23 @@
+/*
+ * Galmuri11 — SIL Open Font License 1.1
+ * https://github.com/quiple/galmuri · 라이선스 전문은 src/assets/fonts/OFL.md
+ *
+ * font-display: swap 을 쓴다. 폰트를 기다리며 글자를 감추면 첫 화면이 비어 보인다.
+ * 시스템 폰트로 먼저 그리고 도착하면 바꿔 끼운다.
+ */
+@font-face {
+  font-family: 'Galmuri11';
+  src: url('./assets/fonts/Galmuri11.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Galmuri11';
+  src: url('./assets/fonts/Galmuri11-Bold.woff2') format('woff2');
+  font-weight: 700 900;
+  font-display: swap;
+}
+
 :root {
   --bg: #0a0b0f;
   --panel: #14161f;
@@ -8,7 +28,10 @@
   --sky: #7dd3fc;
 
   color-scheme: dark;
-  font-family: 'Galmuri11', 'DungGeunMo', 'Pretendard', system-ui, sans-serif;
+  font-family: 'Galmuri11', 'Pretendard', system-ui, sans-serif;
+  /* 도트 폰트는 소수점 크기에서 뭉갠다. 정수 픽셀에 붙인다. */
+  -webkit-font-smoothing: none;
+  font-smooth: never;
 }
 
 * {

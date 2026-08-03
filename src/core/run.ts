@@ -1,4 +1,4 @@
-import type { Gender, Stats } from './character'
+import type { Shape, Stats } from './character'
 import { applyFace, DICE, type Face } from './dice'
 import { countClashes, decidePizza, pizzaBonus, type Pizza } from './pizza'
 import { MAX_TOPPINGS, totalWeight, type Topping } from './topping'
@@ -34,7 +34,7 @@ export function stagesToNextReward(run: Run): number | null {
  * 남는 건 도감에 기록된 피자뿐이다. (save.ts)
  */
 export type Run = {
-  gender: Gender
+  shape: Shape
   name: string
   face: Face
   /** 주사위와 토핑까지 반영된 최대치 */
@@ -143,10 +143,10 @@ export function bake(run: Run): Run {
   }
 }
 
-export function createRun(gender: Gender, name: string, face: Face): Run {
+export function createRun(shape: Shape, name: string, face: Face): Run {
   const max = applyFace(face)
   return {
-    gender,
+    shape,
     name,
     face,
     max,

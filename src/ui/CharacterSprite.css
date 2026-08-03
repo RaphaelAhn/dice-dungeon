@@ -1,92 +1,100 @@
-/* 임시 실루엣. 픽셀 그리드에 맞춰 정수 px 만 쓴다. */
+/* 도우. 이미지 파일 없이 CSS 도형으로만 그린다 — 외부 에셋 0건을 지킨다. */
 .sprite {
-  position: relative;
-  animation: sprite-idle 1.8s steps(2) infinite;
+  display: grid;
+  place-items: end center;
+  animation: sprite-idle 2.2s ease-in-out infinite;
+  /* 축소해도 바깥으로 새지 않게 막는다 */
+  overflow: hidden;
 }
 
 /*
- * 그림은 96x176 고정으로 그리고 확대·축소는 transform 이 한다.
+ * 그림은 96x112 고정으로 그리고 확대·축소는 transform 이 한다.
  * 각 부위의 px 을 scale 마다 다시 계산하면 픽셀 정렬이 깨진다.
- *
- * grid 정렬(place-items:end)로는 안 된다. transform 은 레이아웃 크기를
- * 바꾸지 않으므로 96x176 짜리 아이템이 축소된 상자보다 커지고,
- * 넘치는 아이템의 end 정렬은 브라우저가 start 로 되돌려 그림이 아래로 새어 나간다.
- * 바닥을 직접 고정하고 같은 지점을 기준으로 축소한다.
  */
 .sprite__stack {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
+  position: relative;
   width: 96px;
-  height: 176px;
-  transform: translateX(-50%) scale(var(--s, 1));
+  height: 112px;
+  transform: scale(var(--s, 1));
   transform-origin: bottom center;
 }
 
-.sprite__stack span {
+.sprite__stack > span {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.sprite__head {
-  top: 24px;
-  width: 40px;
-  height: 40px;
-  background: #e8c9a8;
-  border: 4px solid #14161f;
-}
-
-.sprite__hair {
-  top: 8px;
-  width: 56px;
-  height: 44px;
-  background: #1b1b22;
-  z-index: 2;
-}
-
 .sprite__body {
-  top: 64px;
-  width: 64px;
-  height: 68px;
-  background: #23252f;
-  border: 4px solid #14161f;
-}
-
-.sprite__legs {
-  top: 130px;
-  width: 48px;
-  height: 40px;
-  background: #1b1d26;
-  border: 4px solid #14161f;
+  top: 4px;
+  width: 88px;
+  height: 88px;
+  background: linear-gradient(165deg, #f4e3c4, #e6cd9f);
+  border: 4px solid #b9975f;
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.07);
 }
 
 .sprite__shadow {
-  top: 168px;
-  width: 72px;
+  top: 100px;
+  width: 74px;
   height: 12px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.45);
 }
 
-/* 여성: 긴 머리 + 실루엣이 좁다 */
-.sprite--female .sprite__hair {
-  height: 84px;
-  width: 64px;
-}
-.sprite--female .sprite__body {
-  width: 56px;
+/* 둥근 도우 — 손으로 편 반죽 */
+.sprite--round .sprite__body {
+  border-radius: 50%;
 }
 
-/* 남성: 짧은 머리 + 어깨가 넓다 */
-.sprite--male .sprite__hair {
-  height: 40px;
+/* 네모 도우 — 팬에 눌러 담은 반죽. 모서리만 살짝 죽인다 */
+.sprite--square .sprite__body {
+  border-radius: 10px;
 }
-.sprite--male .sprite__body {
-  width: 72px;
+.sprite--square .sprite__shadow {
+  width: 80px;
+  border-radius: 6px;
+}
+
+/* --- 얼굴 --- */
+.sprite__eye {
+  position: absolute;
+  top: 34px;
+  width: 10px;
+  height: 14px;
+  background: #4a3a22;
+  border-radius: 3px;
+}
+.sprite__eye--l {
+  left: 20px;
+}
+.sprite__eye--r {
+  right: 20px;
+}
+
+.sprite__mouth {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 8px;
+  border-bottom: 4px solid #4a3a22;
+  border-radius: 0 0 12px 12px;
 }
 
 @keyframes sprite-idle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-3px) scaleY(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sprite {
+    animation: none;
+  }
 }

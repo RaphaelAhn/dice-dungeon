@@ -7,7 +7,7 @@ import Reward from './ui/Reward'
 import Result, { type ResultKind } from './ui/Result'
 import Recruit from './ui/Recruit'
 import Codex from './ui/Codex'
-import type { Gender } from './core/character'
+import type { Shape } from './core/character'
 import { DICE, type Face } from './core/dice'
 import { BAKE_STAGE } from './core/pizza'
 import {
@@ -41,7 +41,7 @@ type Screen =
 // ponytail: 화면 수가 적어 라우터 없이 상태 하나로 전환한다.
 export default function App() {
   const [screen, setScreen] = useState<Screen>('title')
-  const [gender, setGender] = useState<Gender>('female')
+  const [shape, setShape] = useState<Shape>('round')
   const [name, setName] = useState('')
   // 런은 주사위를 굴린 순간 만들어진다. 그 전에는 캐릭터 정보만 들고 있다.
   const [run, setRun] = useState<Run | null>(null)
@@ -54,23 +54,22 @@ export default function App() {
 
   const back = useCallback(() => setScreen('title'), [])
 
-  const toDice = useCallback((g: Gender, n: string) => {
-    setGender(g)
+  const toDice = useCallback((g: Shape, n: string) => {
+    setShape(g)
     setName(n)
     setScreen('dice')
   }, [])
 
   const startRun = useCallback(
     (face: Face) => {
-      // 1-1 이 보상 지점인 조합도 있으므로 전직 판정은 스테이지 진입 시 건다.
-      setRun(refillMp(createRun(gender, name, face)))
+      setRun(refillMp(createRun(shape, name, face)))
       setEnc(rollEncounter(1))
       setScreen('battle')
     },
-    [gender, name],
+    [shape, name],
   )
 
-  /** 다음 스테이지로. 1-8 진입 시 전직이 걸린다. */
+  /** 다음 라운드로. 8라운드 진입 시 굽기가 걸린다. */
   const advance = useCallback((cur: Run) => {
     let next: Run = { ...cur, stage: cur.stage + 1 }
     if (next.stage >= BAKE_STAGE) next = bake(next)
@@ -79,7 +78,7 @@ export default function App() {
     setScreen('battle')
   }, [])
 
-  /** 스테이지 승리 — 회복 → 보상 지점이면 보상, 아니면 바로 다음 스테이지 */
+  /** 라운드 승리 — 회복 → 재료 선택 → (보상 지점이면) 보상 */
   const onWin = useCallback(
     (afterBattle: Run) => {
       const healed = healAfterStage(afterBattle)
@@ -138,11 +137,11 @@ export default function App() {
   }
 
   if (screen === 'dice') {
-    return <DiceRoll gender={gender} name={name} onStart={startRun} />
+    return <DiceRoll shape={shape} name={name} onStart={startRun} />
   }
 
   if (screen === 'battle' && run) {
-    // key 를 스테이지에 묶어 스테이지가 바뀌면 전투 상태를 새로 만든다.
+    // key 를 라운드에 묶어 라운드가 바뀌면 전투 상태를 새로 만든다.
     return <Battle key={run.stage} run={run} enc={enc} onWin={onWin} onEnd={onEnd} />
   }
 

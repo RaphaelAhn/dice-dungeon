@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import {
   BASE_STATS,
   clampName,
-  GENDER_LABEL,
-  GENDERS,
+  SHAPE_LABEL,
+  SHAPES,
   isValidName,
   NAME_MAX,
   STAT_META,
-  type Gender,
+  type Shape,
 } from '../core/character'
 import CharacterSprite from './CharacterSprite'
 import './CharacterCreate.css'
@@ -16,30 +16,30 @@ export default function CharacterCreate({
   onConfirm,
   onBack,
 }: {
-  onConfirm: (g: Gender, name: string) => void
+  onConfirm: (g: Shape, name: string) => void
   onBack: () => void
 }) {
   const [index, setIndex] = useState(0)
   const [name, setName] = useState('')
-  const gender = GENDERS[index]
+  const shape = SHAPES[index]
   const ready = isValidName(name)
 
   const confirm = () => {
-    if (ready) onConfirm(gender, name.trim())
+    if (ready) onConfirm(shape, name.trim())
   }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // 이름 입력 중에는 방향키를 글자 이동에 쓴다. 성별이 바뀌면 안 된다.
+      // 이름 입력 중에는 방향키를 글자 이동에 쓴다. 모양이 바뀌면 안 된다.
       const typing = (e.target as HTMLElement)?.tagName === 'INPUT'
 
       if (!typing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault()
         const delta = e.key === 'ArrowLeft' ? -1 : 1
-        setIndex((i) => (i + delta + GENDERS.length) % GENDERS.length)
+        setIndex((i) => (i + delta + SHAPES.length) % SHAPES.length)
       } else if (e.key === 'Enter' || (!typing && e.key === ' ')) {
         e.preventDefault()
-        if (ready) onConfirm(GENDERS[index], name.trim())
+        if (ready) onConfirm(SHAPES[index], name.trim())
       } else if (e.key === 'Escape') {
         e.preventDefault()
         onBack()
@@ -53,19 +53,19 @@ export default function CharacterCreate({
     <div className="cc">
       <header className="cc__head">
         <h2>도우 빚기</h2>
-        <p>겉모습만 다릅니다. 시작 능력은 같습니다.</p>
+        <p>모양만 다릅니다. 시작 능력은 같습니다.</p>
       </header>
 
       <div className="cc__stage">
-        {GENDERS.map((g, i) => (
+        {SHAPES.map((g, i) => (
           <button
             key={g}
             className={i === index ? 'cc__card is-on' : 'cc__card'}
             onMouseEnter={() => setIndex(i)}
             onClick={() => setIndex(i)}
           >
-            <CharacterSprite gender={g} scale={1} />
-            <span className="cc__name">{GENDER_LABEL[g]}</span>
+            <CharacterSprite shape={g} scale={1} />
+            <span className="cc__name">{SHAPE_LABEL[g]}</span>
           </button>
         ))}
       </div>
@@ -111,7 +111,7 @@ export default function CharacterCreate({
           {ready ? `${name.trim()}(으)로 시작 →` : '이름을 입력하세요'}
         </button>
       </footer>
-      <p className="cc__hint">←→ 성별 · Enter 결정 · Esc 뒤로</p>
+      <p className="cc__hint">←→ 모양 · Enter 결정 · Esc 뒤로</p>
     </div>
   )
 }
