@@ -72,7 +72,12 @@ export default function CharacterSprite({
                   top: `${50 + Math.sin(rad) * r * 100}%`,
                 }}
                 title={`${t.name} (${TASTE_LABEL[t.taste]})`}
-              />
+              >
+                {/* 꼭지·무늬는 forms.css 가 이 두 자식에 그린다.
+                    빠뜨렸더니 도우 위 재료만 민짜로 나왔다 — 적은 나오는데. */}
+                <i className="form__a" />
+                <i className="form__b" />
+              </i>
             )
           })}
         </span>

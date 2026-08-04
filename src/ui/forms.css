@@ -3,6 +3,17 @@
  *
  * 색은 맛이 정하고(부모가 background 를 준다) 모양은 form 이 정한다.
  * 두 자식 i.form__a / i.form__b 로 꼭지·무늬 같은 곁가지를 붙인다.
+ *
+ * ⚠ 선택자를 .form.form--x 로 겹쳐 쓴다. 클래스 하나짜리로 두면 전부 진다.
+ *   forms.css 는 index.css 맨 위에서 불려 가장 먼저 로드되는데,
+ *   Battle.css 와 CharacterSprite.css 는 컴포넌트에서 불려 나중에 온다.
+ *   우선순위가 같으면 나중 것이 이기므로 .bt__foe-body(10px)와
+ *   .sprite__top(50%)이 아홉 모양의 border-radius 를 전부 덮어썼다.
+ *   적은 모두 같은 둥근 네모, 도우 위 재료는 모두 같은 동그라미로 보였다.
+ *
+ * ⚠ 회전·축소는 transform 이 아니라 독립 속성 rotate / scale 로 준다.
+ *   두 부모 모두 transform 을 쓰는 애니메이션(bt-float, sprite-drop)을 걸고
+ *   있어서, transform: rotate() 로 주면 애니메이션이 통째로 덮어 간다.
  */
 .form {
   position: relative;
@@ -14,99 +25,102 @@
 }
 
 /* 동그란 것 — 토마토, 완두콩, 올리브 */
-.form--round {
+.form.form--round {
   border-radius: 50%;
 }
 
 /* 뿌리·덩이 — 감자, 고구마, 마늘. 위아래로 길쭉한 타원 */
-.form--root {
+.form.form--root {
   border-radius: 50% 50% 46% 46% / 42% 42% 58% 58%;
+  /* 가로로 눌러 갸름하게. 안 누르면 동그라미와 구분이 안 된다. */
+  scale: 0.78 1;
 }
 
 /* 잎 — 바질, 시금치. 한쪽이 뾰족하다 */
-.form--leaf {
-  border-radius: 0 78% 0 78%;
-  transform: rotate(-12deg);
+.form.form--leaf {
+  border-radius: 6% 78% 6% 78%;
+  rotate: -12deg;
 }
-.form--leaf .form__a {
+.form.form--leaf .form__a {
   display: block;
-  inset: 46% 12% 46% 12%;
-  background: rgba(0, 0, 0, 0.18);
+  inset: 46% 14% 46% 14%;
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 2px;
-  transform: rotate(-32deg);
+  rotate: -34deg;
 }
 
 /* 고추 — 아래로 갈수록 좁아지고 꼭지가 달렸다 */
-.form--chili {
+.form.form--chili {
   border-radius: 46% 46% 46% 46% / 26% 26% 74% 74%;
-  clip-path: polygon(28% 0, 72% 0, 62% 100%, 38% 100%);
+  clip-path: polygon(30% 6%, 70% 6%, 60% 100%, 40% 100%);
 }
-.form--chili .form__a {
+.form.form--chili .form__a {
   display: block;
-  left: 42%;
-  top: -8%;
-  width: 16%;
-  height: 22%;
+  left: 43%;
+  top: 0;
+  width: 14%;
+  height: 16%;
   background: #4c7a3a;
   border-radius: 2px;
+  z-index: 2;
 }
 
-/* 버섯 — 갓과 기둥 */
-.form--mushroom {
-  border-radius: 50% 50% 12% 12%;
+/* 버섯 — 갓과 기둥. 기둥은 상자 안에 둔다 (밖으로 빼면 이름표를 덮는다) */
+.form.form--mushroom {
+  border-radius: 50% 50% 14% 14% / 62% 62% 12% 12%;
 }
-.form--mushroom .form__a {
+.form.form--mushroom .form__a {
   display: block;
-  left: 34%;
-  bottom: -22%;
-  width: 32%;
+  left: 38%;
+  bottom: 0;
+  width: 24%;
   height: 34%;
-  background: #e8dcc0;
-  border: 2px solid rgba(120, 80, 40, 0.3);
-  border-top: none;
+  background: rgba(255, 255, 255, 0.55);
   border-radius: 0 0 40% 40%;
 }
 
 /* 링 — 양파, 파프리카, 파인애플. 가운데가 비었다 */
-.form--ring {
+.form.form--ring {
   border-radius: 50%;
 }
-.form--ring .form__a {
+.form.form--ring .form__a {
   display: block;
-  inset: 30%;
-  background: var(--panel);
+  inset: 32%;
+  background: var(--panel, #f7f1e4);
   border: 2px solid rgba(120, 80, 40, 0.3);
   border-radius: 50%;
 }
 
 /* 얇게 썬 것 — 페퍼로니, 살라미. 납작한 원반에 점무늬 */
-.form--slice {
+.form.form--slice {
   border-radius: 50%;
 }
-.form--slice .form__a,
-.form--slice .form__b {
+.form.form--slice .form__a,
+.form.form--slice .form__b {
   display: block;
-  width: 16%;
-  height: 16%;
+  width: 17%;
+  height: 17%;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.5);
 }
-.form--slice .form__a {
-  left: 26%;
-  top: 30%;
+.form.form--slice .form__a {
+  left: 25%;
+  top: 29%;
 }
-.form--slice .form__b {
-  right: 24%;
-  bottom: 26%;
+.form.form--slice .form__b {
+  right: 23%;
+  bottom: 25%;
 }
 
 /* 덩어리 — 닭가슴살, 소시지. 모서리가 둥근 네모 */
-.form--chunk {
-  border-radius: 28% 28% 24% 24% / 30% 30% 26% 26%;
+.form.form--chunk {
+  border-radius: 30% 30% 26% 26% / 32% 32% 28% 28%;
 }
 
-/* 소스 — 물방울 */
-.form--drop {
-  border-radius: 50% 50% 50% 8%;
-  transform: rotate(-45deg);
+/* 소스 — 물방울. 위가 뾰족하도록 45도 돌린다 */
+.form.form--drop {
+  border-radius: 8% 50% 50% 50%;
+  rotate: 45deg;
+  /* 돌린 네모는 대각선이 길어 상자를 넘는다. 넘는 만큼 줄인다. */
+  scale: 0.76;
 }
