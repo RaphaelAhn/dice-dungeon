@@ -21,8 +21,41 @@ const DODGE_PER_SPD = 0.01
 const DODGE_CAP = 0.25
 /** 포션 회복량 = 최대 체력의 이 비율 ⚠ */
 const POTION_RATIO = 0.4
+/**
+ * 지속 피해 한 턴치 = 때린 쪽 주력 능력치의 이 비율 ⚠
+ *
+ * 적은 처음부터 제 탄력에 비례해 태웠는데 내 향긋 특성만 6 고정이었다.
+ * 도우를 아무리 키워도 이 특성만 그 자리에 머물렀다. 양쪽 다 제 힘에
+ * 비례하게 맞춘다 — 적은 탄력, 나는 두께(기술의 밑천)다.
+ *
+ * 비율이 다른 건 대가가 다르기 때문이다. 적은 한 턴을 통째로 써서 태운다.
+ * 나는 이미 피해를 주는 기술에 얹어서 공짜로 태우고, 명중할 때마다 다시
+ * 3턴으로 갱신된다. 같은 0.35 를 주면 두께 중앙값에서 턴당 16 — 고정 6 의
+ * 세 배가 되어 밸런스를 다시 잡아야 한다. 0.15 는 중앙값에서 7 이라
+ * 지금 감각을 지키면서 두께에 투자한 만큼만 따라 오른다. (측정 360판)
+ */
+const ENEMY_BURN_RATIO = 0.35
+const TRAIT_BURN_RATIO = 0.15
+const BURN_MIN = 3
 
-export type Status = { kind: StatusKind; turns: number; value: number }
+export type Status = {
+  kind: StatusKind
+  turns: number
+  value: number
+  /**
+   * 걸렸지만 아직 한 번도 쓰이지 못한 상태. 이번 턴 마무리에서는 깎지 않는다.
+   *
+   * 방어와 기절은 '행동 단계'에서 소비된다. 그런데 소비할 단계가 이미 지난
+   * 뒤에 걸리는 경우가 있다 — 내가 느려서 적이 먼저 때린 턴에 방어를 고르면,
+   * 막을 공격은 이미 끝났는데 턴 마무리가 방어를 걷어 갔다. 든든한 반죽도
+   * 향긋한 베기의 기절도 같은 이유로 통째로 낭비됐다.
+   * 한 번 쓰일 기회를 준 뒤부터 세기 시작한다.
+   */
+  pending?: boolean
+}
+
+/** 행동 단계에서 소비되는 상태 — 늦게 걸리면 다음 턴으로 넘긴다 */
+const ACTION_PHASE: StatusKind[] = ['guard', 'stun']
 
 export type Side = 'player' | 'enemy'
 
@@ -69,8 +102,11 @@ export type BattleState = {
   mp: number
   /** 1부터 시작. 한 턴 = 플레이어 행동 + 적 전원 행동 */
   turn: number
-  /** 이번 턴에 플레이어가 방어를 골랐는가 — 적 공격 계산에 쓴다 */
-  defending: boolean
+  /**
+   * 이번 턴에 각 편이 이미 움직였는가. 턴 마무리에서 초기화한다.
+   * 뒤늦게 걸린 방어·기절이 헛돌지 않게 하는 데만 쓴다.
+   */
+  acted: { player: boolean; enemies: boolean }
   potions: number
   log: string[]
   /** 이 스테이지에 남은 시간(ms). 0 이 되면 timeout. */
@@ -130,7 +166,7 @@ export function startBattle(run: Run, enc: Encounter): BattleState {
     })),
     mp: run.mp,
     turn: 1,
-    defending: false,
+    acted: { player: false, enemies: false },
     potions: run.potions,
     log: [],
     timeLeftMs: stageLimitMs(enc.kind),
@@ -205,19 +241,45 @@ function elementMul(taste: Taste | undefined, target: Unit): number {
   return TASTE_CLASH[taste] === target.taste ? WEAK_MUL : 1
 }
 
-function applyStatus(u: Unit, kind: StatusKind, turns: number, value = 0): void {
+/**
+ * 쓰일 기회를 이미 놓쳤는가.
+ *
+ * 기절은 걸린 쪽의 행동을 막으니 그 편이 이미 움직였으면 늦었고,
+ * 방어는 상대의 공격을 받아 내니 상대가 이미 움직였으면 늦었다.
+ * 지속 피해·둔화는 행동 단계와 무관해서 늘 제때다.
+ */
+function tooLate(s: BattleState, kind: StatusKind, onPlayer: boolean): boolean {
+  if (!ACTION_PHASE.includes(kind)) return false
+  return kind === 'stun'
+    ? onPlayer
+      ? s.acted.player
+      : s.acted.enemies
+    : onPlayer
+      ? s.acted.enemies
+      : s.acted.player
+}
+
+function applyStatus(s: BattleState, u: Unit, kind: StatusKind, turns: number, value = 0): void {
+  const pending = tooLate(s, kind, u.id === 'p')
   const found = has(u, kind)
   if (found) {
     // 같은 상태를 다시 걸면 지속 시간만 갱신한다. 중첩은 없다 — 계산이 폭주한다.
     found.turns = Math.max(found.turns, turns)
     found.value = Math.max(found.value, value)
+    // 이미 살아 있는 상태를 덧걸면 그건 늦은 게 아니다.
+    if (!pending) found.pending = false
   } else {
-    u.statuses.push({ kind, turns, value })
+    u.statuses.push({ kind, turns, value, ...(pending ? { pending: true } : {}) })
   }
 }
 
 function tickStatuses(u: Unit, log: string[]): void {
   for (const s of u.statuses) {
+    // 아직 쓰일 기회가 없었다. 이번 턴은 세지 않고 다음 턴부터 센다.
+    if (s.pending) {
+      s.pending = false
+      continue
+    }
     if (s.kind === 'burn') {
       u.hp = Math.max(0, u.hp - s.value)
       log.push(`${ga(u.name)} 눌어 ${s.value} 피해`)
@@ -246,8 +308,8 @@ export function playerAct(prev: BattleState, cmd: Command, rng: Rng = Math.rando
   if (prev.over) return prev
   const s: BattleState = structuredClone(prev)
   s.log = []
-  s.defending = cmd.type === 'defend'
   resolvePlayer(s, cmd, rng)
+  s.acted.player = true
   checkOver(s)
   return s
 }
@@ -258,6 +320,7 @@ export function enemyAct(prev: BattleState, rng: Rng = Math.random): BattleState
   const s: BattleState = structuredClone(prev)
   s.log = []
   resolveEnemies(s, rng)
+  s.acted.enemies = true
   checkOver(s)
   return s
 }
@@ -283,6 +346,7 @@ export function endTurn(prev: BattleState): BattleState {
   if (!s.over) {
     s.turn += 1
     s.turnLeftMs = TURN_LIMIT_MS
+    s.acted = { player: false, enemies: false }
   }
   return s
 }
@@ -323,7 +387,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
     const cap = maxMp({ hp: 0, atk: 0, mag: p.mag, spd: 0, luk: 0 })
     const gain = Math.min(cap - s.mp, Math.round(cap * DEFEND_MP_RATIO))
     s.mp += gain
-    applyStatus(p, 'guard', 1)
+    applyStatus(s, p, 'guard', 1)
     s.log.push(`${p.name} 방어 태세 — ${STAT_SHORT.mag} ${gain} 회복`)
     return
   }
@@ -363,7 +427,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
   }
 
   if (sk.target === 'self' && sk.inflict) {
-    applyStatus(p, sk.inflict.kind, sk.inflict.turns, sk.inflict.value ?? 0)
+    applyStatus(s, p, sk.inflict.kind, sk.inflict.turns, sk.inflict.value ?? 0)
     s.log.push(`${sk.name} 발동`)
   }
 
@@ -386,7 +450,7 @@ function resolvePlayer(s: BattleState, cmd: Command, rng: Rng): void {
       }
     }
     if (sk.inflict && sk.target !== 'self' && alive(t)) {
-      applyStatus(t, sk.inflict.kind, sk.inflict.turns, sk.inflict.value ?? 0)
+      applyStatus(s, t, sk.inflict.kind, sk.inflict.turns, sk.inflict.value ?? 0)
       s.log.push(`${t.name}에게 ${sk.name} 효과`)
     }
   }
@@ -418,13 +482,13 @@ function applyTraitOnHit(
       break
     case 'herbal':
       if (via === 'skill' && alive(target)) {
-        applyStatus(target, 'burn', 3, 6)
+        applyStatus(s, target, 'burn', 3, Math.max(BURN_MIN, Math.round(p.mag * TRAIT_BURN_RATIO)))
         s.log.push(`향긋 특성 — ${target.name} 지속 피해`)
       }
       break
     case 'tangy':
       if (via === 'skill' && alive(target)) {
-        applyStatus(target, 'slow', 1)
+        applyStatus(s, target, 'slow', 1)
         s.log.push(`새콤 특성 — ${target.name} 둔화`)
       }
       break
@@ -491,12 +555,12 @@ function enemySpecial(s: BattleState, e: Unit, rng: Rng): boolean {
       return true
     }
     case 'tangy': {
-      applyStatus(p, 'slow', 2)
+      applyStatus(s, p, 'slow', 2)
       s.log.push(`${ga(e.name)} 새콤한 즙을 뿌렸다 — ${STAT_SHORT.spd} 저하`)
       return true
     }
     case 'herbal': {
-      applyStatus(p, 'burn', 3, Math.max(3, Math.round(e.atk * 0.35)))
+      applyStatus(s, p, 'burn', 3, Math.max(BURN_MIN, Math.round(e.atk * ENEMY_BURN_RATIO)))
       s.log.push(`${e.name}의 진한 향 — 3턴 지속 피해`)
       return true
     }
@@ -511,7 +575,7 @@ function enemySpecial(s: BattleState, e: Unit, rng: Rng): boolean {
     }
     case 'mild': {
       // 담백은 버틴다 — 오래 끌면 시간 제한이 조여 온다
-      applyStatus(e, 'guard', 1)
+      applyStatus(s, e, 'guard', 1)
       const heal = Math.round(e.maxHp * 0.08)
       const before = e.hp
       e.hp = Math.min(e.maxHp, e.hp + heal)
