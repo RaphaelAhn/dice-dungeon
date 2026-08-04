@@ -1,6 +1,6 @@
 import { aliveEnemies, startBattle, takeTurn, type BattleState, type Command } from '../src/core/battle'
 import { FACES, type Face } from '../src/core/dice'
-import { encounterKind, rollEncounter, type EnemyDef } from '../src/core/enemy'
+import { encounterKind, type EnemyDef } from '../src/core/enemy'
 import { BAKE_STAGE } from '../src/core/pizza'
 import { applyCard, consumeTopTier, makeOffer, type Card } from '../src/core/reward'
 import {

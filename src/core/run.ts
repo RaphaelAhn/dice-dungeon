@@ -88,8 +88,14 @@ export function canAddTopping(run: Run): boolean {
 /**
  * 토핑을 도우에 올린다.
  * 능력치는 오르지만 무게만큼 속도가 깎인다 — 그래서 '지나치기'가 살아 있다.
+ *
+ * 자리가 없으면 아무것도 하지 않고 그대로 돌려준다. 상한을 막는 곳이
+ * Recruit 화면의 버튼 하나뿐이던 때, 화면을 거치지 않는 tools/probe.ts 가
+ * 재료 9개짜리 도우로 밸런스를 재고 있었다. 방어선은 여기에 있어야 한다.
  */
 export function addTopping(run: Run, topping: Topping, gain: Partial<Stats>): Run {
+  if (!canAddTopping(run)) return run
+
   const toppings = [...run.toppings, topping]
   const max: Stats = {
     hp: run.max.hp + (gain.hp ?? 0),

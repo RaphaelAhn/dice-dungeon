@@ -12,5 +12,7 @@
     "skipLibCheck": true,
     "isolatedModules": true
   },
-  "include": ["src"]
+  // tools 도 검사한다. src 만 보던 때 sim.ts 가 조용히 깨진 채 돌았고,
+  // probe.ts 는 잘못된 밸런스 수치를 냈다 — 둘 다 빌드가 잡아 주지 못했다.
+  "include": ["src", "tools"]
 }
