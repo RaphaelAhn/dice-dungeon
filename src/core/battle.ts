@@ -37,6 +37,8 @@ const POTION_RATIO = 0.4
 const ENEMY_BURN_RATIO = 0.35
 const TRAIT_BURN_RATIO = 0.15
 const BURN_MIN = 3
+/** 담백 적이 숨을 고를 때 회복하는 양 = 최대 체력의 이 비율 ⚠ */
+const MILD_HEAL_RATIO = 0.08
 
 export type Status = {
   kind: StatusKind
@@ -574,12 +576,30 @@ function enemySpecial(s: BattleState, e: Unit, rng: Rng): boolean {
       return true
     }
     case 'mild': {
-      // 담백은 버틴다 — 오래 끌면 시간 제한이 조여 온다
-      applyStatus(s, e, 'guard', 1)
-      const heal = Math.round(e.maxHp * 0.08)
-      const before = e.hp
-      e.hp = Math.min(e.maxHp, e.hp + heal)
-      s.log.push(`${ga(e.name)} 자세를 낮췄다 — ${e.hp - before} 회복`)
+      /*
+       * 담백은 버틴다 — 오래 끌면 시간 제한이 조여 온다.
+       *
+       * 한 턴에 방어와 회복을 같이 주던 때가 있었다. 담백만 특기 하나가
+       * 두 몫을 했고, 그래서 담백 보스 혼자 판이 길고(7.7턴) 이기기도
+       * 어려웠다(480판 중 265판). 다른 맛은 6.0~6.8턴에 372~428판이었다.
+       *
+       * 둘은 값을 치르는 화폐가 다르다 — 측정해 보니 방어는 시간을,
+       * 회복은 난이도를 먹었다. 방어만 두면 7.8턴에 380판, 회복만 두면
+       * 7.0턴에 318판이 나왔다. 그래서 어느 한쪽을 깎는 대신 턴마다
+       * 하나씩만 쓰게 했다 — 다른 특기들처럼 한 턴에 한 가지다.
+       * 결과 7.5턴 · 357판으로 다른 맛과 나란해졌다. (맛마다 480판)
+       *
+       * 무엇을 했는지 로그가 다르게 나가므로 다음 수를 읽을 수 있다.
+       */
+      if (rng() < 0.5) {
+        applyStatus(s, e, 'guard', 1)
+        s.log.push(`${ga(e.name)} 자세를 낮췄다`)
+      } else {
+        const heal = Math.round(e.maxHp * MILD_HEAL_RATIO)
+        const before = e.hp
+        e.hp = Math.min(e.maxHp, e.hp + heal)
+        s.log.push(`${ga(e.name)} 숨을 골랐다 — ${e.hp - before} 회복`)
+      }
       return true
     }
     default:
