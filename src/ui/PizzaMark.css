@@ -12,9 +12,14 @@
 
 .pm__crust {
   inset: 0;
-  background: linear-gradient(165deg, #f4e3c4, #d9bd8b);
+  /* 도우·적과 같은 빛 방향. 타이틀만 납작하면 첫 화면부터 어긋나 보인다. */
+  background:
+    var(--gloss),
+    linear-gradient(165deg, #f6e7cb, #d9bd8b);
   border: 4px solid #b9975f;
-  box-shadow: 0 6px 0 rgba(160, 120, 70, 0.18);
+  box-shadow:
+    inset -6px -10px 16px -6px rgba(150, 110, 60, 0.28),
+    0 6px 0 rgba(160, 120, 70, 0.18);
 }
 
 .pm__sauce {
@@ -30,17 +35,23 @@
   border-radius: 50%;
   animation: pm-drop 0.24s ease-out;
 }
-/* 세 가지 재료가 번갈아 놓인다 */
+/*
+ * 세 가지 재료가 번갈아 놓인다 — 토마토·바질·치즈.
+ * 맛 변수를 쓰지 않는다. 이건 특정 재료 셋이지 맛 다섯 가지가 아니다.
+ */
+.pm__top {
+  background-image: var(--gloss-soft);
+}
 .pm__top--0 {
-  background: #c9553d;
+  background-color: #c9553d;
   box-shadow: inset 0 -2px 0 rgba(120, 40, 20, 0.25);
 }
 .pm__top--1 {
-  background: #4c9a5e;
+  background-color: #4c9a5e;
   border-radius: 30%;
 }
 .pm__top--2 {
-  background: #fff8e8;
+  background-color: #fff8e8;
 }
 
 @keyframes pm-tilt {

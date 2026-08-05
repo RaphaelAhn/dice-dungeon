@@ -35,9 +35,14 @@
   top: 4px;
   width: 88px;
   height: 88px;
-  background: linear-gradient(165deg, #f4e3c4, #e6cd9f);
+  /* 갓 편 반죽. 좌상에 광택, 우하에 그늘 — 적과 같은 빛 방향을 쓴다. */
+  background:
+    var(--gloss),
+    linear-gradient(165deg, #f6e7cb, #e3c996);
   border: 4px solid var(--line-strong);
-  box-shadow: inset 0 -8px 0 rgba(150, 110, 60, 0.14);
+  box-shadow:
+    inset -6px -10px 16px -6px rgba(150, 110, 60, 0.3),
+    inset 0 -8px 0 rgba(150, 110, 60, 0.14);
 }
 
 .sprite__shadow {
@@ -45,7 +50,8 @@
   width: 74px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(150, 110, 60, 0.28);
+  /* 가장자리로 갈수록 옅어진다. 단색 타원은 바닥에 붙인 종이처럼 보였다. */
+  background: radial-gradient(closest-side, rgba(150, 110, 60, 0.34), rgba(150, 110, 60, 0));
 }
 
 /* 둥근 도우 — 손으로 편 반죽 */
@@ -273,6 +279,10 @@
   margin: -7.5% 0 0 -7.5%;
   border-radius: 50%;
   border: 2px solid rgba(120, 80, 40, 0.35);
+  /* 13px 남짓이라 그늘은 안 보인다. 광택만 얹어 얹힌 느낌을 준다. */
+  background:
+    var(--gloss-soft),
+    linear-gradient(160deg, var(--lit), var(--dim));
   animation: sprite-drop 0.26s ease-out;
   z-index: 3;
 }
@@ -284,28 +294,41 @@
 }
 
 .sprite__top--mild {
-  background: #f0dcae;
+  --lit: var(--taste-mild-lit);
+  --dim: var(--taste-mild-dim);
 }
 .sprite__top--spicy {
-  background: #cf3b22;
+  --lit: var(--taste-spicy-lit);
+  --dim: var(--taste-spicy-dim);
 }
 .sprite__top--tangy {
-  background: #e5a81c;
+  --lit: var(--taste-tangy-lit);
+  --dim: var(--taste-tangy-dim);
 }
 .sprite__top--herbal {
-  background: #4c9a5e;
+  --lit: var(--taste-herbal-lit);
+  --dim: var(--taste-herbal-dim);
 }
 .sprite__top--rich {
-  background: #7a5230;
+  --lit: var(--taste-rich-lit);
+  --dim: var(--taste-rich-dim);
 }
 
-/* 소스는 도우 위에 얇게 깔린다 */
+/*
+ * 소스는 도우 위에 얇게 깔린다.
+ *
+ * 색은 맛 변수를 쓰지 않는다 — 새콤 재료는 노랑(레몬·유자)이지만 새콤 소스는
+ * 토마토라 붉다. 자리가 다르면 같은 맛이라도 다른 것을 가리킨다.
+ */
 .sprite__sauce {
   position: absolute;
   inset: 9%;
   border-radius: inherit;
   z-index: 1;
   opacity: 0.85;
+  /* 도우가 입체가 되면서 평평한 소스만 종이처럼 떠 보였다. 윤기를 얹는다. */
+  background-image: var(--gloss-soft);
+  box-shadow: inset -4px -6px 12px -4px rgba(90, 40, 20, 0.35);
 }
 .sprite--round .sprite__sauce {
   border-radius: 50%;
@@ -314,19 +337,19 @@
   border-radius: 6px;
 }
 .sprite__sauce--mild {
-  background: #f6eccd;
+  background-color: #f6eccd;
 }
 .sprite__sauce--spicy {
-  background: #c8402a;
+  background-color: #c8402a;
 }
 .sprite__sauce--tangy {
-  background: #d9552f;
+  background-color: #d9552f;
 }
 .sprite__sauce--herbal {
-  background: #5f9c52;
+  background-color: #5f9c52;
 }
 .sprite__sauce--rich {
-  background: #8a5f38;
+  background-color: #8a5f38;
 }
 
 /* 소스가 깔리면 얼굴이 그 위에 있어야 한다 */
