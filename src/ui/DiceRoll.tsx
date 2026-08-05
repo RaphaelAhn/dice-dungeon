@@ -141,7 +141,7 @@ export default function DiceRoll({
           <p className="dr__wait">숙성을 시작해 이 도우의 시작 능력을 정하세요.</p>
         )}
         {phase === 'rolling' && <p className="dr__wait">숙성 중…</p>}
-        {phase === 'waiting' && <p className="dr__wait dr__wait--done">다 익었다…</p>}
+        {phase === 'waiting' && <p className="dr__wait dr__wait--done">발효가 완료되었습니다.</p>}
         {phase === 'done' && rolledFace && (
           <>
             <div className="dr__card">
