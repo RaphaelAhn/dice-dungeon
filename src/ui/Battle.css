@@ -188,18 +188,13 @@
   display: flex;
   align-items: flex-end;
 }
+/*
+ * 그림 자체는 FormArt 의 SVG 가 그린다. 여기는 자리와 움직임만 맡는다 —
+ * 배경·테두리를 여기서 주면 실루엣 뒤에 네모가 비쳐 보인다.
+ */
 .bt__foe-body {
   width: 92px;
   height: 92px;
-  border: 3px solid var(--line-strong);
-  border-radius: 10px;
-  /* 광택은 배경으로, 그늘은 안쪽 그림자로. 둘 다 모양을 저절로 따라간다. */
-  background:
-    var(--gloss),
-    linear-gradient(160deg, var(--lit), var(--dim));
-  box-shadow:
-    inset -5px -9px 14px -4px rgba(88, 52, 18, 0.3),
-    inset 0 -5px 0 rgba(150, 110, 60, 0.12);
   animation: bt-float 2.4s ease-in-out infinite;
 }
 .bt__foe.is-dead {
@@ -209,17 +204,19 @@
 .bt__foe.is-dead .bt__foe-body {
   animation: none;
 }
-.bt__foe.is-target .bt__foe-body {
-  border-color: var(--accent);
-  /* 겨냥 표시를 더하되 입체감은 그대로 둔다 — 빼면 겨냥한 적만 납작해진다 */
-  box-shadow:
-    inset -5px -9px 14px -4px rgba(88, 52, 18, 0.3),
-    inset 0 -5px 0 rgba(150, 110, 60, 0.12),
-    0 0 16px rgba(187, 68, 32, 0.4);
+/*
+ * 겨냥 표시. box-shadow 는 네모난 상자에 걸려 실루엣을 안 따라가므로
+ * drop-shadow 로 준다 — 잎이든 고추든 그려진 모양 그대로 빛난다.
+ */
+.bt__foe.is-target .bt__foe-body .fa__body,
+.bt__foe[role='button']:hover .bt__foe-body .fa__body,
+.bt__foe[role='button']:focus-visible .bt__foe-body .fa__body {
+  stroke: var(--accent);
 }
-.bt__foe[role='button']:hover .bt__foe-body,
+.bt__foe.is-target .bt__foe-body {
+  filter: drop-shadow(0 0 7px rgba(187, 68, 32, 0.55));
+}
 .bt__foe[role='button']:focus-visible .bt__foe-body {
-  border-color: var(--accent);
   outline: none;
 }
 

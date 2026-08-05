@@ -17,6 +17,7 @@ import { SKILLS, skillsOfTaste } from '../core/skill'
 import { TASTE_LABEL } from '../core/topping'
 import { formatClock, stageLimitMs, TURN_LIMIT_MS } from '../core/timer'
 import CharacterSprite, { type Mood } from './CharacterSprite'
+import FormArt from './FormArt'
 import { play } from './sound'
 import './Battle.css'
 
@@ -431,11 +432,8 @@ function FoeArt(p: FoeProps) {
     .join(' ')
   return (
     <div className={cls} {...pickProps(p)}>
-      <div
-        className={`bt__foe-body bt__foe-body--${p.unit.taste ?? 'plain'} form form--${p.unit.form ?? 'round'}`}
-      >
-        <i className="form__a" />
-        <i className="form__b" />
+      <div className={`bt__foe-body bt__foe-body--${p.unit.taste ?? 'plain'}`}>
+        <FormArt form={p.unit.form ?? 'round'} />
       </div>
     </div>
   )

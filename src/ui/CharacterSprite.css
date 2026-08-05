@@ -103,7 +103,7 @@
  *
  * ⚠ 기울임·흔들림은 transform 이 아니라 독립 속성 rotate / translate 로 준다.
  *   .sprite 는 sprite-idle 이, 재료는 sprite-drop 이 transform 을 쓰고 있어서
- *   transform 으로 주면 애니메이션이 통째로 덮어 간다. forms.css 와 같은 이유다.
+ *   transform 으로 주면 애니메이션이 통째로 덮어 간다.
  */
 
 /* 내 차례 — 눈을 좁히고 입을 벌린다 */
@@ -271,26 +271,19 @@
  * 토핑은 도우 안에 놓인다. 얼굴을 피해 가장자리를 도는 여섯 자리.
  * 맛으로 색을, 종류로 모양을 나눈다 — 야채는 동그랗고 고기는 네모지다.
  */
+/*
+ * 그림은 FormArt 의 SVG 가 그린다. 여기는 자리와 크기만 잡는다.
+ * 재료 종류(야채/고기/소스)로 크기를 바꾸던 것은 없앴다 — 이제 모양이
+ * 종류를 말해 주므로 크기까지 다르게 할 이유가 없다.
+ */
 .sprite__top {
   position: absolute;
   /* 반지름 0.38 자리에 놓여도 도우(반지름 50%) 밖으로 나가지 않는 크기 */
-  width: 15%;
-  height: 15%;
-  margin: -7.5% 0 0 -7.5%;
-  border-radius: 50%;
-  border: 2px solid rgba(120, 80, 40, 0.35);
-  /* 13px 남짓이라 그늘은 안 보인다. 광택만 얹어 얹힌 느낌을 준다. */
-  background:
-    var(--gloss-soft),
-    linear-gradient(160deg, var(--lit), var(--dim));
+  width: 17%;
+  height: 17%;
+  margin: -8.5% 0 0 -8.5%;
   animation: sprite-drop 0.26s ease-out;
   z-index: 3;
-}
-.sprite__top--meat {
-  border-radius: 22%;
-  width: 18%;
-  height: 14%;
-  margin: -7% 0 0 -9%;
 }
 
 .sprite__top--mild {

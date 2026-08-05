@@ -1,5 +1,6 @@
 import { SHAPE_LABEL, type Shape } from '../core/character'
 import { TASTE_LABEL, type Topping } from '../core/topping'
+import FormArt from './FormArt'
 import './CharacterSprite.css'
 
 /**
@@ -77,17 +78,14 @@ export default function CharacterSprite({
             return (
               <i
                 key={`${t.id}-${i}`}
-                className={`sprite__top sprite__top--${t.taste} form form--${t.form}`}
+                className={`sprite__top sprite__top--${t.taste}`}
                 style={{
                   left: `${50 + Math.cos(rad) * r * 100}%`,
                   top: `${50 + Math.sin(rad) * r * 100}%`,
                 }}
                 title={`${t.name} (${TASTE_LABEL[t.taste]})`}
               >
-                {/* 꼭지·무늬는 forms.css 가 이 두 자식에 그린다.
-                    빠뜨렸더니 도우 위 재료만 민짜로 나왔다 — 적은 나오는데. */}
-                <i className="form__a" />
-                <i className="form__b" />
+                <FormArt form={t.form} />
               </i>
             )
           })}

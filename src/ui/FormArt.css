@@ -1,0 +1,117 @@
+/*
+ * 재료 실루엣의 색·선. 모양은 FormArt.tsx 의 path 가 정한다.
+ *
+ * 맛 색은 부모(.bt__foe-body--spicy 같은 것)가 --lit / --dim 으로 준다.
+ * 여기서는 그 두 값을 그라디언트 stop 에 꽂기만 한다 — 색을 아는 곳은
+ * index.css 한 곳뿐이다.
+ */
+.fa {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* var() 는 속성이 아니라 CSS 로 줘야 풀린다 */
+.fa__lit {
+  stop-color: var(--lit, #e8dcc4);
+}
+.fa__dim {
+  stop-color: var(--dim, #cbb890);
+}
+
+.fa__body {
+  stroke: var(--line-strong);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+/* 좌상 광택 — 모양이 무엇이든 빛은 한 방향에서 온다 */
+.fa__gloss {
+  fill: #fff;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* --- 곁가지 --- */
+/* 잎맥 */
+.fa__vein {
+  stroke: rgba(0, 0, 0, 0.26);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  fill: none;
+}
+.fa__vein--thin {
+  stroke-width: 2.2;
+  opacity: 0.72;
+}
+
+/* 고추 꼭지 */
+.fa__stem {
+  stroke: #4c7a3a;
+  stroke-width: 7;
+  stroke-linecap: round;
+  fill: none;
+}
+
+/* 반들거리는 결 — 고추·소스 */
+.fa__shine {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 4;
+  stroke-linecap: round;
+  fill: none;
+}
+
+/* 버섯 갓 주름과 기둥 */
+.fa__gill {
+  stroke: rgba(0, 0, 0, 0.16);
+  stroke-width: 3;
+  stroke-linecap: round;
+  fill: none;
+}
+.fa__stem-line {
+  stroke: rgba(255, 255, 255, 0.34);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  fill: none;
+}
+
+/* 양파 안쪽 고리 */
+.fa__inner {
+  fill: none;
+  stroke: rgba(120, 80, 40, 0.36);
+  stroke-width: 3;
+}
+
+/* 기름 점 — 페퍼로니, 감자 눈 */
+.fa__spot {
+  fill: rgba(255, 255, 255, 0.46);
+}
+
+/* 고기 결 */
+.fa__grain {
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 3;
+  stroke-linecap: round;
+  fill: none;
+}
+
+/*
+ * 도우에 올린 재료는 13px 남짓이다. 이 크기에서 곁가지는 뭉개져
+ * 얼룩으로만 보이므로 선을 굵히고 옅은 것은 지운다 — 실루엣이 전부다.
+ */
+.sprite__top .fa__vein--thin,
+.sprite__top .fa__gill,
+.sprite__top .fa__grain,
+.sprite__top .fa__stem-line {
+  display: none;
+}
+.sprite__top .fa__body {
+  stroke-width: 7;
+}
+.sprite__top .fa__vein {
+  stroke-width: 7;
+}
+.sprite__top .fa__stem {
+  stroke-width: 12;
+}
