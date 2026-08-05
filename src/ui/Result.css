@@ -128,3 +128,56 @@
   display: flex;
   justify-content: center;
 }
+
+/*
+ * 완성 축하 조각. 화면 위에서 떨어지며 돈다.
+ *
+ * pointer-events 를 꺼 둔다 — 조각이 화면을 덮고 있어서 켜 두면
+ * 아래 버튼이 안 눌린다.
+ */
+.rs__party {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+.rs__party i {
+  position: absolute;
+  top: -24px;
+  border-radius: 2px;
+  animation-name: rs-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes rs-fall {
+  from {
+    translate: 0 0;
+    rotate: 0deg;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  to {
+    translate: var(--drift) 105vh;
+    rotate: var(--spin);
+    opacity: 0;
+  }
+}
+
+/* 결과 화면 내용이 조각 위에 있어야 읽힌다 */
+.rs > *:not(.rs__party) {
+  position: relative;
+  z-index: 6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs__party {
+    display: none;
+  }
+}

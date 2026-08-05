@@ -15,6 +15,50 @@ const COPY: Record<ResultKind, { title: string; line: string }> = {
   clear: { title: '완성', line: '피자가 구워졌습니다.' },
 }
 
+/*
+ * 완성했을 때 터지는 조각들. 이미지 없이 색 네모를 뿌린다.
+ *
+ * 자리·색·기울기·속도를 미리 정해 두고 배열로 들고 있는다 — 그릴 때마다
+ * 난수를 새로 뽑으면 리렌더될 때 조각이 순간이동한다.
+ * 화면 위쪽에서 시작해 아래로 떨어지며 돈다.
+ */
+const PIECES = Array.from({ length: 40 }, (_, i) => {
+  // 고정 시드로 흩는다. 매번 같아도 한 판에 한 번 보는 연출이라 티가 안 난다.
+  const r = (n: number) => ((Math.sin(i * 12.9898 + n * 78.233) * 43758.5453) % 1 + 1) % 1
+  return {
+    left: r(1) * 100,
+    hue: ['var(--accent)', 'var(--cheese)', 'var(--sky)', '#e08a72', '#f0cb72'][i % 5],
+    delay: r(2) * 2.2,
+    dur: 2.4 + r(3) * 1.8,
+    drift: (r(4) - 0.5) * 140,
+    spin: 360 + r(5) * 720,
+    w: 6 + r(6) * 6,
+    h: 9 + r(7) * 8,
+  }
+})
+
+function Confetti() {
+  return (
+    <div className="rs__party" aria-hidden="true">
+      {PIECES.map((p, i) => (
+        <i
+          key={i}
+          style={{
+            left: `${p.left}%`,
+            background: p.hue,
+            width: p.w,
+            height: p.h,
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${p.dur}s`,
+            ['--drift' as string]: `${p.drift}px`,
+            ['--spin' as string]: `${p.spin}deg`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 export default function Result({
   kind,
   run,
@@ -44,6 +88,7 @@ export default function Result({
   const c = COPY[kind]
   return (
     <div className={`rs rs--${kind}`}>
+      {kind === 'clear' && <Confetti />}
       <div className="rs__dough">
         <CharacterSprite
           shape={run.shape}

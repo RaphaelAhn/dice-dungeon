@@ -35,6 +35,52 @@ export type Skill = {
   healRatio?: number
 }
 
+const STATUS_TEXT: Record<StatusKind, string> = {
+  burn: '지속 피해',
+  stun: '행동 봉쇄',
+  slow: '둔화',
+  atkDown: '공격 약화',
+  guard: '피해 반감',
+}
+
+/**
+ * 기술이 무슨 일을 하는지 한 줄로 적는다.
+ *
+ * 설명을 손으로 하나씩 써 두지 않는다 — 위력이나 지속 턴을 고치면 설명이
+ * 조용히 어긋나고, 그게 밸런스 조정 때마다 반복된다. 수치에서 만들어 내면
+ * 표를 고치는 것만으로 화면 문구가 따라온다.
+ */
+export function describeSkill(s: Skill): string {
+  const parts: string[] = []
+
+  if (s.power) {
+    const who = s.target === 'all' ? '적 전체' : '적 하나'
+    const how = s.kind === 'physical' ? '탄력' : '두께'
+    const pct = Math.round(s.power * 100)
+    parts.push(s.hits && s.hits > 1 ? `${who}에 ${how} ${pct}% ${s.hits}회` : `${who}에 ${how} ${pct}%`)
+  }
+  if (s.healRatio) parts.push(`신선도 ${Math.round(s.healRatio * 100)}% 회복`)
+  if (s.drain) parts.push(`준 피해의 ${Math.round(s.drain * 100)}% 흡수`)
+  if (s.inflict) {
+    const t = `${s.inflict.turns}턴 ${STATUS_TEXT[s.inflict.kind]}`
+    // 위력이 있으면 대상은 이미 앞줄에 적혔다. 없으면 여기서 밝힌다.
+    parts.push(s.power || s.target === 'self' ? t : `${s.target === 'all' ? '적 전체' : '적 하나'} ${t}`)
+  }
+  // 맞부딪치는 맛에는 1.5배 — 고를 때 가장 크게 갈리는 정보다
+  if (s.power) parts.push(`${TASTE_LABEL_SHORT[TASTE_CLASH[s.taste] ?? s.taste]}에 강함`)
+
+  return parts.join(' · ')
+}
+
+/** 설명 줄은 좁다. 맛 이름을 짧게 쓴다. */
+const TASTE_LABEL_SHORT: Record<Taste, string> = {
+  mild: '담백',
+  spicy: '매콤',
+  tangy: '새콤',
+  herbal: '향긋',
+  rich: '진한',
+}
+
 export const SKILLS: Record<SkillId, Skill> = {
   // 담백 — 버티고 회복한다
   guardStance: {

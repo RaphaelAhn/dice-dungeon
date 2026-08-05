@@ -13,7 +13,7 @@ import {
 import type { Encounter } from '../core/enemy'
 import { STAT_SHORT } from '../core/character'
 import { FINAL_STAGE, maxMp, type Run } from '../core/run'
-import { SKILLS, skillsOfTaste } from '../core/skill'
+import { describeSkill, SKILLS, skillsOfTaste } from '../core/skill'
 import { TASTE_LABEL } from '../core/topping'
 import { formatClock, stageLimitMs, TURN_LIMIT_MS } from '../core/timer'
 import CharacterSprite, { type Mood } from './CharacterSprite'
@@ -23,6 +23,27 @@ import './Battle.css'
 
 /** 한 조각을 보여 주는 시간 ⚠ 짧으면 못 읽고 길면 답답하다 */
 const STEP_MS = 750
+
+/**
+ * 도우 그림 배율. 화면이 낮으면 줄인다.
+ *
+ * 전장 칸은 남는 자리를 받아 쓰는데, 그림은 px 로 고정이라 자리가 모자라면
+ * 줄지 않고 아래 로그 위로 흘러넘쳤다 — 기술 일곱 개를 펼친 보스전에서
+ * 도우 정보 상자가 로그를 덮었다. 여백을 다 걷고도 모자라면 그림이 물러난다.
+ */
+function scaleFor(h: number): number {
+  return h < 660 ? 0.54 : h < 780 ? 0.63 : 0.72
+}
+
+function useDoughScale(): number {
+  const [scale, setScale] = useState(() => scaleFor(window.innerHeight))
+  useEffect(() => {
+    const onResize = () => setScale(scaleFor(window.innerHeight))
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return scale
+}
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -64,6 +85,7 @@ export default function Battle({
    * 단계를 하나 더 끼우면 그것만으로 시간이 간다.
    */
   const [target, setTarget] = useState(0)
+  const doughScale = useDoughScale()
   // 실제 경과 시간으로 재야 탭을 옮겨도 시계가 멈추지 않는다.
   const last = useRef(Date.now())
   const busy = useRef(false)
@@ -317,7 +339,7 @@ export default function Battle({
 
         <div className="bt__side bt__side--mine">
           <div className="bt__unit">
-            <CharacterSprite shape={run.shape} scale={0.72} toppings={run.toppings} mood={mood} />
+            <CharacterSprite shape={run.shape} scale={doughScale} toppings={run.toppings} mood={mood} />
             <div className="bt__box bt__box--mine">
               <div className="bt__box-top">
                 <b className="bt__who">{run.name}</b>
@@ -373,8 +395,13 @@ export default function Battle({
                 onClick={() => act({ type: 'skill', id: sk.id })}
                 disabled={state.mp < sk.mp || phase !== 'choose'}
                 title={TASTE_LABEL[sk.taste]}
+                className="bt__skill"
               >
-                <b>{i + 1}</b> {sk.name} <span className="bt__mp">{sk.mp}</span>
+                <span className="bt__skill-top">
+                  <b>{i + 1}</b> {sk.name} <span className="bt__mp">{sk.mp}</span>
+                </span>
+                {/* 이름만 보고는 무엇을 하는 기술인지 알 수 없다 */}
+                <small className="bt__skill-desc">{describeSkill(sk)}</small>
               </button>
             ))}
             <button className="bt__back" onClick={() => setMenu('root')}>

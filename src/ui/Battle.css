@@ -3,8 +3,15 @@
   max-width: 860px;
   margin: 0 auto;
   display: grid;
-  /* 상단 · 진행바 · 전장 · 로그 · 턴타이머 · 명령 */
-  grid-template-rows: auto auto minmax(200px, 1fr) auto auto auto;
+  /*
+   * 상단 · 진행바 · 전장 · 로그 · 턴타이머 · 명령
+   *
+   * 전장 행은 minmax(0, 1fr) 이다. 최소 200px 로 두었더니 화면이 낮을 때
+   * 그 행이 안 줄어들어 아래 로그·명령 위로 그림이 삐져나왔다 — 보스전처럼
+   * 기술이 일곱 개라 명령 영역이 높아지면 도우 정보 상자가 로그를 덮었다.
+   * 줄어들 수 있게 두고, 대신 아래 낮은 화면 규칙에서 여백을 걷는다.
+   */
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
   gap: 10px;
   padding: 16px 20px 20px;
   /* 화덕 불빛이 위에서 내려온다. 보스로 갈수록 불이 세진다. */
@@ -446,3 +453,64 @@
   opacity: 0.55;
 }
 
+
+/*
+ * 기술 버튼. 이름만으로는 무엇을 하는지 알 수 없어 설명을 한 줄 붙였다.
+ * 설명은 skill.ts 가 수치에서 만들어 낸다 — 밸런스를 고치면 문구가 따라온다.
+ */
+.bt__skill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  text-align: left;
+}
+.bt__skill-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.bt__skill-desc {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+  font-weight: 400;
+  word-break: keep-all;
+}
+.bt__skill:disabled .bt__skill-desc {
+  opacity: 0.55;
+}
+
+/*
+ * 낮은 화면. 세로가 모자라면 여백부터 걷는다 — 글자와 그림을 줄이기 전에
+ * 버릴 수 있는 것이 먼저다. 기술 일곱 개를 펼친 보스전이 가장 빡빡하다.
+ */
+@media (max-height: 780px) {
+  .bt {
+    gap: 7px;
+    padding: 10px 20px 14px;
+  }
+  .bt__field {
+    gap: 20px;
+    padding: 0;
+  }
+  .bt__skill-desc {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+}
+@media (max-height: 680px) {
+  .bt__field {
+    gap: 12px;
+  }
+  .bt__box {
+    padding: 5px 10px;
+    gap: 3px;
+  }
+  /* 도우는 배율을 낮추고(Battle.tsx) 적은 여기서 줄인다 */
+  .bt__foe-body {
+    width: 72px;
+    height: 72px;
+  }
+}
