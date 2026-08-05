@@ -94,3 +94,26 @@ export const PORTIONS: readonly PortionSpec[] = [
 export function portionOf(id: Portion): PortionSpec {
   return PORTIONS.find((p) => p.id === id) ?? PORTIONS[1]
 }
+
+/**
+ * 원판의 칸 배치. 여덟 칸에 네 크기를 두 번씩 돌린다.
+ *
+ * 네 칸짜리 원판은 한 칸이 90도라 판이 큼직하게 뚝뚝 끊긴다. 여덟 칸이면
+ * 도는 동안 칸이 자주 지나가 훨씬 원판답고, 딸깍이는 소리도 촘촘해진다.
+ *
+ * ⚠ 같은 크기를 이웃에 두지 않는다. 붙여 두면 두 칸이 한 칸처럼 보여
+ *   결국 네 칸짜리로 되돌아간다 — 바늘이 어디 서든 옆 칸도 같은 값이면
+ *   돌린 의미가 없다. ABCD 를 두 번 돌리면 어느 칸도 제 짝과 안 붙는다.
+ *
+ * 각 크기가 두 칸씩이라 확률은 그대로 25% 다. 균형(76·77·77·77%)은 안 바뀐다.
+ */
+export const WHEEL: readonly Portion[] = [
+  'small',
+  'medium',
+  'large',
+  'huge',
+  'small',
+  'medium',
+  'large',
+  'huge',
+]

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PORTIONS, portionOf, type Portion } from '../core/divide'
+import { PORTIONS, portionOf, WHEEL, type Portion } from '../core/divide'
 import { STAT_LABEL, type Shape, type Stats } from '../core/character'
 import CharacterSprite from './CharacterSprite'
 import { play } from './sound'
@@ -49,9 +49,10 @@ export default function Divide({
      * 각도를 굴린 뒤 어디에 섰는지 읽으면 부동소수 반올림 때문에 경계에서
      * 한 칸씩 어긋난다 — 화면과 결과가 다르면 그건 조작으로 보인다.
      */
-    const landed = PORTIONS[Math.floor(Math.random() * PORTIONS.length)]
-    const idx = PORTIONS.indexOf(landed)
-    const slice = 360 / PORTIONS.length
+    // 칸을 뽑는다. 같은 크기가 두 칸이므로 칸을 고르면 확률이 저절로 맞는다.
+    const idx = Math.floor(Math.random() * WHEEL.length)
+    const landed = portionOf(WHEEL[idx])
+    const slice = 360 / WHEEL.length
     // 칸 한가운데를 12시(바늘)에 맞춘다. 조금 흔들어 매번 같은 자리에 안 서게 한다.
     const jitter = (Math.random() - 0.5) * slice * 0.55
     const target = 360 * Math.round(SPIN_TURNS) - (idx * slice + slice / 2) + jitter
@@ -95,7 +96,7 @@ export default function Divide({
   }, [phase, result, spin, onDone])
 
   const got = result ? portionOf(result) : null
-  const slice = 360 / PORTIONS.length
+  const slice = 360 / WHEEL.length
 
   return (
     <div className="dv">
@@ -126,10 +127,14 @@ export default function Divide({
             role="img"
             aria-label={got ? `${got.label} ${got.grams}그램` : '반죽 저울판'}
           >
-            {PORTIONS.map((p, i) => (
+            {WHEEL.map((id, i) => {
+              const p = portionOf(id)
+              return (
               <span
-                key={p.id}
-                className={`dv__slice dv__slice--${i}${result === p.id ? ' is-won' : ''}`}
+                key={i}
+                className={`dv__slice dv__slice--${PORTIONS.findIndex((x) => x.id === id)}${
+                  result === id ? ' is-won' : ''
+                }`}
                 style={{ rotate: `${i * slice + slice / 2}deg` }}
               >
                 {/*
@@ -142,7 +147,8 @@ export default function Divide({
                   <em>{p.grams}g</em>
                 </b>
               </span>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>

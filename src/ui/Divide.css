@@ -41,8 +41,8 @@
 /* --- 원판 --- */
 .dv__wheelbox {
   position: relative;
-  width: 208px;
-  height: 208px;
+  width: 228px;
+  height: 228px;
 }
 
 /* 바늘. 12시에 고정이고 판이 그 아래에서 돈다. */
@@ -70,11 +70,19 @@
   inset: 0;
   border-radius: 50%;
   border: 5px solid var(--line-strong);
+  /*
+   * 여덟 칸. 같은 크기끼리 같은 색이라 판을 보면 짝이 마주 보고 있는 게
+   * 보인다 — 네 칸을 두 번 돌린 배치라는 것이 색만으로 읽힌다.
+   */
   background: conic-gradient(
-    var(--taste-mild-dim) 0deg 90deg,
-    var(--taste-tangy-dim) 90deg 180deg,
-    var(--taste-herbal-dim) 180deg 270deg,
-    var(--taste-spicy-dim) 270deg 360deg
+    var(--taste-mild-dim) 0deg 45deg,
+    var(--taste-tangy-dim) 45deg 90deg,
+    var(--taste-herbal-dim) 90deg 135deg,
+    var(--taste-spicy-dim) 135deg 180deg,
+    var(--taste-mild-dim) 180deg 225deg,
+    var(--taste-tangy-dim) 225deg 270deg,
+    var(--taste-herbal-dim) 270deg 315deg,
+    var(--taste-spicy-dim) 315deg 360deg
   );
   box-shadow:
     inset 0 0 0 3px rgba(255, 255, 255, 0.35),
@@ -93,22 +101,25 @@
 }
 .dv__slice b {
   position: absolute;
-  top: 26px;
+  top: 20px;
   left: 50%;
   translate: -50% 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: 1.15;
-  font-size: 13px;
+  /* 여덟 칸이라 한 칸이 45도뿐이다. 글자가 옆 칸을 침범하지 않게 폭을 묶는다. */
+  width: 58px;
+  line-height: 1.1;
+  font-size: 11px;
   font-weight: 700;
+  white-space: nowrap;
   color: #3b2412;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 .dv__slice b em {
   font-style: normal;
-  font-size: 11px;
-  opacity: 0.85;
+  font-size: 10px;
+  opacity: 0.8;
 }
 .dv__slice.is-won b {
   color: var(--accent);
@@ -216,8 +227,8 @@
     font-size: 20px;
   }
   .dv__wheelbox {
-    width: 168px;
-    height: 168px;
+    width: 186px;
+    height: 186px;
   }
 }
 
