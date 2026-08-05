@@ -378,9 +378,18 @@ export default function Battle({
         )}
       </section>
 
-      <div className="bt__turnbar">
-        <i className={turnRatio < 0.3 ? 'is-low' : ''} style={{ width: `${turnRatio * 100}%` }} />
-        <span>{Math.ceil(state.turnLeftMs / 1000)}</span>
+      {/*
+        명령 시간. 막대만으로는 몇 초 남았는지 안 읽혀서 숫자를 크게 하나 둔다 —
+        명령 버튼과 같은 크기라 눈이 아래로 내려가는 길에 걸린다.
+      */}
+      <div className="bt__turn-zone">
+        <b className={`bt__turn-big${turnRatio < 0.3 ? ' is-low' : ''}`}>
+          {Math.ceil(state.turnLeftMs / 1000)}
+        </b>
+        <div className="bt__turnbar">
+          <i className={turnRatio < 0.3 ? 'is-low' : ''} style={{ width: `${turnRatio * 100}%` }} />
+          <span>{Math.ceil(state.turnLeftMs / 1000)}</span>
+        </div>
       </div>
 
       <nav className={phase === 'choose' ? 'bt__cmds' : 'bt__cmds is-locked'}>

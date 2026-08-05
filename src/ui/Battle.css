@@ -339,6 +339,31 @@
 }
 
 /* --- 턴 타이머 --- */
+/*
+ * 명령 시간. 큰 숫자가 위, 막대가 아래다.
+ * 막대만 두었더니 몇 초 남았는지 안 읽혔다 — 11px 숫자는 눈에 안 걸린다.
+ */
+.bt__turn-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 명령 버튼과 같은 크기(15px/700). 눈이 아래 버튼으로 내려가는 길에 놓인다. */
+.bt__turn-big {
+  align-self: flex-end;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  transition: color 0.1s;
+}
+.bt__turn-big.is-low {
+  color: var(--accent);
+  animation: bt-pulse 0.7s ease-in-out infinite;
+}
+
 .bt__turnbar {
   position: relative;
   height: 18px;
@@ -346,22 +371,32 @@
   border: 1px solid var(--line);
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
+/*
+ * ⚠ 채움색을 진하게. 전에는 rgba(63,143,94,.3) 이라 바탕(#f4e6cd) 위에서
+ *   #beccac 이 되어 대비가 1.37:1 이었다 — 무언가가 보이려면 통상 3:1 은
+ *   필요하다. 숫자는 줄어드는데 막대가 안 보여서 "게이지가 안 움직인다"로
+ *   보였다. 얼마 안 남았을 때 쓰는 붉은색도 1.52:1 이라 마찬가지였다.
+ */
 .bt__turnbar i {
   display: block;
   height: 100%;
-  background: rgba(63, 143, 94, 0.3);
+  background: var(--sky);
   transition: width 0.1s linear;
 }
 .bt__turnbar i.is-low {
-  background: rgba(217, 79, 43, 0.35);
+  background: var(--accent);
 }
+/* 작은 숫자는 왼쪽. 채움 위에 얹히므로 흰 글자로 두고 그림자로 띄운다. */
 .bt__turnbar span {
   position: absolute;
-  right: 8px;
+  left: 8px;
   font-size: 11px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 /* --- 커맨드 --- */
@@ -502,7 +537,7 @@
 }
 @media (max-height: 680px) {
   .bt__field {
-    gap: 12px;
+    gap: 8px;
   }
   .bt__box {
     padding: 5px 10px;
@@ -512,5 +547,12 @@
   .bt__foe-body {
     width: 72px;
     height: 72px;
+  }
+  /* 큰 숫자가 한 줄을 더 먹는다. 낮은 화면에서는 막대에 바짝 붙인다. */
+  .bt__turn-zone {
+    gap: 2px;
+  }
+  .bt__turnbar {
+    height: 14px;
   }
 }
