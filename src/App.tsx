@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import TitleScreen from './ui/TitleScreen'
 import CharacterCreate from './ui/CharacterCreate'
 import DiceRoll from './ui/DiceRoll'
+import Divide from './ui/Divide'
 import Battle from './ui/Battle'
 import Reward from './ui/Reward'
 import Result, { type ResultKind } from './ui/Result'
@@ -10,6 +11,7 @@ import Codex from './ui/Codex'
 import { play } from './ui/sound'
 import type { Shape } from './core/character'
 import { DICE, type Face } from './core/dice'
+import type { Portion } from './core/divide'
 import { BAKE_STAGE } from './core/pizza'
 import {
   addTopping,
@@ -32,6 +34,7 @@ type Screen =
   | 'title'
   | 'character'
   | 'dice'
+  | 'divide'
   | 'battle'
   | 'recruit'
   | 'reward'
@@ -45,6 +48,8 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('title')
   const [shape, setShape] = useState<Shape>('round')
   const [name, setName] = useState('')
+  // 숙성 결과. 분할을 거쳐 런을 만들 때까지 들고 있는다.
+  const [face, setFace] = useState<Face>(1)
   // 런은 주사위를 굴린 순간 만들어진다. 그 전에는 캐릭터 정보만 들고 있다.
   const [run, setRun] = useState<Run | null>(null)
   // 라운드마다 새로 뽑는다. 고정 표가 아니다.
@@ -62,14 +67,20 @@ export default function App() {
     setScreen('dice')
   }, [])
 
+  /* 숙성이 끝나면 곧바로 싸우지 않는다. 반죽을 한 판 크기로 떼어내는 게 먼저다. */
+  const toDivide = useCallback((f: Face) => {
+    setFace(f)
+    setScreen('divide')
+  }, [])
+
   const startRun = useCallback(
-    (face: Face) => {
-      const started = drawEncounter(refillMp(createRun(shape, name, face)))
+    (portion: Portion) => {
+      const started = drawEncounter(refillMp(createRun(shape, name, face, portion)))
       setRun(started.run)
       setEnc(started.enc)
       setScreen('battle')
     },
-    [shape, name],
+    [shape, name, face],
   )
 
   /** 다음 라운드로. 8라운드 진입 시 굽기가 걸린다. */
@@ -143,7 +154,11 @@ export default function App() {
   }
 
   if (screen === 'dice') {
-    return <DiceRoll shape={shape} name={name} onStart={startRun} />
+    return <DiceRoll shape={shape} name={name} onStart={toDivide} />
+  }
+
+  if (screen === 'divide') {
+    return <Divide shape={shape} name={name} onDone={startRun} />
   }
 
   if (screen === 'battle' && run) {

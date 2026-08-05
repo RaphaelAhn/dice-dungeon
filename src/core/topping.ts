@@ -182,14 +182,6 @@ export function toppingStats(t: Topping): Partial<Stats> {
   return { [key]: base[key] * GAIN[t.kind] }
 }
 
-/**
- * 도우에 올릴 수 있는 토핑 수 ⚠
- *
- * 라운드 1~9 에서 9번의 기회가 오는데 상한이 6이면 세 번은 지나쳐야 한다.
- * 상한이 없으면 '지나치기' 버튼을 누를 이유가 사라진다.
- */
-export const MAX_TOPPINGS = 6
-
 /** 총 무게만큼 속도가 깎인다. 많이 올릴수록 도우가 굼떠진다. */
 export function totalWeight(list: Topping[]): number {
   return list.reduce((a, t) => a + t.weight, 0)

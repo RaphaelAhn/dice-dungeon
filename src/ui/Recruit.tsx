@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { STAT_LABEL, STAT_SHORT } from '../core/character'
 import type { EnemyDef } from '../core/enemy'
-import { canAddTopping, type Run } from '../core/run'
+import { canAddTopping, slotsOf, type Run } from '../core/run'
 import CharacterSprite from './CharacterSprite'
 import { play } from './sound'
-import { KIND_LABEL, MAX_TOPPINGS, TASTE_LABEL, toppingStats } from '../core/topping'
+import { KIND_LABEL, TASTE_LABEL, toppingStats } from '../core/topping'
 import './Recruit.css'
 
 /**
@@ -48,7 +48,7 @@ export default function Recruit({
         <p>
           도우에 올리면 힘이 되지만 무거워집니다. 자리는{' '}
           <b>
-            {run.toppings.length} / {MAX_TOPPINGS}
+            {run.toppings.length} / {slotsOf(run)}
           </b>
         </p>
       </header>

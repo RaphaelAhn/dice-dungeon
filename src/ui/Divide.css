@@ -1,0 +1,164 @@
+/* 분할 — 숙성 다음, 첫 라운드 앞. 판에서 사람이 처음 고르는 자리다. */
+.dv {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  overflow-y: auto;
+  gap: 14px;
+  padding: 20px;
+  text-align: center;
+}
+
+.dv__head h2 {
+  font-size: 26px;
+}
+.dv__head p {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dv__dough {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.dv__name {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dv__cards {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.dv__card {
+  width: 176px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 14px 14px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+/*
+ * 마우스를 올리는 것만으로 고르지 않는다. 도우 모양 고를 때와 같은 이유다 —
+ * 골라 둔 것이 손을 움직였다고 바뀌면 안 된다.
+ */
+.dv__card:not(.is-on):hover,
+.dv__card:not(.is-on):focus-visible {
+  border-color: var(--line-strong);
+  outline: none;
+}
+.dv__card.is-on {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 0 22px rgba(187, 68, 32, 0.16);
+}
+
+.dv__no {
+  font-size: 11px;
+  color: var(--muted);
+}
+.dv__label {
+  font-size: 15px;
+  font-weight: 700;
+}
+.dv__grams {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.dv__cm {
+  font-size: 12px;
+  color: var(--muted);
+}
+.dv__slots {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dv__slots b {
+  font-size: 15px;
+  color: var(--sky);
+}
+
+.dv__diff {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
+  margin-top: 5px;
+  font-size: 11px;
+}
+.dv__diff em {
+  font-style: normal;
+}
+.dv__diff .is-up {
+  color: var(--sky);
+}
+.dv__diff .is-down {
+  color: var(--accent);
+}
+
+.dv__desc {
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 1.4em;
+}
+
+.dv__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.dv__go {
+  padding: 13px 30px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  cursor: pointer;
+}
+.dv__go:hover,
+.dv__go:focus-visible {
+  background: var(--bg-2);
+  outline: none;
+}
+.dv__hint {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+@media (max-height: 700px) {
+  .dv {
+    gap: 8px;
+    padding: 12px 20px;
+  }
+  .dv__head h2 {
+    font-size: 21px;
+  }
+  .dv__card {
+    padding: 8px 12px 10px;
+  }
+  .dv__grams {
+    font-size: 20px;
+  }
+}

@@ -2,7 +2,8 @@ import type { Shape, Stats } from './character'
 import { applyFace, DICE, type Face } from './dice'
 import { rollEncounter, type Encounter } from './enemy'
 import { countClashes, decidePizza, pizzaBonus, type Pizza } from './pizza'
-import { MAX_TOPPINGS, totalWeight, type Topping } from './topping'
+import { totalWeight, type Topping } from './topping'
+import { portionOf, type Portion } from './divide'
 
 export const FINAL_STAGE = 10
 
@@ -38,6 +39,8 @@ export type Run = {
   shape: Shape
   name: string
   face: Face
+  /** 분할에서 떼어낸 크기. 재료 자리 수를 정한다. */
+  portion: Portion
   /** 주사위와 토핑까지 반영된 최대치 */
   max: Stats
   hp: number
@@ -80,9 +83,14 @@ export function maxMp(stats: Stats): number {
   return stats.mag
 }
 
+/** 이 도우가 감당하는 재료 자리 — 분할에서 정해진다 */
+export function slotsOf(run: Run): number {
+  return portionOf(run.portion).slots
+}
+
 /** 토핑을 더 올릴 수 있는가 */
 export function canAddTopping(run: Run): boolean {
-  return run.toppings.length < MAX_TOPPINGS
+  return run.toppings.length < slotsOf(run)
 }
 
 /**
@@ -169,12 +177,22 @@ export function drawEncounter(
   }
 }
 
-export function createRun(shape: Shape, name: string, face: Face): Run {
-  const max = applyFace(face)
+export function createRun(shape: Shape, name: string, face: Face, portion: Portion = 'medium'): Run {
+  const p = portionOf(portion)
+  const rolled = applyFace(face)
+  // 분할 보정은 여기서 한 번만 얹는다. 나중에 더하면 최대치와 현재값이 어긋난다.
+  const max: Stats = {
+    hp: rolled.hp + (p.gain.hp ?? 0),
+    atk: rolled.atk + (p.gain.atk ?? 0),
+    mag: rolled.mag + (p.gain.mag ?? 0),
+    spd: Math.max(1, rolled.spd + (p.gain.spd ?? 0)),
+    luk: rolled.luk + (p.gain.luk ?? 0),
+  }
   return {
     shape,
     name,
     face,
+    portion,
     max,
     hp: max.hp,
     mp: maxMp(max),
