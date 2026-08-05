@@ -246,12 +246,39 @@ const SPECS = {
       { from: 784, dur: 0.42, at: 0.33, vol: 0.16, wave: 'sine' as Wave },
     ],
   },
-  /** 끝났다 — 내려가는 세 음 */
-  over: {
+  /**
+   * 상했다 — 반죽이 무너져 판이 끝났다(규칙 2).
+   *
+   * 끝나는 방식이 둘인데 한 소리로 덮으면 무엇 때문에 끝났는지 귀로는 모른다.
+   * 이쪽은 바람이 빠지는 소리다 — 톱니파를 길게 끌어내리고, 살짝 어긋난
+   * 톱니를 겹쳐 맥놀이로 시큼하게 만든 뒤, 바닥에 둔탁하게 떨군다.
+   */
+  spoil: {
+    noise: [
+      { dur: 0.18, vol: 0.16, lp: 700 },
+      { dur: 0.3, vol: 0.2, at: 0.78, lp: 320 },
+    ],
     tones: [
-      { from: 440, dur: 0.16, vol: 0.3, wave: 'triangle' as Wave },
-      { from: 349, dur: 0.16, at: 0.15, vol: 0.3, wave: 'triangle' as Wave },
-      { from: 262, to: 220, dur: 0.5, at: 0.3, vol: 0.32, wave: 'triangle' as Wave },
+      { from: 300, to: 55, dur: 1.0, vol: 0.36, wave: 'sawtooth' as Wave },
+      // 6Hz 어긋나게 겹친다. 맞물리지 않아 웅웅거리고, 그게 상한 느낌을 만든다
+      { from: 306, to: 57, dur: 1.0, vol: 0.24, wave: 'sawtooth' as Wave },
+      { from: 92, to: 44, dur: 0.42, at: 0.76, vol: 0.38, wave: 'sine' as Wave },
+    ],
+  },
+
+  /**
+   * 타 버렸다 — 시간이 다해 판이 끝났다(규칙 1).
+   * 이쪽은 타는 소리다. 잡음을 높게 남겨 지글거리게 두고 위에서 눌러 끈다.
+   */
+  burnt: {
+    noise: [
+      { dur: 0.9, vol: 0.24, hp: 1800 },
+      { dur: 0.16, vol: 0.18, at: 0.34, hp: 3200 },
+      { dur: 0.16, vol: 0.16, at: 0.58, hp: 3200 },
+    ],
+    tones: [
+      { from: 430, to: 88, dur: 0.75, vol: 0.24, wave: 'square' as Wave },
+      { from: 215, to: 52, dur: 0.9, at: 0.12, vol: 0.2, wave: 'triangle' as Wave },
     ],
   },
 

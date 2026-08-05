@@ -144,8 +144,20 @@ export default function Battle({
 
   useEffect(() => {
     if (!state.over) return
-    // 마지막 라운드를 이기면 피자가 완성된다 — 라운드 클리어보다 한 음 더 간다.
-    play(state.over === 'win' ? (state.stage >= FINAL_STAGE ? 'finish' : 'clear') : 'over')
+    /*
+     * 마지막 라운드를 이기면 피자가 완성된다 — 라운드 클리어보다 한 음 더 간다.
+     * 지는 방식은 둘이고 소리도 갈린다 — 시간이 다하면 타고(규칙 1),
+     * 신선도가 다하면 상한다(규칙 2). 한 소리로 덮으면 왜 끝났는지 귀로는 모른다.
+     */
+    play(
+      state.over === 'win'
+        ? state.stage >= FINAL_STAGE
+          ? 'finish'
+          : 'clear'
+        : state.over === 'timeout'
+          ? 'burnt'
+          : 'spoil',
+    )
   }, [state.over, state.stage])
 
   /* 무엇이 더 급한지는 여기서 정한다. 위가 이긴다. */
