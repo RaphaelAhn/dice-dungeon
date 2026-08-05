@@ -1,0 +1,167 @@
+/* 성형 — 둥글리기에서 잡은 장력이 선택지를 열고 닫는다 */
+.sh {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  overflow-y: auto;
+  gap: 13px;
+  padding: 20px;
+  text-align: center;
+}
+
+.sh__head h2 {
+  font-size: 26px;
+}
+.sh__head p {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sh__dough {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.sh__name {
+  font-size: 13px;
+  color: var(--muted);
+}
+/* 장력을 계속 띄워 둔다. 무엇 때문에 막혔는지 눈앞에 있어야 한다. */
+.sh__tension {
+  font-size: 12px;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+}
+.sh__tension--good {
+  color: var(--sky);
+  border-color: var(--sky);
+}
+.sh__tension--torn {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.sh__cards {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.sh__card {
+  width: 176px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 14px 14px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.sh__card:not(.is-on):hover,
+.sh__card:not(.is-on):focus-visible {
+  border-color: var(--line-strong);
+  outline: none;
+}
+.sh__card.is-on {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 0 22px rgba(187, 68, 32, 0.16);
+}
+/* 막힌 것도 고를 수는 있다. 대가를 알고 고르는 것과 못 고르는 것은 다르다. */
+.sh__card.is-risky {
+  background: var(--bg-2);
+}
+
+.sh__no {
+  font-size: 11px;
+  color: var(--muted);
+}
+.sh__label {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sh__diff {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
+  font-size: 11px;
+}
+.sh__diff em {
+  font-style: normal;
+}
+.sh__diff .is-up {
+  color: var(--sky);
+}
+.sh__diff .is-down {
+  color: var(--accent);
+}
+
+.sh__warn {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--accent);
+}
+
+.sh__desc {
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 1.4em;
+  max-width: 460px;
+}
+
+.sh__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.sh__go {
+  padding: 13px 30px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  cursor: pointer;
+}
+.sh__go.is-risky {
+  color: var(--muted);
+  border-color: var(--line-strong);
+}
+.sh__go:hover,
+.sh__go:focus-visible {
+  background: var(--bg-2);
+  outline: none;
+}
+.sh__hint {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+@media (max-height: 700px) {
+  .sh {
+    gap: 8px;
+    padding: 12px 20px;
+  }
+  .sh__head h2 {
+    font-size: 21px;
+  }
+  .sh__card {
+    padding: 8px 12px 10px;
+  }
+}

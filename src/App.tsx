@@ -3,6 +3,8 @@ import TitleScreen from './ui/TitleScreen'
 import CharacterCreate from './ui/CharacterCreate'
 import DiceRoll from './ui/DiceRoll'
 import Divide from './ui/Divide'
+import Balling from './ui/Balling'
+import Shaping from './ui/Shaping'
 import Battle from './ui/Battle'
 import Reward from './ui/Reward'
 import Result, { type ResultKind } from './ui/Result'
@@ -12,6 +14,7 @@ import { play } from './ui/sound'
 import type { Shape } from './core/character'
 import { DICE, type Face } from './core/dice'
 import type { Portion } from './core/divide'
+import type { Stretch } from './core/forming'
 import { BAKE_STAGE } from './core/pizza'
 import {
   addTopping,
@@ -35,6 +38,8 @@ type Screen =
   | 'character'
   | 'dice'
   | 'divide'
+  | 'balling'
+  | 'shaping'
   | 'battle'
   | 'recruit'
   | 'reward'
@@ -50,6 +55,9 @@ export default function App() {
   const [name, setName] = useState('')
   // 숙성 결과. 분할을 거쳐 런을 만들 때까지 들고 있는다.
   const [face, setFace] = useState<Face>(1)
+  // 만들기 단계의 결과. 런이 만들어질 때 한꺼번에 반영된다.
+  const [portion, setPortion] = useState<Portion>('medium')
+  const [tension, setTension] = useState(70)
   // 런은 주사위를 굴린 순간 만들어진다. 그 전에는 캐릭터 정보만 들고 있다.
   const [run, setRun] = useState<Run | null>(null)
   // 라운드마다 새로 뽑는다. 고정 표가 아니다.
@@ -73,14 +81,27 @@ export default function App() {
     setScreen('divide')
   }, [])
 
+  /* 분할 → 둥글리기 → 성형. 앞 단계의 결과를 들고 다음으로 넘긴다. */
+  const toBalling = useCallback((p: Portion) => {
+    setPortion(p)
+    setScreen('balling')
+  }, [])
+
+  const toShaping = useCallback((t: number) => {
+    setTension(t)
+    setScreen('shaping')
+  }, [])
+
   const startRun = useCallback(
-    (portion: Portion) => {
-      const started = drawEncounter(refillMp(createRun(shape, name, face, portion)))
+    (stretch: Stretch) => {
+      const started = drawEncounter(
+        refillMp(createRun(shape, name, face, portion, tension, stretch)),
+      )
       setRun(started.run)
       setEnc(started.enc)
       setScreen('battle')
     },
-    [shape, name, face],
+    [shape, name, face, portion, tension],
   )
 
   /** 다음 라운드로. 8라운드 진입 시 굽기가 걸린다. */
@@ -158,7 +179,15 @@ export default function App() {
   }
 
   if (screen === 'divide') {
-    return <Divide shape={shape} name={name} onDone={startRun} />
+    return <Divide shape={shape} name={name} onDone={toBalling} />
+  }
+
+  if (screen === 'balling') {
+    return <Balling shape={shape} name={name} onDone={toShaping} />
+  }
+
+  if (screen === 'shaping') {
+    return <Shaping shape={shape} name={name} tension={tension} onDone={startRun} />
   }
 
   if (screen === 'battle' && run) {

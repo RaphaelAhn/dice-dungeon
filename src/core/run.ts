@@ -4,6 +4,7 @@ import { rollEncounter, type Encounter } from './enemy'
 import { countClashes, decidePizza, pizzaBonus, type Pizza } from './pizza'
 import { totalWeight, type Topping } from './topping'
 import { portionOf, type Portion } from './divide'
+import { ballGain, stretchGain, type Stretch } from './forming'
 
 export const FINAL_STAGE = 10
 
@@ -41,6 +42,10 @@ export type Run = {
   face: Face
   /** 분할에서 떼어낸 크기. 재료 자리 수를 정한다. */
   portion: Portion
+  /** 둥글리기에서 잡은 표면 장력 0~100 */
+  tension: number
+  /** 성형에서 편 정도 */
+  stretch: Stretch
   /** 주사위와 토핑까지 반영된 최대치 */
   max: Stats
   hp: number
@@ -177,22 +182,36 @@ export function drawEncounter(
   }
 }
 
-export function createRun(shape: Shape, name: string, face: Face, portion: Portion = 'medium'): Run {
+export function createRun(
+  shape: Shape,
+  name: string,
+  face: Face,
+  portion: Portion = 'medium',
+  tension = 70,
+  stretch: Stretch = 'even',
+): Run {
   const p = portionOf(portion)
   const rolled = applyFace(face)
-  // 분할 보정은 여기서 한 번만 얹는다. 나중에 더하면 최대치와 현재값이 어긋난다.
+  /*
+   * 만들기 단계의 보정을 여기서 한 번에 얹는다 — 분할·둥글리기·성형.
+   * 나중에 따로 더하면 최대치와 현재값이 어긋난다(신선도가 최대보다 커지는 식).
+   */
+  const gains = [p.gain, ballGain(tension), stretchGain(tension, stretch)]
+  const sum = (k: keyof Stats) => gains.reduce((n, g) => n + (g[k] ?? 0), 0)
   const max: Stats = {
-    hp: rolled.hp + (p.gain.hp ?? 0),
-    atk: rolled.atk + (p.gain.atk ?? 0),
-    mag: rolled.mag + (p.gain.mag ?? 0),
-    spd: Math.max(1, rolled.spd + (p.gain.spd ?? 0)),
-    luk: rolled.luk + (p.gain.luk ?? 0),
+    hp: Math.max(30, rolled.hp + sum('hp')),
+    atk: Math.max(1, rolled.atk + sum('atk')),
+    mag: Math.max(1, rolled.mag + sum('mag')),
+    spd: Math.max(1, rolled.spd + sum('spd')),
+    luk: Math.max(1, rolled.luk + sum('luk')),
   }
   return {
     shape,
     name,
     face,
     portion,
+    tension,
+    stretch,
     max,
     hp: max.hp,
     mp: maxMp(max),

@@ -49,7 +49,7 @@ export const PORTIONS: readonly PortionSpec[] = [
     label: '작게',
     slots: 4,
     // 얇으니 가볍고 빠르다. 대신 담을 자리가 적다.
-    gain: { spd: 6, luk: 3, atk: 2 },
+    gain: { spd: 4, luk: 2, atk: 1 },
     desc: '얇고 가볍다. 손이 빠르지만 자리가 적다.',
   },
   {
@@ -58,7 +58,7 @@ export const PORTIONS: readonly PortionSpec[] = [
     cm: 30,
     label: '보통',
     slots: 5,
-    gain: { hp: 12, spd: 2, luk: 1 },
+    gain: { hp: 8, spd: 1 },
     desc: '무난하다. 어느 쪽으로도 치우치지 않는다.',
   },
   {
@@ -68,7 +68,7 @@ export const PORTIONS: readonly PortionSpec[] = [
     label: '크게',
     slots: 6,
     // 두꺼우니 잘 버틴다. 대신 무거워 손이 늦다.
-    gain: { hp: 22, atk: 2, spd: -5 },
+    gain: { hp: 15, atk: 1, spd: -5 },
     desc: '두껍고 무겁다. 잘 버티지만 손이 늦다.',
   },
 ]
