@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PORTIONS, portionOf, WHEEL, type Portion } from '../core/divide'
-import { STAT_LABEL, type Shape, type Stats } from '../core/character'
+import { STAT_LABEL, type Stats } from '../core/character'
 import CharacterSprite from './CharacterSprite'
 import { play } from './sound'
 import './Divide.css'
@@ -22,11 +22,9 @@ const SPIN_MS = 2600
 const SPIN_TURNS = 4.2
 
 export default function Divide({
-  shape,
   name,
   onDone,
 }: {
-  shape: Shape
   name: string
   onDone: (portion: Portion) => void
 }) {
@@ -115,7 +113,7 @@ export default function Divide({
 
       <div className="dv__stage">
         <div className="dv__dough">
-          <CharacterSprite shape={shape} scale={0.7} />
+          <CharacterSprite scale={0.7} />
           <b className="dv__name">{name}</b>
         </div>
 

@@ -160,7 +160,7 @@ type Outcome = {
 
 function playRun(face: Face, rec: RecruitPolicy, rw: RewardPolicy, seed: number): Outcome {
   const rng = mulberry32(seed)
-  let run = createRun('round', '도우', face)
+  let run = createRun('도우', face)
   let turns = 0
 
   for (let stage = 1; stage <= 10; stage++) {

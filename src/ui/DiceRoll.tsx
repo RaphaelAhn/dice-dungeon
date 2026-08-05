@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BASE_STATS, STAT_META, type Shape, type Stats } from '../core/character'
+import { BASE_STATS, STAT_META, type Stats } from '../core/character'
 import { applyFace, DICE, rollDice, type Face } from '../core/dice'
 import CharacterSprite from './CharacterSprite'
 import { play } from './sound'
@@ -37,11 +37,9 @@ const DRUM_MS = 640
 type Phase = 'ready' | 'rolling' | 'waiting' | 'done'
 
 export default function DiceRoll({
-  shape,
   name,
   onStart,
 }: {
-  shape: Shape
   name: string
   onStart: (face: Face) => void
 }) {
@@ -117,7 +115,7 @@ export default function DiceRoll({
         <p>
           {phase === 'done' ? (
             <>
-              이 반죽으로 <b>1 라운드</b>에 들어갑니다.
+              이 반죽을 <b>한 판 크기</b>로 나눕니다.
             </>
           ) : (
             <>
@@ -129,7 +127,7 @@ export default function DiceRoll({
 
       <div className="dr__stage">
         <div className="dr__char">
-          <CharacterSprite shape={shape} scale={0.8} />
+          <CharacterSprite scale={0.8} />
           <b className="dr__char-name">{name}</b>
         </div>
 
@@ -161,7 +159,7 @@ export default function DiceRoll({
           </button>
         ) : (
           <button className="dr__btn dr__btn--go" onClick={() => result && onStart(result)}>
-            1 라운드 시작 →
+            반죽 분할하기 →
           </button>
         )}
         <p className="dr__hint">Enter / Space</p>

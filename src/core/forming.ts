@@ -60,67 +60,78 @@ export function ballGain(tension: number): Partial<Stats> {
 
 /* ── 성형 ── */
 
-export type Stretch = 'thin' | 'even' | 'thick'
+/**
+ * 성형은 이제 고르는 게 아니라 치는 것이다.
+ *
+ * 왼손·오른손이 번갈아 나오고, 제때 치면 도우가 고르게 넓어진다. 놓치면
+ * 그 자리가 얇아지고, 많이 놓치면 가운데가 찢어진다 — 실제로도 한쪽만
+ * 밀거나 급히 밀면 그렇게 된다.
+ *
+ * 그래서 결과가 뒤집힌다. 전에는 '얇게'가 욕심내는 선택이었지만, 이제는
+ * 얇은 것이 잘못 편 결과다. 잘 칠수록 두껍고 크러스트가 산다.
+ */
+export type Stretch = 'torn' | 'thin' | 'even' | 'thick'
+
+export const HAND_COUNT = 8
 
 export type StretchSpec = {
   id: Stretch
   label: string
-  /** 이 정도로 펴려면 필요한 장력. 모자라면 찢어진다. */
-  needs: number
   gain: Partial<Stats>
   desc: string
-  /** 실패했을 때 */
-  failDesc: string
 }
 
 /**
- * ⚠ 얇게 펼수록 크게 얻지만 필요한 장력이 높다.
+ * ⚠ 잘 칠수록 좋아지되, 못 쳐도 아주 망하지는 않게 둔다.
  *
- * 가운데를 얇게 하고 가장자리를 남기는 것이 성형의 핵심이다. 얇으면 넓어져
- * 손이 빨라지고 촉감이 산다. 두꺼우면 크러스트가 살아 잘 버틴다.
- * 가운데를 너무 얇게 밀면 찢어진다 — 그 경계가 둥글리기에서 정해진다.
+ * 손기술이 그대로 보상이 되면 처음 잡은 사람은 계속 바닥을 맞는다.
+ * 얇게는 얇은 대로 쓸모(빠름)를 주고, 찢어짐만 확실한 벌로 남긴다.
  */
 export const STRETCHES: readonly StretchSpec[] = [
   {
+    id: 'torn',
+    label: '찢어짐',
+    gain: { hp: -10, mag: -6, spd: 2 },
+    desc: '가운데가 찢어졌다. 급히 메우느라 반죽이 뭉쳤다.',
+  },
+  {
     id: 'thin',
     label: '얇게',
-    needs: TENSION_GOOD_FROM,
-    gain: { spd: 7, luk: 6, atk: 2, hp: -14 },
-    desc: '가운데를 얇게. 넓게 퍼져 손이 빨라진다.',
-    failDesc: '가운데가 찢어졌다. 급히 메우느라 도우가 뭉쳤다.',
+    gain: { spd: 7, luk: 5, hp: -10 },
+    desc: '한쪽으로 몰려 얇게 폈다. 가볍고 빠르지만 잘 버티지 못한다.',
   },
   {
     id: 'even',
     label: '고르게',
-    needs: 30,
-    gain: { spd: 2, mag: 2 },
-    desc: '전체를 고르게. 무난하다.',
-    failDesc: '고르게 펴지지 않고 한쪽으로 몰렸다.',
+    gain: { spd: 3, mag: 3, hp: 4 },
+    desc: '전체를 고르게 폈다. 어느 쪽으로도 치우치지 않는다.',
   },
   {
     id: 'thick',
     label: '두껍게',
-    needs: 0,
-    gain: { hp: 14, mag: 3, spd: -4 },
-    desc: '가장자리를 살려 크러스트를 크게. 잘 버틴다.',
-    failDesc: '',
+    gain: { hp: 20, mag: 5, atk: 4, spd: -3 },
+    desc: '가장자리를 살려 크러스트가 크다. 잘 버틴다.',
   },
 ]
 
 export function stretchOf(id: Stretch): StretchSpec {
-  return STRETCHES.find((s) => s.id === id) ?? STRETCHES[1]
+  return STRETCHES.find((s) => s.id === id) ?? STRETCHES[2]
 }
 
-/** 이 장력으로 이 성형이 되는가 */
-export function canStretch(tension: number, id: Stretch): boolean {
-  // 찢어진 반죽은 가스가 빠져 얇게 펴는 것을 못 견딘다
-  if (ballOf(tension) === 'torn' && id === 'thin') return false
-  return tension >= stretchOf(id).needs
+/**
+ * 몇 번 제대로 쳤는지로 결과가 갈린다.
+ *
+ * 장력이 낮으면 한 번 더 쳐야 같은 결과가 나온다 — 둥글리기를 대충 하면
+ * 반죽이 뻣뻣해 잘 안 늘어난다는 것을 여기서 갚는다.
+ */
+export function stretchFromHits(hits: number, tension: number): Stretch {
+  const need = ballOf(tension) === 'good' ? 0 : 1
+  if (hits >= HAND_COUNT - 1 - need) return 'thick'
+  if (hits >= HAND_COUNT - 3 - need) return 'even'
+  if (hits >= HAND_COUNT - 5 - need) return 'thin'
+  return 'torn'
 }
 
-/** 실패하면 얻는 대신 잃는다. 아무 일도 안 일어나면 고를 이유가 없어진다. */
-export function stretchGain(tension: number, id: Stretch): Partial<Stats> {
-  const s = stretchOf(id)
-  if (canStretch(tension, id)) return s.gain
-  return { hp: -6, spd: -4 }
+export function stretchGain(_tension: number, id: Stretch): Partial<Stats> {
+  return stretchOf(id).gain
 }

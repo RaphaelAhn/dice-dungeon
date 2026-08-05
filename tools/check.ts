@@ -7,7 +7,7 @@ import { ALL_TOPPINGS } from '../src/core/topping'
 const fixed = () => 0.5 // 회피·치명타·변동폭을 모두 고정한다
 
 function setup(playerSpd: number, enemySpd: number): BattleState {
-  const base = createRun('round', '도우', 1)
+  const base = createRun('도우', 1)
   const run: Run = { ...base, stage: 1, max: { ...base.max, spd: playerSpd, mag: 40 } }
   const t = ALL_TOPPINGS.find((x) => x.taste === 'mild')!
   const enc: Encounter = {

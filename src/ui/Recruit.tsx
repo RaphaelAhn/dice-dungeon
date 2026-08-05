@@ -55,7 +55,7 @@ export default function Recruit({
 
       {/* 지금 도우가 어떤 모습인지 보고 고른다 */}
       <div className="rc__dough">
-        <CharacterSprite shape={run.shape} scale={1} toppings={run.toppings} />
+        <CharacterSprite scale={1} toppings={run.toppings} />
       </div>
 
       <div className="rc__cards">

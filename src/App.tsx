@@ -11,7 +11,6 @@ import Result, { type ResultKind } from './ui/Result'
 import Recruit from './ui/Recruit'
 import Codex from './ui/Codex'
 import { play } from './ui/sound'
-import type { Shape } from './core/character'
 import { DICE, type Face } from './core/dice'
 import type { Portion } from './core/divide'
 import type { Stretch } from './core/forming'
@@ -51,7 +50,6 @@ type Screen =
 // ponytail: 화면 수가 적어 라우터 없이 상태 하나로 전환한다.
 export default function App() {
   const [screen, setScreen] = useState<Screen>('title')
-  const [shape, setShape] = useState<Shape>('round')
   const [name, setName] = useState('')
   // 숙성 결과. 분할을 거쳐 런을 만들 때까지 들고 있는다.
   const [face, setFace] = useState<Face>(1)
@@ -69,8 +67,7 @@ export default function App() {
 
   const back = useCallback(() => setScreen('title'), [])
 
-  const toDice = useCallback((g: Shape, n: string) => {
-    setShape(g)
+  const toDice = useCallback((n: string) => {
     setName(n)
     setScreen('dice')
   }, [])
@@ -95,13 +92,13 @@ export default function App() {
   const startRun = useCallback(
     (stretch: Stretch) => {
       const started = drawEncounter(
-        refillMp(createRun(shape, name, face, portion, tension, stretch)),
+        refillMp(createRun(name, face, portion, tension, stretch)),
       )
       setRun(started.run)
       setEnc(started.enc)
       setScreen('battle')
     },
-    [shape, name, face, portion, tension],
+    [name, face, portion, tension],
   )
 
   /** 다음 라운드로. 8라운드 진입 시 굽기가 걸린다. */
@@ -175,19 +172,19 @@ export default function App() {
   }
 
   if (screen === 'dice') {
-    return <DiceRoll shape={shape} name={name} onStart={toDivide} />
+    return <DiceRoll name={name} onStart={toDivide} />
   }
 
   if (screen === 'divide') {
-    return <Divide shape={shape} name={name} onDone={toBalling} />
+    return <Divide name={name} onDone={toBalling} />
   }
 
   if (screen === 'balling') {
-    return <Balling shape={shape} name={name} onDone={toShaping} />
+    return <Balling name={name} onDone={toShaping} />
   }
 
   if (screen === 'shaping') {
-    return <Shaping shape={shape} name={name} tension={tension} onDone={startRun} />
+    return <Shaping name={name} tension={tension} onDone={startRun} />
   }
 
   if (screen === 'battle' && run) {

@@ -1,4 +1,4 @@
-import type { Shape, Stats } from './character'
+import type { Stats } from './character'
 import { applyFace, DICE, type Face } from './dice'
 import { rollEncounter, type Encounter } from './enemy'
 import { countClashes, decidePizza, pizzaBonus, type Pizza } from './pizza'
@@ -37,7 +37,6 @@ export function stagesToNextReward(run: Run): number | null {
  * 남는 건 도감에 기록된 피자뿐이다. (save.ts)
  */
 export type Run = {
-  shape: Shape
   name: string
   face: Face
   /** 분할에서 떼어낸 크기. 재료 자리 수를 정한다. */
@@ -183,7 +182,6 @@ export function drawEncounter(
 }
 
 export function createRun(
-  shape: Shape,
   name: string,
   face: Face,
   portion: Portion = 'medium',
@@ -206,7 +204,6 @@ export function createRun(
     luk: Math.max(1, rolled.luk + sum('luk')),
   }
   return {
-    shape,
     name,
     face,
     portion,

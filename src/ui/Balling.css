@@ -21,10 +21,82 @@
 }
 
 .bl__dough {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
+}
+
+/*
+ * 굴리는 동작. 도우는 작은 원을 그리며 돌고, 그 위에 손바닥이 얹혀 같이 돈다.
+ *
+ * ⚠ translate·rotate 를 독립 속성으로 쓴다. CharacterSprite 가 안에서 이미
+ *   transform 을 쓰고 있어(sprite-idle) transform 으로 주면 서로 덮어쓴다.
+ */
+.bl__roller {
+  display: block;
+  animation: bl-roll 0.9s linear infinite;
+}
+.bl__dough.is-stopped .bl__roller {
+  animation: none;
+}
+
+@keyframes bl-roll {
+  0% {
+    translate: 7px 0;
+  }
+  25% {
+    translate: 0 -6px;
+  }
+  50% {
+    translate: -7px 0;
+  }
+  75% {
+    translate: 0 6px;
+  }
+  100% {
+    translate: 7px 0;
+  }
+}
+
+/* 손바닥. 도우를 감싸 도는 손을 위에서 본 모양으로 둔다. */
+.bl__palm {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  z-index: 4;
+  width: 74px;
+  height: 58px;
+  margin-left: -37px;
+  border-radius: 46% 46% 40% 40% / 54% 54% 46% 46%;
+  background:
+    radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(160deg, #f2cfa8, #dda87a);
+  border: 3px solid #b98555;
+  box-shadow: inset -4px -6px 10px -4px rgba(120, 70, 30, 0.35);
+  opacity: 0.94;
+  animation: bl-roll 0.9s linear infinite;
+}
+.bl__dough.is-stopped .bl__palm {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+/* 손가락 자국 — 손바닥임을 알리는 최소한의 선 */
+.bl__palm::after {
+  content: '';
+  position: absolute;
+  inset: 26% 18% 42% 18%;
+  border-top: 3px solid rgba(150, 95, 55, 0.4);
+  border-radius: 50% 50% 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bl__roller,
+  .bl__palm {
+    animation: none;
+  }
 }
 .bl__name {
   font-size: 13px;

@@ -103,7 +103,6 @@ export default function Result({
       {kind === 'clear' && <Confetti />}
       <div className="rs__dough">
         <CharacterSprite
-          shape={run.shape}
           scale={1.1}
           toppings={run.toppings}
           mood={kind === 'clear' ? 'win' : 'lose'}

@@ -351,7 +351,7 @@ export default function Battle({
 
         <div className="bt__side bt__side--mine">
           <div className="bt__unit">
-            <CharacterSprite shape={run.shape} scale={doughScale} toppings={run.toppings} mood={mood} />
+            <CharacterSprite scale={doughScale} toppings={run.toppings} mood={mood} />
             <div className="bt__box bt__box--mine">
               <div className="bt__box-top">
                 <b className="bt__who">{run.name}</b>

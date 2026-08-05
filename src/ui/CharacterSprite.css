@@ -54,18 +54,13 @@
   background: radial-gradient(closest-side, rgba(150, 110, 60, 0.34), rgba(150, 110, 60, 0));
 }
 
-/* 둥근 도우 — 손으로 편 반죽 */
-.sprite--round .sprite__body {
+/*
+ * 도우는 한 가지다. 둥근/네모로 나눠 두었지만 성능 차이가 없어 고르는
+ * 의미가 없었고, 만들기 단계(분할·둥글리기·성형)가 생기면서 도우의 성격은
+ * 그쪽에서 정해진다. 모양은 손으로 편 반죽 하나로 둔다.
+ */
+.sprite__body {
   border-radius: 50%;
-}
-
-/* 네모 도우 — 팬에 눌러 담은 반죽. 모서리만 살짝 죽인다 */
-.sprite--square .sprite__body {
-  border-radius: 10px;
-}
-.sprite--square .sprite__shadow {
-  width: 80px;
-  border-radius: 6px;
 }
 
 /* --- 얼굴 --- */
@@ -339,12 +334,6 @@
     radial-gradient(circle at 44% 78%, rgba(214, 160, 60, 0.4), rgba(214, 160, 60, 0) 28%),
     linear-gradient(160deg, #f5d98a, #e8bf62);
 }
-.sprite--round .sprite__cheese {
-  border-radius: 50%;
-}
-.sprite--square .sprite__cheese {
-  border-radius: 6px;
-}
 
 /*
  * 소스는 도우 위에 얇게 깔린다.
@@ -361,12 +350,6 @@
   /* 도우가 입체가 되면서 평평한 소스만 종이처럼 떠 보였다. 윤기를 얹는다. */
   background-image: var(--gloss-soft);
   box-shadow: inset -4px -6px 12px -4px rgba(90, 40, 20, 0.35);
-}
-.sprite--round .sprite__sauce {
-  border-radius: 50%;
-}
-.sprite--square .sprite__sauce {
-  border-radius: 6px;
 }
 .sprite__sauce--mild {
   background-color: #f6eccd;

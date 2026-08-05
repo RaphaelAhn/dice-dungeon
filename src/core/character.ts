@@ -1,5 +1,3 @@
-export type Shape = 'round' | 'square'
-
 export type Stats = {
   hp: number
   atk: number
@@ -48,14 +46,6 @@ export const STAT_SHORT: Record<keyof Stats, string> = {
   spd: '발효',
   luk: '촉감',
 }
-
-export const SHAPE_LABEL: Record<Shape, string> = {
-  round: '둥근 도우',
-  square: '네모 도우',
-}
-
-/** 모양은 겉모습만 바꾼다. 성능 차이는 없다. */
-export const SHAPES: Shape[] = ['round', 'square']
 
 export const NAME_MAX = 8
 

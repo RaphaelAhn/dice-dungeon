@@ -1,14 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  BASE_STATS,
-  clampName,
-  SHAPE_LABEL,
-  SHAPES,
-  isValidName,
-  NAME_MAX,
-  STAT_META,
-  type Shape,
-} from '../core/character'
+import { BASE_STATS, clampName, isValidName, NAME_MAX, STAT_META } from '../core/character'
 import CharacterSprite from './CharacterSprite'
 import './CharacterCreate.css'
 
@@ -16,30 +7,23 @@ export default function CharacterCreate({
   onConfirm,
   onBack,
 }: {
-  onConfirm: (g: Shape, name: string) => void
+  onConfirm: (name: string) => void
   onBack: () => void
 }) {
-  const [index, setIndex] = useState(0)
   const [name, setName] = useState('')
-  const shape = SHAPES[index]
   const ready = isValidName(name)
 
   const confirm = () => {
-    if (ready) onConfirm(shape, name.trim())
+    if (ready) onConfirm(name.trim())
   }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // 이름 입력 중에는 방향키를 글자 이동에 쓴다. 모양이 바뀌면 안 된다.
       const typing = (e.target as HTMLElement)?.tagName === 'INPUT'
 
-      if (!typing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      if (e.key === 'Enter' || (!typing && e.key === ' ')) {
         e.preventDefault()
-        const delta = e.key === 'ArrowLeft' ? -1 : 1
-        setIndex((i) => (i + delta + SHAPES.length) % SHAPES.length)
-      } else if (e.key === 'Enter' || (!typing && e.key === ' ')) {
-        e.preventDefault()
-        if (ready) onConfirm(SHAPES[index], name.trim())
+        if (ready) onConfirm(name.trim())
       } else if (e.key === 'Escape') {
         e.preventDefault()
         onBack()
@@ -47,7 +31,7 @@ export default function CharacterCreate({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [index, name, ready, onConfirm, onBack])
+  }, [name, ready, onConfirm, onBack])
 
   return (
     <div className="cc">
@@ -56,23 +40,16 @@ export default function CharacterCreate({
         <p>모양만 다릅니다. 시작 능력은 같습니다.</p>
       </header>
 
-      {/*
-        마우스를 올리는 것만으로 선택이 옮겨 가면 안 된다. 고르고 나서 손을
-        움직였을 뿐인데 골라 둔 도우가 어두워졌다. 타이틀 메뉴는 커서라
-        마우스를 따라가도 되지만, 여기는 선택이다 — 누른 것이 남아야 한다.
-      */}
       <div className="cc__stage">
-        {SHAPES.map((g, i) => (
-          <button
-            key={g}
-            className={i === index ? 'cc__card is-on' : 'cc__card'}
-            aria-pressed={i === index}
-            onClick={() => setIndex(i)}
-          >
-            <CharacterSprite shape={g} scale={0.72} />
-            <span className="cc__name">{SHAPE_LABEL[g]}</span>
-          </button>
-        ))}
+        {/*
+          도우는 한 가지다. 둥근·네모로 나눠 두었지만 성능 차이가 없어 고르는
+          의미가 없었고, 이제 도우의 성격은 만들기 단계(분할·둥글리기·성형)가
+          정한다. 여기서는 이름만 짓는다.
+        */}
+        <div className="cc__card is-on">
+          <CharacterSprite scale={0.8} />
+          <span className="cc__name">흰 도우</span>
+        </div>
       </div>
 
       <section className="cc__name-field">

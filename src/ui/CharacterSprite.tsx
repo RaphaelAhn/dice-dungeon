@@ -1,4 +1,3 @@
-import { SHAPE_LABEL, type Shape } from '../core/character'
 import { TASTE_LABEL, type Topping } from '../core/topping'
 import FormArt from './FormArt'
 import './CharacterSprite.css'
@@ -58,12 +57,10 @@ const SPOTS: [number, number][] = [
 ]
 
 export default function CharacterSprite({
-  shape,
   scale = 4,
   toppings = [],
   mood = 'idle',
 }: {
-  shape: Shape
   scale?: number
   /** 도우에 올린 재료. 올린 순서대로 자리를 채운다. */
   toppings?: Topping[]
@@ -72,13 +69,11 @@ export default function CharacterSprite({
   const sauce = toppings.find((t) => t.kind === 'sauce')
   const solid = toppings.filter((t) => t.kind !== 'sauce')
   const label =
-    toppings.length === 0
-      ? SHAPE_LABEL[shape]
-      : `${SHAPE_LABEL[shape]} — ${toppings.map((t) => t.name).join(', ')}`
+    toppings.length === 0 ? '흰 도우' : `흰 도우 — ${toppings.map((t) => t.name).join(', ')}`
 
   return (
     <div
-      className={`sprite sprite--${shape} sprite--${mood}${sauce ? ' sprite--sauced' : ''}`}
+      className={`sprite sprite--${mood}${sauce ? ' sprite--sauced' : ''}`}
       style={{
         width: ART_W * scale,
         height: ART_H * scale,

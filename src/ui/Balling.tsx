@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Shape } from '../core/character'
 import {
   BALL_META,
   ballOf,
@@ -24,11 +23,9 @@ const FILL_MS = 1700
  * 긴장이고, 실제로도 너무 세게 굴리면 찢어진다.
  */
 export default function Balling({
-  shape,
   name,
   onDone,
 }: {
-  shape: Shape
   name: string
   onDone: (tension: number) => void
 }) {
@@ -94,8 +91,18 @@ export default function Balling({
         </p>
       </header>
 
-      <div className="bl__dough">
-        <CharacterSprite shape={shape} scale={0.85} mood={stopped && ball === 'torn' ? 'hurt' : 'idle'} />
+      {/*
+        굴리는 동작. 손이 도우를 원을 그리듯 밀고, 도우는 그 아래에서 함께 돈다.
+        장력이 오를수록 빨라진다 — 표면이 잡혀 갈수록 손이 바빠지는 그림이다.
+      */}
+      <div className={`bl__dough${stopped ? ' is-stopped' : ''}`}>
+        <span className="bl__palm" aria-hidden="true" />
+        <span
+          className="bl__roller"
+          style={{ animationDuration: `${Math.max(0.34, 1.15 - tension / 130)}s` }}
+        >
+          <CharacterSprite scale={0.85} mood={stopped && ball === 'torn' ? 'hurt' : 'idle'} />
+        </span>
         <b className="bl__name">{name}</b>
       </div>
 

@@ -75,7 +75,7 @@ type StageRec = { stage: number; turns: number; taste: Taste | undefined; won: b
 
 function playRun(face: Face, seed: number): { cleared: boolean; stages: StageRec[] } {
   const rng = mulberry32(seed)
-  let run = createRun('round', '도우', face)
+  let run = createRun('도우', face)
   const stages: StageRec[] = []
 
   for (let stage = 1; stage <= 10; stage++) {

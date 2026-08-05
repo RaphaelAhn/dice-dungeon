@@ -86,7 +86,7 @@ export const PORTIONS: readonly PortionSpec[] = [
      * 자리가 가장 많은 대신 가장 굼뜨다. 손놀림을 크게 깎아 두어야
      * '무조건 큰 게 좋다'가 안 된다 — 원판이 정하는 것이라 더 그렇다.
      */
-    gain: { hp: 22, atk: 2, spd: -11, luk: -2 },
+    gain: { hp: 26, atk: 3, spd: -9, luk: -2 },
     desc: '한 판이 크다. 자리는 가장 많지만 손이 많이 늦다.',
   },
 ]
