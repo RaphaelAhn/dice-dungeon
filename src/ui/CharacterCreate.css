@@ -58,6 +58,18 @@
   box-shadow: 0 0 28px rgba(187, 68, 32, 0.18);
 }
 
+/*
+ * 안 고른 쪽에 마우스를 올렸을 때. 고른 것과는 확실히 달라야 한다 —
+ * 예전에는 마우스만 올려도 선택이 옮겨 가서, 손을 움직이면 골라 둔 도우가
+ * 어두워졌다. 지금은 "누를 수 있다"까지만 말하고 선택은 건드리지 않는다.
+ */
+.cc__card:not(.is-on):hover,
+.cc__card:not(.is-on):focus-visible {
+  filter: grayscale(0.45) brightness(0.88);
+  border-color: var(--line-strong);
+  outline: none;
+}
+
 .cc__name {
   font-size: 15px;
   font-weight: 700;

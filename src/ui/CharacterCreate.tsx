@@ -56,12 +56,17 @@ export default function CharacterCreate({
         <p>모양만 다릅니다. 시작 능력은 같습니다.</p>
       </header>
 
+      {/*
+        마우스를 올리는 것만으로 선택이 옮겨 가면 안 된다. 고르고 나서 손을
+        움직였을 뿐인데 골라 둔 도우가 어두워졌다. 타이틀 메뉴는 커서라
+        마우스를 따라가도 되지만, 여기는 선택이다 — 누른 것이 남아야 한다.
+      */}
       <div className="cc__stage">
         {SHAPES.map((g, i) => (
           <button
             key={g}
             className={i === index ? 'cc__card is-on' : 'cc__card'}
-            onMouseEnter={() => setIndex(i)}
+            aria-pressed={i === index}
             onClick={() => setIndex(i)}
           >
             <CharacterSprite shape={g} scale={0.72} />
