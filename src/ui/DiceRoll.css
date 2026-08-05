@@ -261,3 +261,20 @@
     animation: none;
   }
 }
+
+/* 다 익었지만 결과가 아직 안 나온 사이 — 북이 울리는 동안이다 */
+.dr__wait--done {
+  color: var(--accent);
+  font-weight: 700;
+  animation: dr-throb 0.42s ease-in-out infinite;
+}
+@keyframes dr-throb {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dr__wait--done {
+    animation: none;
+  }
+}

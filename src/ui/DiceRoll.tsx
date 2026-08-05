@@ -11,7 +11,30 @@ const ROLL_MS = 1400
 /** 굴리는 동안 눈이 바뀌는 간격 */
 const TICK_MS = 70
 
-type Phase = 'ready' | 'rolling' | 'done'
+/*
+ * 숙성이 끝나는 순간의 소리 순서.
+ *
+ * 전자레인지를 흉내낸다 — 도는 동안 남은 시간을 세다가, 다 되면 땡 하고,
+ * 두구두구 끌다가, 결과가 나온다. 소리만 겹쳐 놓으면 다 됐다는 신호와
+ * 결과 발표가 한 덩어리로 들려서 뜸이 안 생긴다.
+ *
+ * 그래서 화면도 같이 미룬다. 땡 소리가 나는데 값이 이미 떠 있으면
+ * 두구두구가 아무것도 안 기다리는 북이 된다.
+ */
+const BEEP_MS = 340
+/*
+ * 북은 0.62초 만에 잦아든다(파형 실측). 900 으로 잡았더니 북이 끝나고
+ * 발표까지 260ms 가 비어, 뜸이 아니라 끊긴 것처럼 들렸다.
+ * 북의 마지막 타에 팡파레가 얹히도록 맞춘다.
+ */
+const DRUM_MS = 640
+
+/*
+ * 'waiting' 은 다 익었지만 결과를 아직 안 보여 주는 사이다.
+ * 땡 소리와 북소리가 흐르는 동안이며, 이 틈이 없으면 두구두구가
+ * 아무것도 안 기다리는 북이 된다.
+ */
+type Phase = 'ready' | 'rolling' | 'waiting' | 'done'
 
 export default function DiceRoll({
   shape,
@@ -41,27 +64,36 @@ export default function DiceRoll({
     const settled = rollDice()
     const started = Date.now()
     // 발효도는 0 에서 결과값까지 차오르고, 온도는 끝까지 흔들린다.
-    /*
-     * 게이지가 움직일 때마다 딸깍인다. 매 틱마다 내면 너무 촘촘해
-     * 지글거리는 소리가 되므로 두 번에 한 번만 낸다.
-     */
-    let tick = 0
     const spin = setInterval(() => {
-      if (tick++ % 2 === 0) play('tick')
       const t = Math.min(1, (Date.now() - started) / ROLL_MS)
       setGauge({
         temp: Math.round(-1 + Math.random() * 12),
         ferment: Math.round(t * DICE[settled].ferment),
       })
     }, TICK_MS)
+
+    // 숫자가 바뀌는 속도(70ms)로 소리를 내면 지글거린다. 세는 소리는 따로 둔다.
+    // setInterval 은 첫 박을 건너뛴다. 누르자마자 세기 시작해야 한다.
+    play('beep')
+    const counting = setInterval(() => play('beep'), BEEP_MS)
+
     const stop = setTimeout(() => {
       clearInterval(spin)
+      clearInterval(counting)
+      // 게이지는 여기서 멈춘다 — 다 익었다는 것까지만 알린다
       setGauge({ temp: DICE[settled].temp, ferment: DICE[settled].ferment })
-      setResult(settled)
-      setPhase('done')
-      play('select')
+      setPhase('waiting')
+      play('ding')
+      // 땡 여운이 반쯤 남았을 때 북이 들어와야 끊긴 느낌이 안 난다
+      const drum = setTimeout(() => play('drumroll'), 420)
+      const reveal = setTimeout(() => {
+        setResult(settled)
+        setPhase('done')
+        play('tada')
+      }, 420 + DRUM_MS)
+      timers.current.push(drum, reveal)
     }, ROLL_MS)
-    timers.current.push(spin, stop)
+    timers.current.push(spin, counting, stop)
   }
 
   useEffect(() => {
@@ -109,6 +141,7 @@ export default function DiceRoll({
           <p className="dr__wait">숙성을 시작해 이 도우의 시작 능력을 정하세요.</p>
         )}
         {phase === 'rolling' && <p className="dr__wait">숙성 중…</p>}
+        {phase === 'waiting' && <p className="dr__wait dr__wait--done">다 익었다…</p>}
         {phase === 'done' && rolledFace && (
           <>
             <div className="dr__card">
@@ -123,8 +156,8 @@ export default function DiceRoll({
 
       <footer className="dr__foot">
         {phase !== 'done' ? (
-          <button className="dr__btn" onClick={roll} disabled={phase === 'rolling'}>
-            {phase === 'rolling' ? '숙성 중…' : '도우 숙성 시작'}
+          <button className="dr__btn" onClick={roll} disabled={phase !== 'ready'}>
+            {phase === 'ready' ? '도우 숙성 시작' : '숙성 중…'}
           </button>
         ) : (
           <button className="dr__btn dr__btn--go" onClick={() => result && onStart(result)}>

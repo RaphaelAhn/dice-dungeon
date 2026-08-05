@@ -34,6 +34,8 @@ type Noise = {
   at?: number
   /** 이 주파수 아래를 깎는다. 높일수록 얇고 날카로워진다 */
   hp?: number
+  /** 이 주파수 위를 깎는다. 낮출수록 둔하고 묵직해진다 — 북에 쓴다 */
+  lp?: number
 }
 
 type Spec = { tones?: Tone[]; noise?: Noise[] }
@@ -148,7 +150,14 @@ function noise(n: Noise, now: number): void {
     const f = ctx.createBiquadFilter()
     f.type = 'highpass'
     f.frequency.value = n.hp
-    src.connect(f)
+    node.connect(f)
+    node = f
+  }
+  if (n.lp) {
+    const f = ctx.createBiquadFilter()
+    f.type = 'lowpass'
+    f.frequency.value = n.lp
+    node.connect(f)
     node = f
   }
   node.connect(g).connect(master)
@@ -254,6 +263,71 @@ const SPECS = {
   },
   /** 주사위 한 칸 구를 때 */
   tick: { noise: [{ dur: 0.03, vol: 0.2, hp: 1800 }] },
+
+  /* --- 숙성 (전자레인지 → 땡 → 두구두구 → 팡파레) --- */
+  /**
+   * 카운트. 전자레인지가 남은 시간을 세는 소리 — 맑은 사각파 한 점.
+   * 잡음(tick)이 아니라 음정이 있어야 '기계가 세고 있다'로 들린다.
+   */
+  beep: { tones: [{ from: 880, dur: 0.06, vol: 0.3, wave: 'square' as Wave }] },
+
+  /**
+   * 땡! 다 됐다.
+   *
+   * 종소리는 배음이 정수배에서 살짝 어긋나 있다. 정확히 2배·3배로 쌓으면
+   * 오르간처럼 들리고 종이 안 된다. 그래서 2.02·2.98 로 비껴 둔다.
+   * 여운이 길어야 '땡—' 하고 남는다.
+   */
+  ding: {
+    noise: [{ dur: 0.03, vol: 0.18, hp: 3000 }],
+    tones: [
+      { from: 1046, dur: 1.1, vol: 0.3, wave: 'sine' as Wave },
+      { from: 2113, dur: 0.9, vol: 0.16, wave: 'sine' as Wave },
+      { from: 3117, dur: 0.6, vol: 0.09, wave: 'sine' as Wave },
+      { from: 523, dur: 1.2, vol: 0.12, wave: 'triangle' as Wave },
+    ],
+  },
+
+  /**
+   * 두구두구두구. 잡음을 낮게 깎아 북 가죽처럼 쓰고 아래에 몸통을 깐다.
+   * 뒤로 갈수록 빨라지고 커진다 — 그래야 무언가 나올 것 같아진다.
+   */
+  drumroll: {
+    noise: Array.from({ length: 22 }, (_, i) => {
+      const t = i / 21
+      return {
+        // 간격이 0.055 → 0.028 로 좁아진다
+        at: i * (0.055 - t * 0.027),
+        dur: 0.05,
+        vol: 0.1 + t * 0.16,
+        lp: 900,
+      }
+    }),
+    tones: Array.from({ length: 22 }, (_, i) => {
+      const t = i / 21
+      return {
+        at: i * (0.055 - t * 0.027),
+        from: 96,
+        to: 62,
+        dur: 0.045,
+        vol: 0.12 + t * 0.14,
+        wave: 'sine' as Wave,
+      }
+    }),
+  },
+
+  /** 결과 발표 — 도-미-솔-도 를 올라간 뒤 화음을 길게 놓는다 */
+  tada: {
+    tones: [
+      { from: 523, dur: 0.1, vol: 0.28, wave: 'triangle' as Wave },
+      { from: 659, dur: 0.1, at: 0.08, vol: 0.28, wave: 'triangle' as Wave },
+      { from: 784, dur: 0.1, at: 0.16, vol: 0.28, wave: 'triangle' as Wave },
+      { from: 1047, dur: 0.62, at: 0.25, vol: 0.3, wave: 'triangle' as Wave },
+      { from: 659, dur: 0.62, at: 0.25, vol: 0.15, wave: 'sine' as Wave },
+      { from: 784, dur: 0.62, at: 0.25, vol: 0.13, wave: 'sine' as Wave },
+      { from: 262, dur: 0.66, at: 0.25, vol: 0.14, wave: 'triangle' as Wave },
+    ],
+  },
   /** 굽기 — 화덕에 들어간다 */
   bake: {
     noise: [{ dur: 0.5, vol: 0.2, hp: 300 }],
