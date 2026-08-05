@@ -25,6 +25,13 @@ type Tone = {
   vol?: number
   /** 시작 지연(초) */
   at?: number
+  /**
+   * 크기를 그대로 물고 있는 시간(초). 이만큼 지난 뒤부터 사그라든다.
+   *
+   * 없으면 소리가 나자마자 곧바로 줄기 시작한다 — 짧게 치는 소리에는 맞지만
+   * 길게 끄는 음이나 밑에 깔아 두는 음은 이게 없으면 다 꺼져 버린다.
+   */
+  hold?: number
 }
 
 /** 부딪히는 소리. 음정이 없는 잡음을 짧게 끊어 쓴다. */
@@ -124,8 +131,11 @@ function tone(t: Tone, now: number): void {
    * 0 에서 exponential 을 시작할 수 없어 아주 작은 값에서 출발한다.
    */
   const vol = t.vol ?? 0.5
+  const rise = Math.min(0.012, t.dur * 0.3)
   g.gain.setValueAtTime(0.0001, at)
-  g.gain.exponentialRampToValueAtTime(vol, at + Math.min(0.012, t.dur * 0.3))
+  g.gain.exponentialRampToValueAtTime(vol, at + rise)
+  // 물고 있는 구간. 끝을 넘지 않게 막아 둔다 — 넘으면 램프 순서가 뒤집힌다.
+  if (t.hold) g.gain.setValueAtTime(vol, Math.min(at + rise + t.hold, end - 0.01))
   g.gain.exponentialRampToValueAtTime(0.0001, end)
 
   osc.connect(g).connect(master)
@@ -236,14 +246,30 @@ const SPECS = {
       { from: 784, dur: 0.26, at: 0.2, vol: 0.32, wave: 'triangle' as Wave },
     ],
   },
-  /** 피자 완성 — 클리어보다 한 음 더 간다 */
+  /**
+   * 피자 완성 — 판 하나가 끝나는 자리다. 짧은 효과음이 아니라 작은 곡으로 간다.
+   *
+   * 도-미-솔-도-미-솔 로 두 옥타브를 타고 올라가 꼭대기에서 물고, 그 아래
+   * 장3화음을 깔아 둔다. 마지막에 한 번 더 높이 얹어 여운을 남긴다.
+   */
   finish: {
     tones: [
-      { from: 523, dur: 0.12, vol: 0.3, wave: 'triangle' as Wave },
-      { from: 659, dur: 0.12, at: 0.11, vol: 0.3, wave: 'triangle' as Wave },
-      { from: 784, dur: 0.12, at: 0.22, vol: 0.3, wave: 'triangle' as Wave },
-      { from: 1047, dur: 0.42, at: 0.33, vol: 0.34, wave: 'triangle' as Wave },
-      { from: 784, dur: 0.42, at: 0.33, vol: 0.16, wave: 'sine' as Wave },
+      // 올라가는 계단
+      { from: 523, dur: 0.16, vol: 0.3, wave: 'triangle' as Wave },
+      { from: 659, dur: 0.16, at: 0.13, vol: 0.3, wave: 'triangle' as Wave },
+      { from: 784, dur: 0.16, at: 0.26, vol: 0.3, wave: 'triangle' as Wave },
+      { from: 1047, dur: 0.2, at: 0.39, vol: 0.32, wave: 'triangle' as Wave },
+      { from: 1319, dur: 0.2, at: 0.55, vol: 0.32, wave: 'triangle' as Wave },
+      // 꼭대기 — 물고 있다가 길게 사그라든다
+      { from: 1568, dur: 1.5, at: 0.71, vol: 0.34, hold: 0.45, wave: 'triangle' as Wave },
+      // 아래에 깔리는 장3화음
+      { from: 523, dur: 1.9, at: 0.71, vol: 0.12, hold: 0.7, wave: 'sine' as Wave },
+      { from: 659, dur: 1.9, at: 0.71, vol: 0.11, hold: 0.7, wave: 'sine' as Wave },
+      { from: 784, dur: 1.9, at: 0.71, vol: 0.1, hold: 0.7, wave: 'sine' as Wave },
+      { from: 131, dur: 2.4, at: 0.71, vol: 0.16, hold: 0.9, wave: 'triangle' as Wave },
+      // 마지막 한 번 더 — 여운
+      { from: 2093, dur: 1.5, at: 2.2, vol: 0.2, hold: 0.2, wave: 'sine' as Wave },
+      { from: 1047, dur: 1.6, at: 2.2, vol: 0.18, hold: 0.3, wave: 'triangle' as Wave },
     ],
   },
   /**
@@ -254,15 +280,27 @@ const SPECS = {
    * 톱니를 겹쳐 맥놀이로 시큼하게 만든 뒤, 바닥에 둔탁하게 떨군다.
    */
   spoil: {
-    noise: [
-      { dur: 0.18, vol: 0.16, lp: 700 },
-      { dur: 0.3, vol: 0.2, at: 0.78, lp: 320 },
-    ],
+    noise: [{ dur: 0.5, vol: 0.12, lp: 600 }],
     tones: [
-      { from: 300, to: 55, dur: 1.0, vol: 0.36, wave: 'sawtooth' as Wave },
-      // 6Hz 어긋나게 겹친다. 맞물리지 않아 웅웅거리고, 그게 상한 느낌을 만든다
-      { from: 306, to: 57, dur: 1.0, vol: 0.24, wave: 'sawtooth' as Wave },
-      { from: 92, to: 44, dur: 0.42, at: 0.76, vol: 0.38, wave: 'sine' as Wave },
+      /*
+       * 가락은 가단조 하행 — 라·솔·파·미. 내려가는 단조는 그것만으로 처진다.
+       * 음을 짧게 끊지 않고 물었다가 길게 놓아, 서두르지 않는 슬픔으로 만든다.
+       */
+      { from: 440, dur: 1.1, vol: 0.26, hold: 0.3, wave: 'triangle' as Wave },
+      { from: 392, dur: 1.1, at: 0.75, vol: 0.26, hold: 0.3, wave: 'triangle' as Wave },
+      { from: 349, dur: 1.2, at: 1.5, vol: 0.26, hold: 0.35, wave: 'triangle' as Wave },
+      { from: 330, dur: 2.6, at: 2.3, vol: 0.28, hold: 0.9, wave: 'triangle' as Wave },
+      // 밑에 깔리는 낮은 라. 처음부터 끝까지 깔려 있어야 가라앉는다
+      { from: 110, dur: 6.2, vol: 0.2, hold: 3.6, wave: 'sine' as Wave },
+      // 5도(미)를 뒤늦게 얹는다. 화음이 닫히면서 체념하는 자리다
+      { from: 165, dur: 3.0, at: 2.3, vol: 0.15, hold: 1.4, wave: 'sine' as Wave },
+      /*
+       * 3Hz 어긋난 짝. 맞물리지 않아 아주 느리게 웅웅거린다 —
+       * 소리가 곱게 안 나고 살짝 물러 있는 느낌이 여기서 나온다.
+       */
+      { from: 333, dur: 2.6, at: 2.3, vol: 0.12, hold: 0.9, wave: 'triangle' as Wave },
+      // 마지막에 한 번 더 가라앉는다
+      { from: 220, to: 82, dur: 2.4, at: 3.8, vol: 0.22, wave: 'sine' as Wave },
     ],
   },
 
@@ -271,14 +309,34 @@ const SPECS = {
    * 이쪽은 타는 소리다. 잡음을 높게 남겨 지글거리게 두고 위에서 눌러 끈다.
    */
   burnt: {
+    /*
+     * 어둡게 간다 — 상함이 '슬픔'이라면 이쪽은 '무거움'이다.
+     * 음을 낮게 깔고, 반음 아래 트라이톤을 겹쳐 풀리지 않는 불협을 만든다.
+     * 잡음은 끝까지 남겨 계속 타고 있게 둔다.
+     */
     noise: [
-      { dur: 0.9, vol: 0.24, hp: 1800 },
-      { dur: 0.16, vol: 0.18, at: 0.34, hp: 3200 },
-      { dur: 0.16, vol: 0.16, at: 0.58, hp: 3200 },
+      /*
+       * 지글거림은 '탄다'를 말해 주지만 크면 소리가 얇아진다. 처음 쟀을 때
+       * 영교차율이 상함의 2.4배로 나왔다 — 어두운 게 아니라 쉬익거리는 쪽이었다.
+       * 잡음을 낮추고 어둠은 아래 저역이 맡는다.
+       */
+      { dur: 2.6, vol: 0.1, hp: 2200 },
+      { dur: 0.3, vol: 0.09, at: 0.9, hp: 3400 },
+      { dur: 0.3, vol: 0.08, at: 1.7, hp: 3400 },
+      { dur: 0.9, vol: 0.2, at: 2.9, lp: 300 },
     ],
     tones: [
-      { from: 430, to: 88, dur: 0.75, vol: 0.24, wave: 'square' as Wave },
-      { from: 215, to: 52, dur: 0.9, at: 0.12, vol: 0.2, wave: 'triangle' as Wave },
+      // 낮은 솔. 바닥을 깔고 오래 버틴다
+      { from: 98, dur: 4.4, vol: 0.36, hold: 2.8, wave: 'sawtooth' as Wave },
+      /*
+       * 트라이톤(증4도). 서양 음악에서 가장 안 풀리는 사이라 오래 들으면
+       * 불안해진다 — 어둡게 만들려면 화음이 닫히면 안 된다.
+       */
+      { from: 139, dur: 4.0, at: 0.3, vol: 0.24, hold: 2.4, wave: 'sawtooth' as Wave },
+      // 위에서 천천히 내려앉아 덮는다
+      { from: 392, to: 104, dur: 3.2, at: 0.15, vol: 0.18, wave: 'triangle' as Wave },
+      // 마지막으로 더 아래로 꺼진다
+      { from: 78, to: 38, dur: 1.6, at: 3.4, vol: 0.3, wave: 'sine' as Wave },
     ],
   },
 
