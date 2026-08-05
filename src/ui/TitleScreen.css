@@ -100,6 +100,27 @@
   opacity: 0.6;
 }
 
+/* 소리 끄기. 눈에 띄되 메뉴를 밀어내지 않게 작게 둔다. */
+.title__mute {
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.title__mute:hover,
+.title__mute:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  outline: none;
+}
+.title__mute[aria-pressed='true'] {
+  opacity: 0.62;
+}
+
 @media (max-width: 560px) {
   .title__logo {
     font-size: 44px;

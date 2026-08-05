@@ -12,11 +12,12 @@ import {
 } from '../core/battle'
 import type { Encounter } from '../core/enemy'
 import { STAT_SHORT } from '../core/character'
-import { maxMp, type Run } from '../core/run'
-import { skillsOfTaste } from '../core/skill'
+import { FINAL_STAGE, maxMp, type Run } from '../core/run'
+import { SKILLS, skillsOfTaste } from '../core/skill'
 import { TASTE_LABEL } from '../core/topping'
 import { formatClock, stageLimitMs, TURN_LIMIT_MS } from '../core/timer'
 import CharacterSprite, { type Mood } from './CharacterSprite'
+import { play } from './sound'
 import './Battle.css'
 
 /** 한 조각을 보여 주는 시간 ⚠ 짧으면 못 읽고 길면 답답하다 */
@@ -92,10 +93,37 @@ export default function Battle({
     const hit = hp < lastHp.current
     lastHp.current = hp
     if (!hit) return
+    play('hurt')
     setStruck(true)
     const t = setTimeout(() => setStruck(false), 380)
     return () => clearTimeout(t)
   }, [state.player.hp])
+
+  /*
+   * 소리도 같은 방식으로 상태 변화에서 뽑는다 — 적 신선도가 줄면 맞은 것이고,
+   * 수가 줄면 쓰러뜨린 것이다.
+   *
+   * 치명타만 로그를 본다. 어느 타격이 치명타였는지는 상태에 안 남고 로그에만
+   * 있다. 표정 때와 달리 여기서는 로그를 봐도 된다 — 문구가 바뀌면 치명타
+   * 소리가 보통 타격 소리로 돌아갈 뿐이고, 그건 덤이지 정보가 아니다.
+   */
+  const foeHp = state.enemies.reduce((n, e) => n + e.hp, 0)
+  const foeLeft = state.enemies.filter((e) => e.hp > 0).length
+  const lastFoe = useRef({ hp: foeHp, left: foeLeft })
+  useEffect(() => {
+    const prev = lastFoe.current
+    lastFoe.current = { hp: foeHp, left: foeLeft }
+    if (foeLeft < prev.left) play('down')
+    else if (foeHp < prev.hp) play(state.log.some((l) => l.includes('치명타')) ? 'crit' : 'hit')
+    // 로그는 소리를 고르는 데만 쓴다. 로그가 바뀌었다고 소리가 또 나면 안 된다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [foeHp, foeLeft])
+
+  useEffect(() => {
+    if (!state.over) return
+    // 마지막 라운드를 이기면 피자가 완성된다 — 라운드 클리어보다 한 음 더 간다.
+    play(state.over === 'win' ? (state.stage >= FINAL_STAGE ? 'finish' : 'clear') : 'over')
+  }, [state.over, state.stage])
 
   /* 무엇이 더 급한지는 여기서 정한다. 위가 이긴다. */
   const mood: Mood = state.over
@@ -117,6 +145,13 @@ export default function Battle({
     if (busy.current || cur.over) return
     busy.current = true
     setMenu('root')
+    /*
+     * 고른 즉시 소리가 나야 누른 것이 먹혔는지 안다. 통상 공격은 여기서
+     * 소리를 내지 않는다 — 맞았을 때 나는 소리와 겹쳐 두 번 들린다.
+     */
+    if (cmd.type === 'defend') play('guard')
+    else if (cmd.type === 'item') play(cur.potions > 0 ? 'heal' : 'back')
+    else if (cmd.type === 'skill') play(cur.mp >= SKILLS[cmd.id].mp ? 'skill' : 'back')
     // 대상은 커서가 정한다. defend/item 은 대상이 없다.
     const aimed: Command =
       cmd.type === 'attack' || cmd.type === 'skill' ? { ...cmd, target: targetRef.current } : cmd

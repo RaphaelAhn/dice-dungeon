@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { applyCard, consumeTopTier, makeOffer, TIER_META, type Card, type Offer } from '../core/reward'
 import { PICKS_PER_STOP, type Run } from '../core/run'
+import { play } from './sound'
 import './Reward.css'
 
 const SLOT_LABEL: Record<Card['slot'], string> = {
@@ -19,6 +20,7 @@ export default function Reward({ run, onDone }: { run: Run; onDone: (next: Run) 
   const [offer, setOffer] = useState<Offer>(() => makeOffer(run))
 
   const take = (card: Card) => {
+    play('card')
     let next = applyCard(cur, card)
     if (offer.usedTopTier) next = consumeTopTier(next)
 

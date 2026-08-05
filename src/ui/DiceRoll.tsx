@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BASE_STATS, STAT_META, type Shape, type Stats } from '../core/character'
 import { applyFace, DICE, rollDice, type Face } from '../core/dice'
 import CharacterSprite from './CharacterSprite'
+import { play } from './sound'
 import Ferment from './Ferment'
 import './DiceRoll.css'
 
@@ -40,7 +41,13 @@ export default function DiceRoll({
     const settled = rollDice()
     const started = Date.now()
     // 발효도는 0 에서 결과값까지 차오르고, 온도는 끝까지 흔들린다.
+    /*
+     * 게이지가 움직일 때마다 딸깍인다. 매 틱마다 내면 너무 촘촘해
+     * 지글거리는 소리가 되므로 두 번에 한 번만 낸다.
+     */
+    let tick = 0
     const spin = setInterval(() => {
+      if (tick++ % 2 === 0) play('tick')
       const t = Math.min(1, (Date.now() - started) / ROLL_MS)
       setGauge({
         temp: Math.round(-1 + Math.random() * 12),
@@ -52,6 +59,7 @@ export default function DiceRoll({
       setGauge({ temp: DICE[settled].temp, ferment: DICE[settled].ferment })
       setResult(settled)
       setPhase('done')
+      play('select')
     }, ROLL_MS)
     timers.current.push(spin, stop)
   }

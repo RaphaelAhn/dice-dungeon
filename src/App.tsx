@@ -7,6 +7,7 @@ import Reward from './ui/Reward'
 import Result, { type ResultKind } from './ui/Result'
 import Recruit from './ui/Recruit'
 import Codex from './ui/Codex'
+import { play } from './ui/sound'
 import type { Shape } from './core/character'
 import { DICE, type Face } from './core/dice'
 import { BAKE_STAGE } from './core/pizza'
@@ -75,6 +76,8 @@ export default function App() {
   const advance = useCallback((cur: Run) => {
     let next: Run = { ...cur, stage: cur.stage + 1 }
     if (next.stage >= BAKE_STAGE) next = bake(next)
+    // 굽기는 판에 한 번뿐이다. 없던 피자가 생긴 그 순간에만 소리를 낸다.
+    if (!cur.pizza && next.pizza) play('bake')
     const drawn = drawEncounter(refillMp(next))
     setRun(drawn.run)
     setEnc(drawn.enc)

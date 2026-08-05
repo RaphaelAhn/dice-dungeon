@@ -3,6 +3,7 @@ import { STAT_LABEL, STAT_SHORT } from '../core/character'
 import type { EnemyDef } from '../core/enemy'
 import { canAddTopping, type Run } from '../core/run'
 import CharacterSprite from './CharacterSprite'
+import { play } from './sound'
 import { KIND_LABEL, MAX_TOPPINGS, TASTE_LABEL, toppingStats } from '../core/topping'
 import './Recruit.css'
 
@@ -29,6 +30,7 @@ export default function Recruit({
       const i = Number(e.key) - 1
       if (!full && defeated[i]) {
         e.preventDefault()
+        play('place')
         onDone(defeated[i])
       } else if (e.key === 'Escape' || e.key === '0') {
         e.preventDefault()
@@ -65,7 +67,10 @@ export default function Recruit({
             <button
               key={t.id}
               className="rc__card"
-              onClick={() => onDone(e)}
+              onClick={() => {
+                play('place')
+                onDone(e)
+              }}
               disabled={full}
               title={full ? '도우가 가득 찼습니다' : undefined}
             >
