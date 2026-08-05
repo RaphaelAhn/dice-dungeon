@@ -25,13 +25,32 @@ export type Mood = 'idle' | 'act' | 'guard' | 'weak' | 'hurt' | 'win' | 'lose'
  * 토핑이 놓이는 자리 — 도우 중심 기준 극좌표(각도°, 반지름 비율).
  * 얼굴(중앙)을 피해 가장자리를 돌며 놓인다. 상한 6칸에 맞춰 여섯 자리.
  */
+/*
+ * 얼굴을 피해 가장자리를 도는 여섯 자리 (각도°, 반지름 비율).
+ *
+ * 전에는 여섯 중 셋이 두 눈과 입을 덮고 있었다. 좌표를 계산해 보니
+ * 205°·335° 자리가 눈에, 95° 자리가 입에 정확히 얹혔다.
+ *
+ * 고리를 넓히면 도우 밖으로 나가고 좁히면 얼굴을 덮는다 — 얼굴이 도우를
+ * 거의 다 차지해서 들어갈 틈이 없었다. 그래서 얼굴을 0.85 로 줄여
+ * 가장자리에 고리 하나를 냈다(.sprite__face).
+ *
+ * 자리는 손으로 찍지 않고 조건을 걸어 찾았다 — 표정 7종이 쓰는 눈·입 범위를
+ * 모두 피하고, 재료끼리 겹치지 않고, 크러스트 안쪽에 들어오는 배치.
+ * 좌우 대칭은 포기했다. 대칭으로 여섯을 놓으면 아래 한가운데가 반드시
+ * 입에 걸린다 — 쓰러짐 표정의 입이 가장 아래까지 내려오기 때문이다.
+ *
+ * 순서는 각도 순이 아니다. 하나씩 채워질 때 한쪽으로 쏠리지 않게
+ * 처음 셋을 120° 가량 벌려 두었다.
+ */
+const RING = 0.37
 const SPOTS: [number, number][] = [
-  [205, 0.36],
-  [335, 0.36],
-  [265, 0.38],
-  [150, 0.33],
-  [30, 0.33],
-  [95, 0.3],
+  [280, RING],
+  [25, RING],
+  [130, RING],
+  [220, RING],
+  [310, RING],
+  [250, RING],
 ]
 
 export default function CharacterSprite({
@@ -67,11 +86,27 @@ export default function CharacterSprite({
       <div className="sprite__stack">
         <span className="sprite__shadow" />
         <span className="sprite__body">
+          {/*
+            치즈. 재료를 올릴수록 진해진다.
+            여섯 개를 다 채워도 큰 도우에 점 여섯 개뿐이라 허전했다 — 가운데를
+            채워 줄 것이 필요한데, 소스는 보스를 잡아야 생기므로 그 전까지
+            도우가 계속 맨몸이었다.
+          */}
+          {solid.length > 0 && (
+            <i className="sprite__cheese" style={{ opacity: 0.22 + solid.length * 0.11 }} />
+          )}
           {/* 소스는 도우 위에 깔린다. 보스를 잡아야 생긴다. */}
           {sauce && <i className={`sprite__sauce sprite__sauce--${sauce.taste}`} />}
-          <i className="sprite__eye sprite__eye--l" />
-          <i className="sprite__eye sprite__eye--r" />
-          <i className="sprite__mouth" />
+          {/*
+            얼굴을 한 겹으로 묶어 통째로 줄인다. 부위마다 px 을 다시 잡으면
+            표정 7종의 눈·입 좌표를 전부 따라 고쳐야 하고, 한 곳만 빠뜨려도
+            그 표정에서만 얼굴이 어긋난다.
+          */}
+          <span className="sprite__face">
+            <i className="sprite__eye sprite__eye--l" />
+            <i className="sprite__eye sprite__eye--r" />
+            <i className="sprite__mouth" />
+          </span>
           {solid.slice(0, SPOTS.length).map((t, i) => {
             const [deg, r] = SPOTS[i]
             const rad = (deg * Math.PI) / 180
