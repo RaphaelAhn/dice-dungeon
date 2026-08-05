@@ -85,8 +85,149 @@
   transform: translateX(-50%);
   width: 20px;
   height: 8px;
-  border-bottom: 4px solid #4a3a22;
+  /* 눈보다 어둡다. 소스가 깔리면 4px 선은 붉은 바탕에 묻힌다. */
+  border-bottom: 4px solid #3b2412;
   border-radius: 0 0 12px 12px;
+}
+
+/* --- 표정 --- */
+/*
+ * 눈과 입 두 부위만 바꾼다. 기본은 위에 그려 둔 얌전한 얼굴이고
+ * 아래에서 상황별로 덮어쓴다.
+ *
+ * ⚠ 기울임·흔들림은 transform 이 아니라 독립 속성 rotate / translate 로 준다.
+ *   .sprite 는 sprite-idle 이, 재료는 sprite-drop 이 transform 을 쓰고 있어서
+ *   transform 으로 주면 애니메이션이 통째로 덮어 간다. forms.css 와 같은 이유다.
+ */
+
+/* 내 차례 — 눈을 좁히고 입을 벌린다 */
+.sprite--act .sprite__eye {
+  height: 11px;
+  top: 36px;
+}
+.sprite--act .sprite__mouth {
+  top: 54px;
+  width: 15px;
+  height: 13px;
+  border: none;
+  background: #3b2412;
+  border-radius: 46% 46% 50% 50%;
+}
+
+/* 방어 — 눈을 감고 입을 다문다 */
+.sprite--guard .sprite__eye {
+  height: 4px;
+  top: 40px;
+  border-radius: 2px;
+}
+.sprite--guard .sprite__mouth {
+  top: 58px;
+  width: 13px;
+  height: 0;
+  border-radius: 0;
+}
+
+/* 지침 — 신선도가 얼마 안 남았다. 눈이 처지고 입꼬리가 내려간다 */
+.sprite--weak .sprite__eye {
+  height: 8px;
+  top: 39px;
+}
+.sprite--weak .sprite__mouth {
+  top: 62px;
+  width: 18px;
+  border-bottom: none;
+  border-top: 4px solid #3b2412;
+  border-radius: 12px 12px 0 0;
+}
+
+/* 피격 — 눈을 찡그리고 입을 벌린다. 몸이 한 번 흔들린다 */
+.sprite--hurt .sprite__eye {
+  height: 5px;
+  top: 38px;
+  width: 12px;
+}
+.sprite--hurt .sprite__eye--l {
+  rotate: 18deg;
+}
+.sprite--hurt .sprite__eye--r {
+  rotate: -18deg;
+}
+.sprite--hurt .sprite__mouth {
+  top: 55px;
+  width: 14px;
+  height: 12px;
+  border: none;
+  background: #3b2412;
+  border-radius: 50% 50% 42% 42%;
+}
+.sprite--hurt .sprite__body {
+  animation: sprite-shake 0.34s ease-in-out;
+}
+
+/* 승리 — 눈이 반달이 되고 크게 웃는다 */
+.sprite--win .sprite__eye {
+  top: 33px;
+  width: 15px;
+  height: 9px;
+  background: none;
+  border-top: 4px solid #4a3a22;
+  border-radius: 14px 14px 0 0;
+}
+.sprite--win .sprite__eye--l {
+  left: 17px;
+}
+.sprite--win .sprite__eye--r {
+  right: 17px;
+}
+.sprite--win .sprite__mouth {
+  top: 53px;
+  width: 26px;
+  height: 14px;
+  border: none;
+  background: #3b2412;
+  border-radius: 0 0 26px 26px;
+}
+
+/* 쓰러짐 — 눈이 ×, 입꼬리가 내려간다 */
+.sprite--lose .sprite__eye {
+  top: 33px;
+  width: 14px;
+  height: 14px;
+  background: none;
+}
+.sprite--lose .sprite__eye--l {
+  left: 18px;
+}
+.sprite--lose .sprite__eye--r {
+  right: 18px;
+}
+.sprite--lose .sprite__eye::before,
+.sprite--lose .sprite__eye::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 14px;
+  height: 4px;
+  background: #4a3a22;
+  border-radius: 2px;
+}
+.sprite--lose .sprite__eye::before {
+  rotate: 42deg;
+}
+.sprite--lose .sprite__eye::after {
+  rotate: -42deg;
+}
+.sprite--lose .sprite__mouth {
+  top: 64px;
+  width: 16px;
+  border-bottom: none;
+  border-top: 4px solid #3b2412;
+  border-radius: 12px 12px 0 0;
+}
+/* 쓰러진 도우는 숨을 안 쉰다 */
+.sprite--lose {
+  animation: none;
 }
 
 @keyframes sprite-idle {
@@ -99,8 +240,22 @@
   }
 }
 
+@keyframes sprite-shake {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -5px 0;
+  }
+  75% {
+    translate: 5px 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .sprite {
+  .sprite,
+  .sprite--hurt .sprite__body {
     animation: none;
   }
 }

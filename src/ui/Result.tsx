@@ -45,7 +45,12 @@ export default function Result({
   return (
     <div className={`rs rs--${kind}`}>
       <div className="rs__dough">
-        <CharacterSprite shape={run.shape} scale={1.1} toppings={run.toppings} />
+        <CharacterSprite
+          shape={run.shape}
+          scale={1.1}
+          toppings={run.toppings}
+          mood={kind === 'clear' ? 'win' : 'lose'}
+        />
       </div>
 
       <h2 className="rs__title">{c.title}</h2>

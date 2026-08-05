@@ -12,6 +12,15 @@ const ART_W = 96
 const ART_H = 112
 
 /**
+ * 도우의 표정. 눈과 입 두 부위만 바꿔서 만든다 — 부위를 늘리면 자리마다
+ * 다시 맞춰야 하고, 여섯 칸 토핑과 겹치는 자리가 생긴다.
+ *
+ * 전투가 상황을 알려 주고 여기서는 그리기만 한다. 무엇이 더 급한지는
+ * 부르는 쪽이 정한다(Battle.tsx) — 쓰러짐 > 승리 > 피격 > 방어 > 지침.
+ */
+export type Mood = 'idle' | 'act' | 'guard' | 'weak' | 'hurt' | 'win' | 'lose'
+
+/**
  * 토핑이 놓이는 자리 — 도우 중심 기준 극좌표(각도°, 반지름 비율).
  * 얼굴(중앙)을 피해 가장자리를 돌며 놓인다. 상한 6칸에 맞춰 여섯 자리.
  */
@@ -28,11 +37,13 @@ export default function CharacterSprite({
   shape,
   scale = 4,
   toppings = [],
+  mood = 'idle',
 }: {
   shape: Shape
   scale?: number
   /** 도우에 올린 재료. 올린 순서대로 자리를 채운다. */
   toppings?: Topping[]
+  mood?: Mood
 }) {
   const sauce = toppings.find((t) => t.kind === 'sauce')
   const solid = toppings.filter((t) => t.kind !== 'sauce')
@@ -43,7 +54,7 @@ export default function CharacterSprite({
 
   return (
     <div
-      className={`sprite sprite--${shape}${sauce ? ' sprite--sauced' : ''}`}
+      className={`sprite sprite--${shape} sprite--${mood}${sauce ? ' sprite--sauced' : ''}`}
       style={{
         width: ART_W * scale,
         height: ART_H * scale,

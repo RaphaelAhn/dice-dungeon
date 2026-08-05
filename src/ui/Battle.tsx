@@ -16,7 +16,7 @@ import { maxMp, type Run } from '../core/run'
 import { skillsOfTaste } from '../core/skill'
 import { TASTE_LABEL } from '../core/topping'
 import { formatClock, stageLimitMs, TURN_LIMIT_MS } from '../core/timer'
-import CharacterSprite from './CharacterSprite'
+import CharacterSprite, { type Mood } from './CharacterSprite'
 import './Battle.css'
 
 /** 한 조각을 보여 주는 시간 ⚠ 짧으면 못 읽고 길면 답답하다 */
@@ -77,6 +77,40 @@ export default function Battle({
 
   const targetRef = useRef(target)
   targetRef.current = target
+
+  /*
+   * 맞은 직후 잠깐만 켜지는 표시. 신선도가 줄어드는 순간을 잡는다.
+   *
+   * 로그를 읽어서 판정하지 않는다 — 로그 문구가 바뀌면 같이 깨지고,
+   * 지속 피해처럼 문구가 여럿인 경우를 다 적어야 한다. 숫자가 줄었다는
+   * 사실 하나만 보면 원인이 무엇이든 똑같이 잡힌다.
+   */
+  const [struck, setStruck] = useState(false)
+  const lastHp = useRef(state.player.hp)
+  useEffect(() => {
+    const hp = state.player.hp
+    const hit = hp < lastHp.current
+    lastHp.current = hp
+    if (!hit) return
+    setStruck(true)
+    const t = setTimeout(() => setStruck(false), 380)
+    return () => clearTimeout(t)
+  }, [state.player.hp])
+
+  /* 무엇이 더 급한지는 여기서 정한다. 위가 이긴다. */
+  const mood: Mood = state.over
+    ? state.over === 'win'
+      ? 'win'
+      : 'lose'
+    : struck
+      ? 'hurt'
+      : state.player.statuses.some((s) => s.kind === 'guard')
+        ? 'guard'
+        : state.player.hp / state.player.maxHp < 0.3
+          ? 'weak'
+          : phase === 'mine'
+            ? 'act'
+            : 'idle'
 
   const act = useCallback((cmd: Command) => {
     const cur = stateRef.current
@@ -247,7 +281,7 @@ export default function Battle({
 
         <div className="bt__side bt__side--mine">
           <div className="bt__unit">
-            <CharacterSprite shape={run.shape} scale={0.72} toppings={run.toppings} />
+            <CharacterSprite shape={run.shape} scale={0.72} toppings={run.toppings} mood={mood} />
             <div className="bt__box bt__box--mine">
               <div className="bt__box-top">
                 <b className="bt__who">{run.name}</b>
