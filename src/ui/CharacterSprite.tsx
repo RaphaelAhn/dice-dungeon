@@ -40,17 +40,21 @@ export type Mood = 'idle' | 'act' | 'guard' | 'weak' | 'hurt' | 'win' | 'lose'
  * 좌우 대칭은 포기했다. 대칭으로 여섯을 놓으면 아래 한가운데가 반드시
  * 입에 걸린다 — 쓰러짐 표정의 입이 가장 아래까지 내려오기 때문이다.
  *
+ * 일곱 자리다. 여섯에서 늘렸고, 조건은 그대로 두고 다시 탐색했다 —
+ * 여덟은 재료를 16% 로 줄여야 들어가는데 그 크기면 실루엣이 뭉갠다.
+ *
  * 순서는 각도 순이 아니다. 하나씩 채워질 때 한쪽으로 쏠리지 않게
- * 처음 셋을 120° 가량 벌려 두었다.
+ * 처음 셋을 벌려 두었다.
  */
 const RING = 0.37
 const SPOTS: [number, number][] = [
-  [280, RING],
-  [25, RING],
+  [270, RING],
+  [50, RING],
+  [180, RING],
+  [315, RING],
   [130, RING],
-  [220, RING],
-  [310, RING],
-  [250, RING],
+  [225, RING],
+  [0, RING],
 ]
 
 export default function CharacterSprite({
