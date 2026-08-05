@@ -3,6 +3,7 @@ import { CODEX_TOTAL } from '../core/codex'
 import CharacterSprite from './CharacterSprite'
 import { GRADE_META } from '../core/pizza'
 import type { Run } from '../core/run'
+import { hush } from './sound'
 import './Result.css'
 
 export type ResultKind = 'lose' | 'timeout' | 'clear'
@@ -85,9 +86,20 @@ export default function Result({
     return () => window.removeEventListener('keydown', onKey)
   }, [onBack])
 
+  /*
+   * 이 화면을 떠날 때는 소리를 끊는다. 끝나는 소리는 5초 넘게 끄는데,
+   * 타이틀로 돌아간 뒤에도 죽는 소리가 계속 울리면 안 된다.
+   */
+  useEffect(() => hush, [])
+
   const c = COPY[kind]
   return (
-    <div className={`rs rs--${kind}`}>
+    /*
+     * 아무 데나 누르면 소리가 멎는다. 넘어가려는 사람을 소리가 붙잡으면 안 된다.
+     * pointerdown 이라 마우스와 손가락을 한 번에 받는다 — click 으로 두면
+     * 손을 뗄 때까지 기다리고, touchstart 로 두면 마우스를 놓친다.
+     */
+    <div className={`rs rs--${kind}`} onPointerDown={hush}>
       {kind === 'clear' && <Confetti />}
       <div className="rs__dough">
         <CharacterSprite

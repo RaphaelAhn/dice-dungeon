@@ -54,6 +54,44 @@ let master: GainNode | null = null
 let noiseBuf: AudioBuffer | null = null
 let muted = readMuted()
 
+/**
+ * 지금 울리고 있는(또는 울리기로 예약된) 소리들.
+ *
+ * 끝나는 소리는 5초 넘게 끈다. 다음으로 넘어가려는 사람을 소리가 붙잡으면
+ * 안 되므로 중간에 끊을 수 있어야 하는데, 한번 예약한 노드는 붙들고 있지
+ * 않으면 다시 만질 수 없다. 그래서 끝날 때까지 들고 있는다.
+ */
+const live = new Set<{ src: AudioScheduledSourceNode; gain: GainNode }>()
+
+function track(src: AudioScheduledSourceNode, gain: GainNode): void {
+  const entry = { src, gain }
+  live.add(entry)
+  // 제 수명을 다한 것은 스스로 빠진다. 안 그러면 한 판 내내 쌓인다.
+  src.onended = () => live.delete(entry)
+}
+
+/**
+ * 울리는 중인 소리를 모두 멈춘다.
+ *
+ * 곧바로 stop() 하면 파형이 잘려 '딱' 소리가 난다. 40ms 에 걸쳐 내린 뒤 끊는다 —
+ * 사람 귀에는 즉시로 들리면서 잡음은 안 생기는 길이다.
+ */
+export function hush(): void {
+  if (!ctx) return
+  const now = ctx.currentTime
+  for (const { src, gain } of live) {
+    try {
+      gain.gain.cancelScheduledValues(now)
+      gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), now)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04)
+      src.stop(now + 0.05)
+    } catch {
+      /* 이미 끝난 노드는 손댈 수 없다. 무시한다. */
+    }
+  }
+  live.clear()
+}
+
 function readMuted(): boolean {
   try {
     return localStorage.getItem(MUTE_KEY) === '1'
@@ -141,6 +179,7 @@ function tone(t: Tone, now: number): void {
   osc.connect(g).connect(master)
   osc.start(at)
   osc.stop(end + 0.02)
+  track(osc, g)
 }
 
 function noise(n: Noise, now: number): void {
@@ -173,6 +212,7 @@ function noise(n: Noise, now: number): void {
   node.connect(g).connect(master)
   src.start(at)
   src.stop(end + 0.02)
+  track(src, g)
 }
 
 /*
