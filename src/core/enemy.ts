@@ -44,6 +44,11 @@ function poolFor(kind: Encounter['kind']): Topping[] {
 /**
  * 라운드마다 적을 새로 뽑는다. 고정 표가 아니라 매 판 달라진다.
  * 같은 라운드에 같은 재료가 둘 나오지 않게 막는다.
+ *
+ * 맛도 겹치지 않게 막는다. 재료는 달라도 맛이 같으면 — 홍고추와 청양고추처럼
+ * 둘 다 매콤이면 — 쓰러뜨린 뒤 고를 것이 사실상 하나가 된다. 능력치도 같고
+ * 열리는 기술도 같아서 "이 재료를 올릴 것인가"라는 물음이 사라진다.
+ * 뽑을 게 모자라면 겹침을 허용한다. 라운드가 안 만들어지는 편이 더 나쁘다.
  */
 export function rollEncounter(
   stage: number,
@@ -58,9 +63,15 @@ export function rollEncounter(
   const pool = [...(fresh.length >= spec.count ? fresh : all)]
   const enemies: EnemyDef[] = []
 
+  const usedTastes = new Set<Taste>()
+
   for (let i = 0; i < spec.count; i++) {
-    const idx = Math.floor(rng() * pool.length)
-    const topping = pool.splice(idx, 1)[0]
+    // 아직 안 나온 맛만 남긴다. 남는 게 없으면 전체에서 뽑는다.
+    const untasted = pool.filter((t) => !usedTastes.has(t.taste))
+    const from = untasted.length > 0 ? untasted : pool
+    const topping = from[Math.floor(rng() * from.length)]
+    pool.splice(pool.indexOf(topping), 1)
+    usedTastes.add(topping.taste)
     enemies.push({
       name: topping.name,
       hp: spec.hp[i] ?? spec.hp[0],
