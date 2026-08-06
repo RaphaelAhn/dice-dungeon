@@ -1,0 +1,42 @@
+/*
+ * 손의 색과 선. 모양은 HandArt.tsx 의 도형이 정한다.
+ * 도우와 같은 빛 방향(좌상 광택 · 우하 그늘)을 쓴다.
+ */
+.hand {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* 오른손은 왼손을 뒤집어 쓴다 — 손가락이 안쪽(도우 쪽)을 향해야 한다 */
+.hand--right {
+  scale: -1 1;
+}
+
+.hand__palm,
+.hand__fingers rect,
+.hand__thumb {
+  fill: var(--skin, #f0c9a0);
+  stroke: var(--skin-line, #b98555);
+  stroke-width: 3.5;
+  stroke-linejoin: round;
+}
+
+/* 손가락은 손등보다 살짝 밝게 — 겹친 자리가 구분된다 */
+.hand__fingers rect {
+  fill: var(--skin-lit, #f7d9ba);
+}
+
+.hand__thumb {
+  /* 손등에서 비스듬히 벌어져 나온다. 수평으로 두면 다섯 번째 손가락이 된다. */
+  rotate: 14deg;
+  transform-origin: 55% 30%;
+}
+
+.hand__knuckle {
+  stroke: rgba(150, 95, 55, 0.45);
+  stroke-width: 3;
+  stroke-linecap: round;
+  fill: none;
+}

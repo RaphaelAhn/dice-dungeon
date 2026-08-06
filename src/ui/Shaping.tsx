@@ -9,6 +9,7 @@ import {
   type Stretch,
 } from '../core/forming'
 import CharacterSprite from './CharacterSprite'
+import HandArt from './HandArt'
 import { play } from './sound'
 import './Shaping.css'
 
@@ -156,7 +157,7 @@ export default function Shaping({
           disabled={phase !== 'playing'}
           aria-label="왼손"
         >
-          <span className="sh__palm" />
+          <HandArt side="left" />
           <b>←</b>
         </button>
 
@@ -170,7 +171,7 @@ export default function Shaping({
           disabled={phase !== 'playing'}
           aria-label="오른손"
         >
-          <span className="sh__palm" />
+          <HandArt side="right" />
           <b>→</b>
         </button>
       </div>

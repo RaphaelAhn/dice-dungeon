@@ -6,6 +6,7 @@ import {
   TENSION_TORN_FROM,
 } from '../core/forming'
 import CharacterSprite from './CharacterSprite'
+import HandArt from './HandArt'
 import { play } from './sound'
 import './Balling.css'
 
@@ -96,7 +97,9 @@ export default function Balling({
         장력이 오를수록 빨라진다 — 표면이 잡혀 갈수록 손이 바빠지는 그림이다.
       */}
       <div className={`bl__dough${stopped ? ' is-stopped' : ''}`}>
-        <span className="bl__palm" aria-hidden="true" />
+        <span className="bl__palm" aria-hidden="true">
+          <HandArt side="left" />
+        </span>
         <span
           className="bl__roller"
           style={{ animationDuration: `${Math.max(0.34, 1.15 - tension / 130)}s` }}
